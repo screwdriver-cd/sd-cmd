@@ -59,8 +59,8 @@ type Command struct {
 // New return API object
 func New() (API, error) {
 	api := &api{
-		baseURL:  config.SdAPIURL,
-		apiToken: config.SdAPIToken,
+		baseURL:  config.SDAPIURL,
+		apiToken: config.SDAPIToken,
 		client:   &http.Client{Timeout: timeoutSec * time.Second},
 	}
 	return API(api), nil
