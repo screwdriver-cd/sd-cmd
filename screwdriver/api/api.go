@@ -1,4 +1,4 @@
-package screwdriver
+package api
 
 import (
 	"net/http"

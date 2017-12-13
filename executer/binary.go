@@ -3,17 +3,17 @@ package executer
 import (
 	"os/exec"
 
-	"github.com/screwdriver-cd/sd-cmd/api/screwdriver"
+	sdapi "github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 // Binary is Binary Executer object
 type Binary struct {
-	Cmd *screwdriver.Command
+	Cmd *sdapi.Command
 	Arg []string
 }
 
 // NewBinary return Binary object
-func NewBinary(cmd *screwdriver.Command, arg []string) (*Binary, error) {
+func NewBinary(cmd *sdapi.Command, arg []string) (*Binary, error) {
 	binary := &Binary{
 		Cmd: cmd,
 		Arg: arg,

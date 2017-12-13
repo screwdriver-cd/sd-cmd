@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/screwdriver-cd/sd-cmd/api/screwdriver"
+	sdapi "github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 const (
@@ -19,7 +19,7 @@ type API interface {
 type api struct {
 	baseURL string
 	client  *http.Client
-	meta    *screwdriver.Command
+	meta    *sdapi.Command
 }
 
 // ResponseError is an error response from the Store API
@@ -32,11 +32,11 @@ type ResponseError struct {
 type Command struct {
 	Type string
 	Body []byte
-	Meta *screwdriver.Command
+	Meta *sdapi.Command
 }
 
 // New return API object
-func New(meta *screwdriver.Command) (API, error) {
+func New(meta *sdapi.Command) (API, error) {
 	api := &api{
 		baseURL: "http://store/base/",
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
