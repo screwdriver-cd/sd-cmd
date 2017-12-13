@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	timeoutSec = 10
+	timeoutSec = 180
 )
 
 // API is a Store API endpoint
