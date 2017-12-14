@@ -1,0 +1,13 @@
+artifacts/
+.DS_STORE
+.*.swp
+sd-cmd
+
+# Generated while deploying
+
+/ci/
+/VERSION
+
+# goreleaser
+
+/dist/
