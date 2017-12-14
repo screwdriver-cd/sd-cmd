@@ -56,7 +56,7 @@ type Command struct {
 	} `json:"binary"`
 }
 
-// New return API object
+// New returns API object
 func New() (API, error) {
 	c := &client{
 		baseURL:  config.SDAPIURL,
@@ -66,12 +66,12 @@ func New() (API, error) {
 	return API(c), nil
 }
 
-// SetJWT set jwt to API
+// SetJWT sets jwt to API
 func (c *client) SetJWT() error {
 	return nil
 }
 
-// GetCommand return Command from Screwdriver API
+// GetCommand returns Command from Screwdriver API
 func (c client) GetCommand(namespace, command, version string) (*Command, error) {
 	cmd := new(Command)
 	cmd.Namespace = namespace

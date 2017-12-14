@@ -9,7 +9,7 @@ type Executor interface {
 	Run() ([]byte, error)
 }
 
-// New return each format type of Executor
+// New returns each format type of Executor
 func New(args []string) (Executor, error) {
 	sdAPI, err := api.New()
 	if err != nil {

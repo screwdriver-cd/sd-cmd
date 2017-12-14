@@ -35,7 +35,7 @@ type Command struct {
 	Meta *api.Command
 }
 
-// New return API object
+// New returns API object
 func New(meta *api.Command) (API, error) {
 	c := &client{
 		baseURL: "http://store/base/",
@@ -45,7 +45,7 @@ func New(meta *api.Command) (API, error) {
 	return API(c), nil
 }
 
-// GetCommand return Command from Store API
+// GetCommand returns Command from Store API
 func (c client) GetCommand() (*Command, error) {
 	return nil, nil
 }

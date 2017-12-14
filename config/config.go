@@ -13,7 +13,7 @@ var (
 	SDAPIToken string
 )
 
-// LoadConfig set config data
+// LoadConfig sets config data
 func LoadConfig() {
 	SDAPIURL = os.Getenv("SD_API_URL")
 	SDStoreURL = os.Getenv("SD_STORE_URL")

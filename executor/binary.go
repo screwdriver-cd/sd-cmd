@@ -6,13 +6,13 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
-// Binary is Binary Executor object
+// Binary is a Binary Executor object
 type Binary struct {
 	Cmd *api.Command
 	Arg []string
 }
 
-// NewBinary return Binary object
+// NewBinary returns Binary object
 func NewBinary(cmd *api.Command, arg []string) (*Binary, error) {
 	binary := &Binary{
 		Cmd: cmd,
@@ -21,7 +21,7 @@ func NewBinary(cmd *api.Command, arg []string) (*Binary, error) {
 	return binary, nil
 }
 
-// Run exec command and return output
+// Run executes command and returns output
 func (b *Binary) Run() ([]byte, error) {
 	return exec.Command("ls", b.Arg...).Output()
 }
