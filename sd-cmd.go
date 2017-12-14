@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
-	"github.com/screwdriver-cd/sd-cmd/executer"
+	"github.com/screwdriver-cd/sd-cmd/executor"
 )
 
 var cleanExit = func() {
@@ -30,11 +30,11 @@ func init() {
 func runCommand(args []string) error {
 	switch args[1] {
 	case "exec":
-		executer, err := executer.New(args[2:])
+		executor, err := executor.New(args[2:])
 		if err != nil {
-			return fmt.Errorf("Failed to create executer: %v", err)
+			return fmt.Errorf("Failed to create executor: %v", err)
 		}
-		output, err := executer.Run()
+		output, err := executor.Run()
 		if err != nil {
 			fmt.Println(string(output))
 			return fmt.Errorf("Failed to run exec command: %v", err)

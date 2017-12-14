@@ -1,16 +1,16 @@
-package executer
+package executor
 
 import (
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
-// Executer is a Executer endpoint
-type Executer interface {
+// Executor is a Executor endpoint
+type Executor interface {
 	Run() ([]byte, error)
 }
 
-// New return each format type of Executer
-func New(args []string) (Executer, error) {
+// New return each format type of Executor
+func New(args []string) (Executor, error) {
 	sdAPI, err := api.New()
 	if err != nil {
 		return nil, err

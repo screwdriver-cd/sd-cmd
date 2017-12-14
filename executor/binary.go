@@ -1,4 +1,4 @@
-package executer
+package executor
 
 import (
 	"os/exec"
@@ -6,7 +6,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
-// Binary is Binary Executer object
+// Binary is Binary Executor object
 type Binary struct {
 	Cmd *api.Command
 	Arg []string
