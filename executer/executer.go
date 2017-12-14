@@ -1,7 +1,7 @@
 package executer
 
 import (
-	sdapi "github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 // Executer is a Executer endpoint
@@ -11,7 +11,7 @@ type Executer interface {
 
 // New return each format type of Executer
 func New(args []string) (Executer, error) {
-	sdAPI, err := sdapi.New()
+	sdAPI, err := api.New()
 	if err != nil {
 		return nil, err
 	}

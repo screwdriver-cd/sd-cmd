@@ -17,7 +17,7 @@ type API interface {
 	GetCommand(namespace, command, version string) (*Command, error)
 }
 
-type api struct {
+type client struct {
 	baseURL  string
 	apiToken string
 	jwt      string
@@ -58,21 +58,21 @@ type Command struct {
 
 // New return API object
 func New() (API, error) {
-	api := &api{
+	c := &client{
 		baseURL:  config.SDAPIURL,
 		apiToken: config.SDAPIToken,
 		client:   &http.Client{Timeout: timeoutSec * time.Second},
 	}
-	return API(api), nil
+	return API(c), nil
 }
 
 // SetJWT set jwt to API
-func (api *api) SetJWT() error {
+func (c *client) SetJWT() error {
 	return nil
 }
 
 // GetCommand return Command from Screwdriver API
-func (api api) GetCommand(namespace, command, version string) (*Command, error) {
+func (c client) GetCommand(namespace, command, version string) (*Command, error) {
 	cmd := new(Command)
 	cmd.Namespace = namespace
 	cmd.Command = command
