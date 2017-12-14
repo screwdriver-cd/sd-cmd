@@ -42,9 +42,9 @@ func runCommand(args []string) error {
 		fmt.Println(string(output))
 		return nil
 	case "publish":
-		return nil
+		return fmt.Errorf("publish is not implemented yet")
 	case "promote":
-		return nil
+		return fmt.Errorf("promote is not implemented yet")
 	default:
 		return fmt.Errorf("No such type of command")
 	}
