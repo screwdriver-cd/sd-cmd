@@ -16,6 +16,7 @@ $ sd_cmd exec namespace/command@version [arguments]
 ```
 
 ## Testing
+Some tests create directory in your computer. Therefore there is possibility to fail test by permission error.
 ```bash
 go get github.com/screwdriver-cd/sd-cmd
 go test -cover github.com/screwdriver-cd/sd-cmd/...
