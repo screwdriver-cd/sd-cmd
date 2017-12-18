@@ -73,13 +73,6 @@ func TestNew(t *testing.T) {
 		t.Errorf("err=nil, want error")
 	}
 
-	// failure. invalid command
-	sdapi = api.API(new(dummySDAPIBinary))
-	_, err = New(sdapi, []string{"ns-cmd-ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
-
 	// failure. Screwdriver API error
 	sdapi = api.API(new(dummySDAPIBroken))
 	_, err = New(sdapi, []string{"ns/cmd@ver"})

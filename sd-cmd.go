@@ -8,10 +8,12 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
+	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 var cleanExit = func() {
+	logger.Close()
 	os.Exit(1)
 }
 
@@ -36,13 +38,7 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:
-		var err error
-		var exec executor.Executor
-		if args[1] == "exec" {
-			exec, err = executor.New(sdAPI, args[2:])
-		} else {
-			exec, err = executor.New(sdAPI, args[1:])
-		}
+		exec, err := executor.New(sdAPI, args)
 		if err != nil {
 			return err
 		}
@@ -50,7 +46,7 @@ func runCommand(sdAPI api.API, args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(string(output))
+		logger.Write(fmt.Sprintf("command output: %v", string(output)))
 		return nil
 	}
 }
@@ -63,15 +59,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	sdAPI, err := api.New()
+	err := logger.Init(os.Args)
 	if err != nil {
 		log.Println(err)
+		os.Exit(1)
+	}
+	defer logger.Close()
+
+	sdAPI, err := api.New()
+	if err != nil {
+		logger.Write(err)
 		os.Exit(1)
 	}
 
 	err = runCommand(sdAPI, os.Args)
 	if err != nil {
-		log.Println(err)
+		logger.Write(err)
 		os.Exit(1)
 	}
 }
