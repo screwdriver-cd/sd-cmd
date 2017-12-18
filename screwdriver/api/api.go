@@ -50,10 +50,11 @@ type Command struct {
 	Habitat     struct {
 		Mode    string `json:"mode"`
 		Package string `json:"package"`
-		Binary  string `json:"binary"`
+		Command string `json:"command"`
 	} `json:"habitat"`
 	Docker struct {
-		Image string `json:"image"`
+		Image   string `json:"image"`
+		Command string `json:"command"`
 	} `json:"docker"`
 	Binary struct {
 		File string `json:"file"`
