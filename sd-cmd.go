@@ -2,15 +2,19 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime/debug"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
+	"github.com/screwdriver-cd/sd-cmd/logger"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 var cleanExit = func() {
-	os.Exit(0)
+	logger.Close()
+	os.Exit(1)
 }
 
 // finalRecover makes one last attempt to recover from a panic.
@@ -27,40 +31,50 @@ func init() {
 	config.LoadConfig()
 }
 
-func runCommand(args []string) error {
+func runCommand(sdAPI api.API, args []string) error {
 	switch args[1] {
-	case "exec":
-		executor, err := executor.New(args[2:])
-		if err != nil {
-			return fmt.Errorf("Failed to create executor: %v", err)
-		}
-		output, err := executor.Run()
-		if err != nil {
-			fmt.Println(string(output))
-			return fmt.Errorf("Failed to run exec command: %v", err)
-		}
-		fmt.Println(string(output))
-		return nil
 	case "publish":
 		return fmt.Errorf("publish is not implemented yet")
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:
-		return fmt.Errorf("No such type of command")
+		exec, err := executor.New(sdAPI, args)
+		if err != nil {
+			return err
+		}
+		output, err := exec.Run()
+		if err != nil {
+			return err
+		}
+		logger.Write(fmt.Sprintf("command output: %v", string(output)))
+		return nil
 	}
 }
 
 func main() {
 	defer finalRecover()
 
-	if len(os.Args) < 3 {
-		fmt.Printf("The argument num is not enough\n")
-		os.Exit(0)
+	if len(os.Args) < 2 {
+		log.Println("The argument num is not enough")
+		os.Exit(1)
 	}
 
-	err := runCommand(os.Args)
+	err := logger.MakeLogToFile(os.Args)
 	if err != nil {
-		fmt.Printf("error happen: %v\n", err)
-		os.Exit(0)
+		log.Println(err)
+		os.Exit(1)
+	}
+	defer logger.Close()
+
+	sdAPI, err := api.New()
+	if err != nil {
+		logger.Write(err)
+		os.Exit(1)
+	}
+
+	err = runCommand(sdAPI, os.Args)
+	if err != nil {
+		logger.Write(err)
+		os.Exit(1)
 	}
 }
