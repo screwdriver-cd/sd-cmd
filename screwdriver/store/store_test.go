@@ -84,7 +84,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestCommand(t *testing.T) {
+func TestGetCommand(t *testing.T) {
 	// success
 	sdCommand := dummySDCommand()
 	c, _ := newClient(sdCommand)

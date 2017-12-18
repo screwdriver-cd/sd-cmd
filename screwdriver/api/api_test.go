@@ -97,7 +97,7 @@ func TestSetJWT(t *testing.T) {
 	}
 }
 
-func TestCommand(t *testing.T) {
+func TestGetCommand(t *testing.T) {
 	// success
 	c, _ := newClient()
 	api := API(c)
