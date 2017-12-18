@@ -2,19 +2,11 @@ package executor
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
-)
-
-var (
-	cacheEnv map[string]string
 )
 
 var (
@@ -38,48 +30,6 @@ type dummyStoreError struct{}
 
 func (d *dummyStoreError) GetCommand() (*store.Command, error) {
 	return dummyStoreCommand(validShell), fmt.Errorf("store cause error")
-}
-
-func setEnv(key, value string) {
-	if cacheEnv == nil {
-		cacheEnv = make(map[string]string)
-	}
-	cacheEnv[key] = os.Getenv(key)
-	os.Setenv(key, value)
-}
-
-func setup() {
-	setEnv("SD_API_URL", "http://fake.com/v4/")
-	setEnv("SD_STORE_URL", "http://fake.store/v1/")
-	b, _ := ioutil.ReadFile("testdata/validShell.sh")
-	validShell = string(b)
-	b, _ = ioutil.ReadFile("testdata/invalidShell.sh")
-	invalidShell = string(b)
-}
-
-func teardown() {
-	for key, val := range cacheEnv {
-		os.Setenv(key, val)
-	}
-}
-
-func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(code)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, body)
-	}))
-	tr := &http.Transport{
-		Proxy: func(req *http.Request) (*url.URL, error) {
-			if endpoint == "" {
-				return url.Parse(server.URL)
-			} else if req.URL.Path == endpoint {
-				return url.Parse(server.URL)
-			}
-			return req.URL, nil
-		},
-	}
-	return &http.Client{Transport: tr}
 }
 
 func dummyStoreCommand(body string) (cmd *store.Command) {
@@ -136,11 +86,4 @@ func TestRun(t *testing.T) {
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	ret := m.Run()
-	teardown()
-	os.Exit(ret)
 }

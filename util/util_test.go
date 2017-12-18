@@ -22,6 +22,7 @@ func TestSplitCmd(t *testing.T) {
 		"forbar1.0",
 		"foo-bar@1.0",
 		"foo/bar-1.0",
+		"",
 	}
 	for _, cmdName := range fullCommandNames {
 		_, _, _, err := SplitCmd(cmdName)

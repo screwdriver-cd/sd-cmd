@@ -28,25 +28,10 @@ const (
 	fakeAPIToken     = "fake-api-token"
 )
 
-func setEnv(key, value string) {
-	if cacheEnv == nil {
-		cacheEnv = make(map[string]string)
-	}
-	cacheEnv[key] = os.Getenv(key)
-	os.Setenv(key, value)
-}
-
 func setup() {
-	setEnv("SD_STORE_URL", fakeArtifactsDir)
-	setEnv("SD_API_URL", fakeAPIURL)
-	setEnv("SD_API_TOKEN", fakeAPIToken)
-	config.LoadConfig()
-}
-
-func teardown() {
-	for key, val := range cacheEnv {
-		os.Setenv(key, val)
-	}
+	config.SDStoreURL = fakeArtifactsDir
+	config.SDAPIURL = fakeAPIURL
+	config.SDAPIToken = fakeAPIToken
 }
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *http.Client {
@@ -153,6 +138,5 @@ func TestCommand(t *testing.T) {
 func TestMain(m *testing.M) {
 	setup()
 	ret := m.Run()
-	teardown()
 	os.Exit(ret)
 }
