@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// SplitCmd split full command to namespace, command, version
+// SplitCmd split full command to namespace, command, version.
 // ex(ns/cmd/1.0.1 => ns cmd 1.0.1)
 func SplitCmd(cmd string) (namespace, command, version string, err error) {
 	splitNamespce := strings.Split(cmd, "/")
@@ -24,7 +24,7 @@ func SplitCmd(cmd string) (namespace, command, version string, err error) {
 	return
 }
 
-// SplitCmdWithSearch search full command. If there is valid full command return each column
+// SplitCmdWithSearch search full command. If there is valid full command, return splited full command name.
 func SplitCmdWithSearch(cmds []string) (namespace, command, version string, itr int, err error) {
 	for i, val := range cmds {
 		ns, cmd, val, err := SplitCmd(val)

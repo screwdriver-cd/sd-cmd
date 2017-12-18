@@ -59,7 +59,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := logger.Init(os.Args)
+	err := logger.MakeLogToFile(os.Args)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)

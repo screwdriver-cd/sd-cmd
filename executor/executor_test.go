@@ -93,6 +93,13 @@ func TestNew(t *testing.T) {
 		t.Errorf("New does not fulfill API interface")
 	}
 
+	// success
+	sdapi = api.API(new(dummySDAPIBinary))
+	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
 	// failure. no command
 	sdapi = api.API(new(dummySDAPIBinary))
 	_, err = New(sdapi, []string{})

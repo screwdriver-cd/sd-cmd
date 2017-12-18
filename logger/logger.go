@@ -11,17 +11,25 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-var logger = new(Logger)
+var logger *Logger
 
-// Logger has information to log
+// Logger has information for logging
 type Logger struct {
 	Path   string
 	file   io.WriteCloser
 	logger *log.Logger
 }
 
-// Init prepare for logging
-func Init(fullCommands []string) error {
+func init() {
+	logger = &Logger{
+		Path:   "",
+		file:   nil,
+		logger: log.New(os.Stderr, "", log.LstdFlags),
+	}
+}
+
+// MakeLogToFile prepare for logging
+func MakeLogToFile(fullCommands []string) error {
 	ns, cmd, ver, _, err := util.SplitCmdWithSearch(fullCommands)
 	if err != nil {
 		return err

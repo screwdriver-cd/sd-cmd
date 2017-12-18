@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/screwdriver-cd/sd-cmd/logger"
+
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 )
@@ -58,15 +60,19 @@ func (b *Binary) install(cmd *store.Command) (string, error) {
 
 // Run executes command and returns output
 func (b *Binary) Run() ([]byte, error) {
+	logger.Write("Download binary from store API")
 	command, err := b.download()
 	if err != nil {
 		return nil, err
 	}
 
+	logger.Write("Install binary to this repository")
 	path, err := b.install(command)
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Write("Execute the binary")
 	result, err := exec.Command(path, b.Arg...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to execute Command: %v", err)

@@ -24,10 +24,17 @@ func setup() {
 	config.SDArtifactsDir = "/opt/sd/"
 }
 
-func TestInit(t *testing.T) {
+func teardown() {
+	logger = &Logger{
+		Path:   "",
+		file:   nil,
+		logger: log.New(os.Stderr, "", log.LstdFlags),
+	}
+}
+func TestMakeLogToFile(t *testing.T) {
 	logger = new(Logger)
 	// success
-	err := Init([]string{"log/test@1.0"})
+	err := MakeLogToFile([]string{"log/test@1.0"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -39,7 +46,7 @@ func TestInit(t *testing.T) {
 	}
 
 	// failure
-	err = Init([]string{"sample"})
+	err = MakeLogToFile([]string{"sample"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
@@ -64,5 +71,6 @@ func TestWrite(t *testing.T) {
 func TestMain(m *testing.M) {
 	setup()
 	ret := m.Run()
+	teardown()
 	os.Exit(ret)
 }
