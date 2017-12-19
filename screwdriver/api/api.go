@@ -17,20 +17,13 @@ const (
 
 // API is a Screwdriver API endpoint
 type API interface {
-	SetJWT() error
 	GetCommand(namespace, command, version string) (*Command, error)
 }
 
 type client struct {
-	baseURL  string
-	apiToken string
-	jwt      string
-	client   *http.Client
-}
-
-// JWT is a Screwdriver JWT
-type JWT struct {
-	Token string `json:"token"`
+	baseURL string
+	jwt     string
+	client  *http.Client
 }
 
 // ResponseError is an error response from the Screwdriver API
@@ -76,9 +69,9 @@ func New() (API, error) {
 
 func newClient() (*client, error) {
 	c := &client{
-		baseURL:  config.SDAPIURL,
-		apiToken: config.SDAPIToken,
-		client:   &http.Client{Timeout: timeoutSec * time.Second},
+		baseURL: config.SDAPIURL,
+		jwt:     config.SDTokoen,
+		client:  &http.Client{Timeout: timeoutSec * time.Second},
 	}
 	return c, nil
 }
@@ -104,36 +97,6 @@ func handleResponse(res *http.Response) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API")
 	}
-}
-
-// SetJWT sets jwt to client
-func (c *client) SetJWT() error {
-	jwt := new(JWT)
-
-	url := fmt.Sprintf("%sauth/token?api_token=%s", c.baseURL, c.apiToken)
-	req, err := http.NewRequest("GET", url, strings.NewReader(""))
-	if err != nil {
-		return fmt.Errorf("Failed to create reqeust about jwt to Screwdriver API: %v", err)
-	}
-
-	req.Header.Set("Content-type", "application/json")
-	res, err := c.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("Faied to get jwt from Screwdriver API: %v", err)
-	}
-	defer res.Body.Close()
-
-	body, err := handleResponse(res)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(body, jwt)
-	if err != nil {
-		return fmt.Errorf("Failed to unmarshal jwt: %v", err)
-	}
-	c.jwt = jwt.Token
-	return nil
 }
 
 // GetCommand returns Command from Screwdriver API

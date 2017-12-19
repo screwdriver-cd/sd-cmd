@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	fakeAPIURL   = "http://fake.com/v4/"
-	fakeAPIToken = "fake-api-token"
-	fakeJWT      = "fake-jwt"
+	fakeAPIURL  = "http://fake.com/v4/"
+	fakeSDToken = "fake-sd-token"
+	fakeJWT     = "fake-jwt"
 )
 
 func setup() {
 	config.SDAPIURL = fakeAPIURL
-	config.SDAPIToken = fakeAPIToken
+	config.SDTokoen = fakeSDToken
 }
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
@@ -51,52 +51,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestSetJWT(t *testing.T) {
-	// success
-	c, _ := newClient()
-	c.client = makeFakeHTTPClient(t, 200, fmt.Sprintf("{\"token\": \"%v\"}", fakeJWT), "")
-	api := API(c)
-	err := api.SetJWT()
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-	if c.jwt != fakeJWT {
-		t.Errorf("jwt=%q, want %q", c.jwt, fakeJWT)
-	}
-
-	// failure. check 4xx error message
-	err = nil
-	errMsg := "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": \"Access Denied\"}"
-	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
-	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
-	api = API(c)
-	err = api.SetJWT()
-	if err.Error() != ansMsg {
-		t.Errorf("err=%q, want %q", errMsg, ansMsg)
-	}
-
-	// failure. check some api response error
-	c, _ = newClient()
-	response := []struct {
-		code    int
-		message string
-	}{
-		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": \"Access Denied\"}"},
-		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": {\"This error messeg json is broken\"}"},
-		{500, "{\"statusCode\": 500,\"error\": \"InternalServerError\",\"message\": \"server error\"}"},
-		{200, "{\"statusCode\": 200,\"error\": \"JsonBroken\",{\"message\"}: \"This json is broken\"}"},
-		{600, "{\"statusCode\": 403,\"error\": \"Unknown\",\"message\": \"Unknown\"}"},
-	}
-	for _, res := range response {
-		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
-		api = API(c)
-		err := api.SetJWT()
-		if err == nil {
-			t.Errorf("err=nil, want error")
-		}
-	}
-}
-
 func TestGetCommand(t *testing.T) {
 	// success
 	c, _ := newClient()
@@ -112,6 +66,16 @@ func TestGetCommand(t *testing.T) {
 		t.Errorf("command.Namespace=%q, want %q", command.Namespace, ns)
 	}
 
+	// failure. check 4xx error message
+	errMsg := "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": \"Access Denied\"}"
+	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
+	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
+	api = API(c)
+	_, err = api.GetCommand(ns, cmd, ver)
+	if err.Error() != ansMsg {
+		t.Errorf("err=%q, want %q", errMsg, ansMsg)
+	}
+
 	// failure. check some api response error
 	response := []struct {
 		code    int
@@ -119,6 +83,10 @@ func TestGetCommand(t *testing.T) {
 	}{
 		{200, "{{\"namespace\":\"invalid\",\"command\":\"json\",\"version\":\"1.0\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}"},
 		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": \"Access Denied\"}"},
+		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": {\"This error messeg json is broken\"}"},
+		{500, "{\"statusCode\": 500,\"error\": \"InternalServerError\",\"message\": \"server error\"}"},
+		{200, "{\"statusCode\": 200,\"error\": \"JsonBroken\",{\"message\"}: \"This json is broken\"}"},
+		{600, "{\"statusCode\": 403,\"error\": \"Unknown\",\"message\": \"Unknown\"}"},
 	}
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")

@@ -21,13 +21,13 @@ const (
 	dummyDescription = "dummy description"
 	fakeArtifactsDir = "http://fake.store/v1/"
 	fakeAPIURL       = "http://fake.com/v4/"
-	fakeAPIToken     = "fake-api-token"
+	fakeSDToken      = "fake-sd-token"
 )
 
 func setup() {
 	config.SDStoreURL = fakeArtifactsDir
 	config.SDAPIURL = fakeAPIURL
-	config.SDAPIToken = fakeAPIToken
+	config.SDTokoen = fakeSDToken
 }
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *http.Client {
