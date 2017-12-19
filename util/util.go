@@ -2,25 +2,52 @@ package util
 
 import (
 	"fmt"
-	"strings"
+	"regexp"
 )
+
+var fullCommandRegexp = regexp.MustCompile(`^([a-zA-Z0-9-_]+)\/([a-zA-Z0-9-_]+)@([a-z0-9-~\*\^\.]+)$`)
+var xrangesRegexp = regexp.MustCompile(`^(?:(\d+)\.)?(?:(\d+)\.)?([\*x]|\d+)$`)
+var tildeRangesRegexp = regexp.MustCompile(`^~\d(\.\d)?(\.\d)?$`)
+var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
+var tagRegexp = regexp.MustCompile(`^[a-z0-9-]+$`)
+
+func checkVersion(ver string) bool {
+	if caretRangesAndPinningRegexp.Match([]byte(ver)) {
+		return true
+	}
+	if tildeRangesRegexp.Match([]byte(ver)) {
+		return true
+	}
+	if xrangesRegexp.Match([]byte(ver)) {
+		return true
+	}
+	if tagRegexp.Match([]byte(ver)) {
+		return true
+	}
+	return false
+}
 
 // SplitCmd splits full command to namespace, command, version.
 // ex(ns/cmd/1.0.1 => ns cmd 1.0.1)
 func SplitCmd(cmd string) (namespace, command, version string, err error) {
-	splitNamespce := strings.Split(cmd, "/")
-	if len(splitNamespce) < 2 {
-		err = fmt.Errorf("Command format is not valid")
+	values := fullCommandRegexp.FindAllStringSubmatch(cmd, -1)
+	if len(values) < 1 {
+		err = fmt.Errorf("There is no full command")
 		return
 	}
-	splitCmdAndVer := strings.Split(splitNamespce[1], "@")
-	if len(splitCmdAndVer) < 2 {
-		err = fmt.Errorf("Command format is not valid")
+
+	if len(values[0]) != 4 {
+		err = fmt.Errorf("The full command has somthing wrong")
 		return
 	}
-	namespace = splitNamespce[0]
-	command = splitCmdAndVer[0]
-	version = splitCmdAndVer[1]
+
+	if !checkVersion(values[0][3]) {
+		err = fmt.Errorf("The version part is invalid")
+	}
+
+	namespace = values[0][1]
+	command = values[0][2]
+	version = values[0][3]
 	return
 }
 
