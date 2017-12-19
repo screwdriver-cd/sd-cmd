@@ -53,7 +53,7 @@ func commandURL(meta *api.Command) (string, error) {
 	return "", fmt.Errorf("The format is not binary")
 }
 
-// New returns API object
+// New returns Store object
 func New(meta *api.Command) (Store, error) {
 	c, err := newClient(meta)
 	if err != nil {
