@@ -5,11 +5,11 @@ import (
 	"regexp"
 )
 
-var fullCommandRegexp = regexp.MustCompile(`^([a-zA-Z0-9-_]+)\/([a-zA-Z0-9-_]+)@([a-z0-9-~\*\^\.]+)$`)
+var fullCommandRegexp = regexp.MustCompile(`^([\w-]+)\/([\w-]+)@([a-z0-9-~\*\^\.]+)$`)
 var xrangesRegexp = regexp.MustCompile(`^(?:(\d+)\.)?(?:(\d+)\.)?([\*x]|\d+)$`)
 var tildeRangesRegexp = regexp.MustCompile(`^~\d(\.\d)?(\.\d)?$`)
 var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
-var tagRegexp = regexp.MustCompile(`^[a-z0-9-]+$`)
+var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 
 func checkVersion(ver string) bool {
 	if caretRangesAndPinningRegexp.Match([]byte(ver)) {

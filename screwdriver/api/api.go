@@ -106,7 +106,7 @@ func (c client) GetCommand(namespace, command, version string) (*Command, error)
 	url := fmt.Sprintf("%scommands/%s/%s", c.baseURL, namespace+"%2F"+command, version)
 	req, err := http.NewRequest("GET", url, strings.NewReader(""))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create reqeust about command to Screwdriver API: %v", err)
+		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)
 	}
 
 	req.Header.Set("Content-type", "application/json")

@@ -114,7 +114,7 @@ func (c client) GetCommand() (*Command, error) {
 	command.Spec = c.spec
 	request, err := http.NewRequest("GET", c.baseURL, strings.NewReader(""))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create reqeust about command to Store API: %v", err)
+		return nil, fmt.Errorf("Failed to create request about command to Store API: %v", err)
 	}
 	res, err := c.client.Do(request)
 	if err != nil {
