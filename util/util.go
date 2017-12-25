@@ -5,10 +5,27 @@ import (
 	"regexp"
 )
 
+// full command has <COMMAND_NAMESPACE>/<COMMAND_NAME>@<VERSION>.
+// COMMAND_NAMESPACE can only be named with A-Z,a-z,0-9,-,_
+// COMMAND_NAME can only be named with A-Z,a-z,0-9,-,_
+// VERSION can only be a-z0-9.~*^
+// ex(cmd-namespace/cmd_name@1.0.0)
 var fullCommandRegexp = regexp.MustCompile(`^([\w-]+)\/([\w-]+)@([a-z0-9-~\*\^\.]+)$`)
+
+// xrangesRegexp check VERSION of X-Ranges.
+// ex(1.2.* 1.2 1.x 1 *)
 var xrangesRegexp = regexp.MustCompile(`^(?:(\d+)\.)?(?:(\d+)\.)?([\*x]|\d+)$`)
+
+// tildeRangesRegexp check VERSION of Tilde Ranges
+// ex(~1.2.3 ~1.2 ~1)
 var tildeRangesRegexp = regexp.MustCompile(`^~\d(\.\d)?(\.\d)?$`)
+
+// caretRangesAndPinningRegexp check VERSION of Caret Ranges and Explicit Pinning
+// ex(^1.2.3 ^0.2.5 ^0.0.4 1.2.3 1.5.3)
 var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
+
+// tagRegexp check VERSION of Tags. Tags can only be named with A-Z,a-z,0-9,-
+// ex(latest stable feature-abc)
 var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 
 func checkVersion(ver string) bool {
