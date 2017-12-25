@@ -27,7 +27,7 @@ const (
 func setup() {
 	config.SDStoreURL = fakeArtifactsDir
 	config.SDAPIURL = fakeAPIURL
-	config.SDTokoen = fakeSDToken
+	config.SDToken = fakeSDToken
 }
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *http.Client {

@@ -37,7 +37,7 @@ func SplitCmd(cmd string) (namespace, command, version string, err error) {
 	}
 
 	if len(values[0]) != 4 {
-		err = fmt.Errorf("The full command has somthing wrong")
+		err = fmt.Errorf("There is something wrong with the full command")
 		return
 	}
 

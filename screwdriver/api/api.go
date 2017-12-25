@@ -70,7 +70,7 @@ func New() (API, error) {
 func newClient() (*client, error) {
 	c := &client{
 		baseURL: config.SDAPIURL,
-		jwt:     config.SDTokoen,
+		jwt:     config.SDToken,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 	}
 	return c, nil
@@ -113,11 +113,10 @@ func (c client) GetCommand(namespace, command, version string) (*Command, error)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
 	res, err := c.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Faied to get command from Screwdriver API: %v", err)
+		return nil, fmt.Errorf("Failed to get command from Screwdriver API: %v", err)
 	}
 	defer res.Body.Close()
 	body, err := handleResponse(res)
-	fmt.Println(url)
 
 	if err != nil {
 		return nil, err

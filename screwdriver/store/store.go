@@ -118,7 +118,7 @@ func (c client) GetCommand() (*Command, error) {
 	}
 	res, err := c.client.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("Faied to get command from Store API: %v", err)
+		return nil, fmt.Errorf("Failed to get command from Store API: %v", err)
 	}
 	defer res.Body.Close()
 	body, err := handleResponse(res)

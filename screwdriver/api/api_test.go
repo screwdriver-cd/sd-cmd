@@ -19,7 +19,7 @@ const (
 
 func setup() {
 	config.SDAPIURL = fakeAPIURL
-	config.SDTokoen = fakeSDToken
+	config.SDToken = fakeSDToken
 }
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
