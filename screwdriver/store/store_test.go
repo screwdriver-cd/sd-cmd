@@ -49,16 +49,16 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 	return &http.Client{Transport: tr}
 }
 
-func dummySDCommand() (meta *api.Command) {
-	meta = &api.Command{
+func dummySDCommand() (spec *api.Command) {
+	spec = &api.Command{
 		Namespace:   dummyNameSpace,
 		Command:     dummyCommand,
 		Description: dummyDescription,
 		Version:     dummyVersion,
 		Format:      dummyFormat,
 	}
-	meta.Binary.File = dummyFile
-	return meta
+	spec.Binary.File = dummyFile
+	return spec
 }
 
 func TestNew(t *testing.T) {

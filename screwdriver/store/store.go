@@ -24,7 +24,7 @@ type Store interface {
 type client struct {
 	baseURL string
 	client  *http.Client
-	meta    *api.Command
+	spec    *api.Command
 }
 
 // ResponseError is an error response from the Store API
@@ -37,40 +37,40 @@ type ResponseError struct {
 type Command struct {
 	Type string
 	Body []byte
-	Meta *api.Command
+	Spec *api.Command
 }
 
 func (e ResponseError) Error() string {
 	return fmt.Sprintf("Store API %d %s", e.StatusCode, e.Reason)
 }
 
-func commandURL(meta *api.Command) (string, error) {
-	if meta.Format == "binary" {
+func commandURL(spec *api.Command) (string, error) {
+	if spec.Format == "binary" {
 		url := fmt.Sprintf("%scommands/%s%%2F%s/%s", config.SDStoreURL,
-			meta.Namespace, meta.Command, meta.Version)
+			spec.Namespace, spec.Command, spec.Version)
 		return url, nil
 	}
 	return "", fmt.Errorf("The format is not binary")
 }
 
 // New returns Store object
-func New(meta *api.Command) (Store, error) {
-	c, err := newClient(meta)
+func New(spec *api.Command) (Store, error) {
+	c, err := newClient(spec)
 	if err != nil {
 		return nil, err
 	}
 	return Store(c), nil
 }
 
-func newClient(meta *api.Command) (*client, error) {
-	baseURL, err := commandURL(meta)
+func newClient(spec *api.Command) (*client, error) {
+	baseURL, err := commandURL(spec)
 	if err != nil {
 		return nil, err
 	}
 	c := &client{
 		baseURL: baseURL,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
-		meta:    meta,
+		spec:    spec,
 	}
 	return c, nil
 }
@@ -111,7 +111,7 @@ func reviseContentType(ct string) string {
 // GetCommand returns Command from Store API
 func (c client) GetCommand() (*Command, error) {
 	command := new(Command)
-	command.Meta = c.meta
+	command.Spec = c.spec
 	request, err := http.NewRequest("GET", c.baseURL, strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create reqeust about command to Store API: %v", err)
