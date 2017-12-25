@@ -98,7 +98,9 @@ func handleResponse(res *http.Response) ([]byte, error) {
 	}
 }
 
-func reviseContentType(ct string) string {
+// parseContentType returns content type of Command from Store API
+// ex("text/plain; charset=UTF-8" => "text/plain")
+func parseContentType(ct string) string {
 	vers := strings.Split(ct, ";")
 	for _, str := range vers {
 		if strings.Contains(str, "/") {
@@ -125,7 +127,7 @@ func (c client) GetCommand() (*Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	command.Type = reviseContentType(res.Header.Get("Content-type"))
+	command.Type = parseContentType(res.Header.Get("Content-type"))
 	command.Body = body
 	return command, nil
 }
