@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"os"
 	"testing"
-
-	"github.com/screwdriver-cd/sd-cmd/config"
 )
 
 const (
@@ -16,11 +14,6 @@ const (
 	fakeSDToken = "fake-sd-token"
 	fakeJWT     = "fake-jwt"
 )
-
-func setup() {
-	config.SDAPIURL = fakeAPIURL
-	config.SDToken = fakeSDToken
-}
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +35,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 }
 
 func TestNew(t *testing.T) {
-	client, err := New()
+	client, err := New(fakeAPIURL, fakeSDToken)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -53,7 +46,7 @@ func TestNew(t *testing.T) {
 
 func TestGetCommand(t *testing.T) {
 	// success
-	c, _ := newClient()
+	c, _ := newClient(fakeAPIURL, fakeSDToken)
 	api := API(c)
 	ns, cmd, ver := "foo", "bar", "1.0"
 	jsonMsg := fmt.Sprintf("{\"namespace\":\"%s\",\"command\":\"%s\",\"version\":\"%s\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}", ns, cmd, ver)
@@ -99,7 +92,6 @@ func TestGetCommand(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	setup()
 	ret := m.Run()
 	os.Exit(ret)
 }

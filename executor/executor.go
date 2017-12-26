@@ -11,11 +11,7 @@ type Executor interface {
 }
 
 // New returns each format type of Executor
-func New(args []string) (Executor, error) {
-	sdAPI, err := api.New()
-	if err != nil {
-		return nil, err
-	}
+func New(sdAPI api.API, args []string) (Executor, error) {
 	ns, cmd, ver, itr, err := util.SplitCmdWithSearch(args)
 	if err != nil {
 		return nil, err

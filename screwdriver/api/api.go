@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/screwdriver-cd/sd-cmd/config"
 )
 
 const (
@@ -59,18 +57,18 @@ func (e ResponseError) Error() string {
 }
 
 // New returns API object
-func New() (API, error) {
-	c, err := newClient()
+func New(sdAPI, sdToken string) (API, error) {
+	c, err := newClient(sdAPI, sdToken)
 	if err != nil {
 		return nil, err
 	}
 	return API(c), nil
 }
 
-func newClient() (*client, error) {
+func newClient(sdAPI, sdToken string) (*client, error) {
 	c := &client{
-		baseURL: config.SDAPIURL,
-		jwt:     config.SDToken,
+		baseURL: sdAPI,
+		jwt:     sdToken,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 	}
 	return c, nil

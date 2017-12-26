@@ -7,6 +7,7 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 var cleanExit = func() {
@@ -27,10 +28,10 @@ func init() {
 	config.LoadConfig()
 }
 
-func runCommand(args []string) error {
+func runCommand(sdAPI api.API, args []string) error {
 	switch args[1] {
 	case "exec":
-		executor, err := executor.New(args[2:])
+		executor, err := executor.New(sdAPI, args[2:])
 		if err != nil {
 			return fmt.Errorf("Failed to create executor: %v", err)
 		}
@@ -58,7 +59,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	err := runCommand(os.Args)
+	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	err = runCommand(sdAPI, os.Args)
 	if err != nil {
 		fmt.Printf("error happen: %v\n", err)
 		os.Exit(0)
