@@ -21,10 +21,7 @@ var (
 )
 
 func addSlash(val string) string {
-	if val == "" {
-		return val
-	}
-	if val[len(val)-1] != '/' {
+	if val != "" && val[len(val)-1] != '/' {
 		return fmt.Sprintf("%s/", val)
 	}
 	return val
