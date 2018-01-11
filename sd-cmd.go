@@ -11,6 +11,8 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
+const minArgLength = 2
+
 var cleanExit = func() {
 	executor.FinishLog()
 	os.Exit(0)
@@ -49,7 +51,7 @@ func runExecutor(sdAPI api.API, args []string) error {
 }
 
 func runCommand(sdAPI api.API, args []string) error {
-	if len(os.Args) < 2 {
+	if len(os.Args) < minArgLength {
 		return fmt.Errorf("The argument num is not enough")
 	}
 

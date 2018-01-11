@@ -13,6 +13,8 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
+const maxFullCommandPlaceOnArg = 2
+
 // Executor is a Executor endpoint
 type Executor interface {
 	Run() error
@@ -25,10 +27,10 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 		return nil, err
 	}
 
-	if itr > 2 {
+	if itr > maxFullCommandPlaceOnArg {
 		return nil, fmt.Errorf("exec command argument is not right")
 	}
-	if itr == 2 && args[1] != "exec" {
+	if itr == maxFullCommandPlaceOnArg && args[1] != "exec" {
 		return nil, fmt.Errorf("no such type of command")
 	}
 
