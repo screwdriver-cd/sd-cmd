@@ -50,12 +50,12 @@ func execCommand(path string, args []string) error {
 	m := new(sync.Mutex)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("failed to crate stdout pipe for exec command: %v", err)
+		return fmt.Errorf("failed to create stdout pipe for exec command: %v", err)
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("failed to crate stderr pipe for exec command: %v", err)
+		return fmt.Errorf("failed to create stderr pipe for exec command: %v", err)
 	}
 
 	log.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
