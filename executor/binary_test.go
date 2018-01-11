@@ -1,8 +1,10 @@
 package executor
 
 import (
+	"bytes"
 	"fmt"
-	"reflect"
+	"log"
+	"strings"
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
@@ -42,32 +44,43 @@ func TestNewBinary(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
+	buffer := bytes.NewBuffer([]byte{})
+	log.SetOutput(buffer)
+
 	// success with no arguments
 	bin, _ := NewBinary(dummyAPICommand(binaryFormat), []string{})
 	bin.Store = store.Store(new(dummyStore))
-	data, err := bin.Run()
+	err := bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if !reflect.DeepEqual(data, []byte("Hello World\n")) {
-		t.Errorf("result=%q, want %q", data, []byte("Hello World\n"))
+	if !strings.Contains(buffer.String(), "Hello World\n") {
+		t.Errorf("log is %q, should include %q", buffer.String(), "Hello World\n")
 	}
+	buffer.Reset()
 
 	// success with arguments
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
 	bin.Store = store.Store(new(dummyStore))
-	data, err = bin.Run()
+	err = bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if !reflect.DeepEqual(data, []byte("Hello World\narg1\narg2\n")) {
-		t.Errorf("result=%q, want %q", data, []byte("Hello World\narg1\narg2\n"))
+	if !strings.Contains(buffer.String(), "Hello World\n") {
+		t.Errorf("log is %q, should include %q", buffer.String(), "Hello World")
 	}
+	if !strings.Contains(buffer.String(), "arg1\n") {
+		t.Errorf("log is %q, should include %q", buffer.String(), "arg1\n")
+	}
+	if !strings.Contains(buffer.String(), "arg2\n") {
+		t.Errorf("log is %q, should include %q", buffer.String(), "arg2\n")
+	}
+	buffer.Reset()
 
 	// failure. the command is broken
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
 	bin.Store = store.Store(new(dummyStoreBroken))
-	_, err = bin.Run()
+	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
@@ -75,7 +88,7 @@ func TestRun(t *testing.T) {
 	// failure. the store api return error
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
 	bin.Store = store.Store(new(dummyStoreError))
-	_, err = bin.Run()
+	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}

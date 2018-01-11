@@ -37,6 +37,7 @@ func setup() {
 	config.SDAPIURL = "http://fake.com/v4/"
 	config.SDStoreURL = "http://fake.store/v1/"
 	config.BaseCommandPath = filepath.Join(os.TempDir(), "sd")
+	config.SDArtifactsDir = filepath.Join(os.TempDir(), "artifact")
 	b, _ := ioutil.ReadFile("testdata/validShell.sh")
 	validShell = string(b)
 	b, _ = ioutil.ReadFile("testdata/invalidShell.sh")
@@ -45,6 +46,7 @@ func setup() {
 
 func teardown() {
 	os.RemoveAll(config.BaseCommandPath)
+	os.RemoveAll(config.SDArtifactsDir)
 }
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {

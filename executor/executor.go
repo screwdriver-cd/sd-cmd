@@ -1,7 +1,11 @@
 package executor
 
 import (
+	"bufio"
 	"fmt"
+	"log"
+	"os/exec"
+	"sync"
 
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -9,7 +13,7 @@ import (
 
 // Executor is a Executor endpoint
 type Executor interface {
-	Run() ([]byte, error)
+	Run() error
 }
 
 // New returns each format type of Executor
@@ -39,4 +43,44 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 		return nil, nil
 	}
 	return nil, nil
+}
+
+func execCommand(path string, args []string) error {
+	cmd := exec.Command(path, args...)
+	m := new(sync.Mutex)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("failed to crate stdout pipe for exec command: %v", err)
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("failed to crate stderr pipe for exec command: %v", err)
+	}
+
+	log.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			m.Lock()
+			log.Println(scanner.Text())
+			m.Unlock()
+		}
+	}()
+
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			m.Lock()
+			log.Println(scanner.Text())
+			m.Unlock()
+		}
+	}()
+
+	err = cmd.Run()
+	log.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
+	if err != nil {
+		return fmt.Errorf("failed to exec command: %v", err)
+	}
+	return nil
 }

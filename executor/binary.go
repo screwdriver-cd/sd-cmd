@@ -2,8 +2,8 @@ package executor
 
 import (
 	"fmt"
+	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
@@ -65,15 +65,27 @@ func (b *Binary) install() (string, error) {
 }
 
 // Run executes command and returns output
-func (b *Binary) Run() ([]byte, error) {
+func (b *Binary) Run() error {
+	log.Println("start to download binary command.")
 	err := b.download()
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return err
 	}
 
+	log.Println("start to install binary command.")
 	path, err := b.install()
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return err
 	}
-	return exec.Command(path, b.Arg...).Output()
+
+	log.Println("start to execute binary command.")
+	err = execCommand(path, b.Arg)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("success to execute binary command.")
+	}
+	return err
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime/debug"
 
@@ -11,6 +12,7 @@ import (
 )
 
 var cleanExit = func() {
+	executor.FinishLog()
 	os.Exit(0)
 }
 
@@ -29,16 +31,20 @@ func init() {
 }
 
 func runExecutor(sdAPI api.API, args []string) error {
-	executor, err := executor.New(sdAPI, args)
+	err := executor.StartLog(args)
+	defer executor.FinishLog()
+
 	if err != nil {
 		return err
 	}
-	output, err := executor.Run()
+	exec, err := executor.New(sdAPI, args)
 	if err != nil {
-		fmt.Println(string(output))
 		return err
 	}
-	fmt.Println(string(output))
+	err = exec.Run()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -59,19 +65,19 @@ func main() {
 	defer finalRecover()
 
 	if len(os.Args) < 2 {
-		fmt.Printf("The argument num is not enough\n")
+		log.Printf("The argument num is not enough\n")
 		os.Exit(0)
 	}
 
 	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Println(err)
+		os.Exit(0)
 	}
 
 	err = runCommand(sdAPI, os.Args)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(0)
 	}
 }
