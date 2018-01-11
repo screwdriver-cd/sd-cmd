@@ -28,33 +28,37 @@ func init() {
 	config.LoadConfig()
 }
 
+func runExecutor(sdAPI api.API, args []string) error {
+	executor, err := executor.New(sdAPI, args)
+	if err != nil {
+		return err
+	}
+	output, err := executor.Run()
+	if err != nil {
+		fmt.Println(string(output))
+		return err
+	}
+	fmt.Println(string(output))
+	return nil
+}
+
 func runCommand(sdAPI api.API, args []string) error {
 	switch args[1] {
 	case "exec":
-		executor, err := executor.New(sdAPI, args[2:])
-		if err != nil {
-			return fmt.Errorf("Failed to create executor: %v", err)
-		}
-		output, err := executor.Run()
-		if err != nil {
-			fmt.Println(string(output))
-			return fmt.Errorf("Failed to run exec command: %v", err)
-		}
-		fmt.Println(string(output))
-		return nil
+		return runExecutor(sdAPI, args)
 	case "publish":
 		return fmt.Errorf("publish is not implemented yet")
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:
-		return fmt.Errorf("No such type of command")
+		return runExecutor(sdAPI, args)
 	}
 }
 
 func main() {
 	defer finalRecover()
 
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		fmt.Printf("The argument num is not enough\n")
 		os.Exit(0)
 	}
@@ -67,7 +71,7 @@ func main() {
 
 	err = runCommand(sdAPI, os.Args)
 	if err != nil {
-		fmt.Printf("error happen: %v\n", err)
+		fmt.Println(err)
 		os.Exit(0)
 	}
 }

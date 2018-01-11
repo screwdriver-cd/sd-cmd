@@ -1,6 +1,8 @@
 package executor
 
 import (
+	"fmt"
+
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
@@ -16,6 +18,14 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if itr > 2 {
+		return nil, fmt.Errorf("exec command argument is not right")
+	}
+	if itr == 2 && args[1] != "exec" {
+		return nil, fmt.Errorf("no such type of command")
+	}
+
 	spec, err := sdAPI.GetCommand(ns, name, ver)
 	if err != nil {
 		return nil, err

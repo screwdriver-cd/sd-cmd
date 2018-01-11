@@ -11,6 +11,8 @@ var (
 	SDStoreURL string
 	// SDToken is SD_TOKEN value
 	SDToken string
+	// BaseCommandPath is path of installing binary command
+	BaseCommandPath = "/opt/sd/commands/"
 )
 
 // LoadConfig sets config data
