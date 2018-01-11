@@ -46,7 +46,7 @@ func checkVersion(ver string) bool {
 
 // SplitCmd splits full command to namespace, command, version.
 // ex(ns/cmd/1.0.1 => ns cmd 1.0.1)
-func SplitCmd(cmd string) (namespace, command, version string, err error) {
+func SplitCmd(cmd string) (namespace, name, version string, err error) {
 	values := fullCommandRegexp.FindAllStringSubmatch(cmd, -1)
 	if len(values) < 1 {
 		err = fmt.Errorf("There is no full command")
@@ -63,17 +63,17 @@ func SplitCmd(cmd string) (namespace, command, version string, err error) {
 	}
 
 	namespace = values[0][1]
-	command = values[0][2]
+	name = values[0][2]
 	version = values[0][3]
 	return
 }
 
 // SplitCmdWithSearch searches full command. If there is valid full command, return split full command name.
-func SplitCmdWithSearch(cmds []string) (namespace, command, version string, itr int, err error) {
+func SplitCmdWithSearch(cmds []string) (namespace, name, version string, itr int, err error) {
 	for i, val := range cmds {
-		ns, cmd, ver, err := SplitCmd(val)
+		ns, name, ver, err := SplitCmd(val)
 		if err == nil {
-			return ns, cmd, ver, i, err
+			return ns, name, ver, i, err
 		}
 	}
 	return "", "", "", -1, fmt.Errorf("There is no valid command format")

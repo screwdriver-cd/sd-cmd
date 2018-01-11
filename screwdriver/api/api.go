@@ -15,7 +15,7 @@ const (
 
 // API is a Screwdriver API endpoint
 type API interface {
-	GetCommand(namespace, command, version string) (*Command, error)
+	GetCommand(namespace, name, version string) (*Command, error)
 }
 
 type client struct {
@@ -34,7 +34,7 @@ type ResponseError struct {
 // Command is a Screwdriver Command
 type Command struct {
 	Namespace   string `json:"namespace"`
-	Command     string `json:"command"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`
 	Format      string `json:"format"`
@@ -98,10 +98,10 @@ func handleResponse(res *http.Response) ([]byte, error) {
 }
 
 // GetCommand returns Command from Screwdriver API
-func (c client) GetCommand(namespace, command, version string) (*Command, error) {
+func (c client) GetCommand(namespace, name, version string) (*Command, error) {
 	cmd := new(Command)
 
-	url := fmt.Sprintf("%scommands/%s/%s", c.baseURL, namespace+"%2F"+command, version)
+	url := fmt.Sprintf("%scommands/%s/%s", c.baseURL, namespace+"%2F"+name, version)
 	req, err := http.NewRequest("GET", url, strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)

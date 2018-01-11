@@ -12,17 +12,17 @@ type Executor interface {
 
 // New returns each format type of Executor
 func New(sdAPI api.API, args []string) (Executor, error) {
-	ns, cmd, ver, itr, err := util.SplitCmdWithSearch(args)
+	ns, name, ver, itr, err := util.SplitCmdWithSearch(args)
 	if err != nil {
 		return nil, err
 	}
-	sdCmd, err := sdAPI.GetCommand(ns, cmd, ver)
+	spec, err := sdAPI.GetCommand(ns, name, ver)
 	if err != nil {
 		return nil, err
 	}
-	switch sdCmd.Format {
+	switch spec.Format {
 	case "binary":
-		return NewBinary(sdCmd, args[itr+1:])
+		return NewBinary(spec, args[itr+1:])
 	case "habitat":
 		return nil, nil
 	case "docker":

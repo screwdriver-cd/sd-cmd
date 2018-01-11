@@ -14,7 +14,7 @@ import (
 
 const (
 	dummyNameSpace   = "foo-dummy"
-	dummyCommand     = "cmd-dummy"
+	dummyName        = "name-dummy"
 	dummyVersion     = "1.1.1"
 	dummyFormat      = "binary"
 	dummyFile        = "sd-step"
@@ -52,7 +52,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 func dummySDCommand() (spec *api.Command) {
 	spec = &api.Command{
 		Namespace:   dummyNameSpace,
-		Command:     dummyCommand,
+		Name:        dummyName,
 		Description: dummyDescription,
 		Version:     dummyVersion,
 		Format:      dummyFormat,
@@ -89,7 +89,7 @@ func TestGetCommand(t *testing.T) {
 	sdCommand := dummySDCommand()
 	c, _ := newClient(sdCommand)
 	store := Store(c)
-	dummyURL := fmt.Sprintf("/v1/commands/%s/%s/%s", dummyNameSpace, dummyCommand, dummyVersion)
+	dummyURL := fmt.Sprintf("/v1/commands/%s/%s/%s", dummyNameSpace, dummyName, dummyVersion)
 	c.client = makeFakeHTTPClient(t, 200, "Hello World", dummyURL, "text/plain")
 	binary, err := store.GetCommand()
 	if err != nil {

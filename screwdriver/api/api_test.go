@@ -48,10 +48,10 @@ func TestGetCommand(t *testing.T) {
 	// success
 	c, _ := newClient(fakeAPIURL, fakeSDToken)
 	api := API(c)
-	ns, cmd, ver := "foo", "bar", "1.0"
-	jsonMsg := fmt.Sprintf("{\"namespace\":\"%s\",\"command\":\"%s\",\"version\":\"%s\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}", ns, cmd, ver)
-	c.client = makeFakeHTTPClient(t, 200, jsonMsg, fmt.Sprintf("/v4/commands/%s/%s/%s", ns, cmd, ver))
-	command, err := api.GetCommand(ns, cmd, ver)
+	ns, name, ver := "foo", "bar", "1.0"
+	jsonMsg := fmt.Sprintf("{\"namespace\":\"%s\",\"name\":\"%s\",\"version\":\"%s\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}", ns, name, ver)
+	c.client = makeFakeHTTPClient(t, 200, jsonMsg, fmt.Sprintf("/v4/commands/%s/%s/%s", ns, name, ver))
+	command, err := api.GetCommand(ns, name, ver)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -64,7 +64,7 @@ func TestGetCommand(t *testing.T) {
 	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
 	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
 	api = API(c)
-	_, err = api.GetCommand(ns, cmd, ver)
+	_, err = api.GetCommand(ns, name, ver)
 	if err.Error() != ansMsg {
 		t.Errorf("err=%q, want %q", errMsg, ansMsg)
 	}
@@ -74,7 +74,7 @@ func TestGetCommand(t *testing.T) {
 		code    int
 		message string
 	}{
-		{200, "{{\"namespace\":\"invalid\",\"command\":\"json\",\"version\":\"1.0\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}"},
+		{200, "{{\"namespace\":\"invalid\",\"name\":\"json\",\"version\":\"1.0\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}"},
 		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": \"Access Denied\"}"},
 		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": {\"This error messeg json is broken\"}"},
 		{500, "{\"statusCode\": 500,\"error\": \"InternalServerError\",\"message\": \"server error\"}"},
@@ -84,7 +84,7 @@ func TestGetCommand(t *testing.T) {
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		_, err := api.GetCommand(ns, cmd, ver)
+		_, err := api.GetCommand(ns, name, ver)
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}

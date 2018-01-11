@@ -12,7 +12,7 @@ $ go build -a -o sd-cmd
 
 ### Execute
 ```bash
-$ sd_cmd exec namespace/command@version [arguments]
+$ sd_cmd exec namespace/name@version [arguments]
 ```
 
 ## Testing

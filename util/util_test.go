@@ -7,7 +7,7 @@ func TestSplitCmd(t *testing.T) {
 	fullCommands := []struct {
 		fullCommand  string
 		namespaceAns string
-		commandAns   string
+		nameAns      string
 		versionAns   string
 	}{
 		{"foo/bar@1.2.*", "foo", "bar", "1.2.*"},
@@ -29,12 +29,12 @@ func TestSplitCmd(t *testing.T) {
 	}
 
 	for _, c := range fullCommands {
-		ns, cmd, ver, err := SplitCmd(c.fullCommand)
+		ns, name, ver, err := SplitCmd(c.fullCommand)
 		if err != nil {
 			t.Errorf("%q err=%q, want nil", c.fullCommand, err)
 		}
-		if ns != c.namespaceAns || cmd != c.commandAns || ver != c.versionAns {
-			t.Errorf("namespace=%q, command=%q, version=%q, want %q, %q, %q", ns, cmd, ver, c.namespaceAns, c.commandAns, c.versionAns)
+		if ns != c.namespaceAns || name != c.nameAns || ver != c.versionAns {
+			t.Errorf("namespace=%q, name=%q, version=%q, want %q, %q, %q", ns, name, ver, c.namespaceAns, c.nameAns, c.versionAns)
 		}
 	}
 
@@ -78,12 +78,12 @@ func TestSplitCmd(t *testing.T) {
 
 func TestSplitCmdWithSearch(t *testing.T) {
 	// success
-	ns, cmd, ver, itr, err := SplitCmdWithSearch([]string{"exec", "foo/bar@1.0", "sample"})
+	ns, name, ver, itr, err := SplitCmdWithSearch([]string{"exec", "foo/bar@1.0", "sample"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if ns != "foo" || cmd != "bar" || ver != "1.0" || itr != 1 {
-		t.Errorf("namespace=%q, command=%q, version=%q, want %q, %q, %q", ns, cmd, ver, "foo", "bar", "1.0")
+	if ns != "foo" || name != "bar" || ver != "1.0" || itr != 1 {
+		t.Errorf("namespace=%q, name=%q, version=%q, want %q, %q, %q", ns, name, ver, "foo", "bar", "1.0")
 	}
 
 	// failure

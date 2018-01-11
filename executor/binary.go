@@ -8,15 +8,15 @@ import (
 
 // Binary is a Binary Executor object
 type Binary struct {
-	Cmd *api.Command
-	Arg []string
+	Spec *api.Command
+	Arg  []string
 }
 
 // NewBinary returns Binary object
-func NewBinary(cmd *api.Command, arg []string) (*Binary, error) {
+func NewBinary(spec *api.Command, arg []string) (*Binary, error) {
 	binary := &Binary{
-		Cmd: cmd,
-		Arg: arg,
+		Spec: spec,
+		Arg:  arg,
 	}
 	return binary, nil
 }

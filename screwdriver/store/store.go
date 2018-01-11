@@ -47,7 +47,7 @@ func (e ResponseError) Error() string {
 func commandURL(spec *api.Command) (string, error) {
 	if spec.Format == "binary" {
 		url := fmt.Sprintf("%scommands/%s%%2F%s/%s", config.SDStoreURL,
-			spec.Namespace, spec.Command, spec.Version)
+			spec.Namespace, spec.Name, spec.Version)
 		return url, nil
 	}
 	return "", fmt.Errorf("The format is not binary")
