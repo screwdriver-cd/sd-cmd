@@ -79,6 +79,8 @@ func execCommand(path string, args []string) error {
 
 	err = cmd.Run()
 	log.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
+	state := cmd.ProcessState
+	log.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	if err != nil {
 		return fmt.Errorf("failed to exec command: %v", err)
 	}
