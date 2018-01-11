@@ -12,7 +12,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-var logFile *os.File
+var logFile io.WriteCloser
 
 // StartLog make the log output to the file and stderr
 func StartLog(args []string) error {

@@ -36,6 +36,15 @@ func dummyStoreCommand(body string) (cmd *store.Command) {
 	}
 }
 
+type dummyLogFile struct {
+	buffer *bytes.Buffer
+}
+
+func (d *dummyLogFile) Close() error { return nil }
+func (d *dummyLogFile) Write(p []byte) (n int, err error) {
+	return d.buffer.Write(p)
+}
+
 func TestNewBinary(t *testing.T) {
 	_, err := NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
 	if err != nil {
@@ -45,7 +54,9 @@ func TestNewBinary(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
+	d := &dummyLogFile{buffer: buffer}
 	log.SetOutput(buffer)
+	logFile = d
 
 	// success with no arguments
 	bin, _ := NewBinary(dummyAPICommand(binaryFormat), []string{})
