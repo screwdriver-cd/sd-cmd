@@ -49,6 +49,10 @@ func runExecutor(sdAPI api.API, args []string) error {
 }
 
 func runCommand(sdAPI api.API, args []string) error {
+	if len(os.Args) < 2 {
+		return fmt.Errorf("The argument num is not enough")
+	}
+
 	switch args[1] {
 	case "exec":
 		return runExecutor(sdAPI, args)
@@ -63,11 +67,6 @@ func runCommand(sdAPI api.API, args []string) error {
 
 func main() {
 	defer finalRecover()
-
-	if len(os.Args) < 2 {
-		log.Printf("The argument num is not enough\n")
-		os.Exit(0)
-	}
 
 	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
 	if err != nil {
