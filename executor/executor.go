@@ -3,7 +3,9 @@ package executor
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"os/exec"
 	"sync"
 
@@ -58,12 +60,14 @@ func execCommand(path string, args []string) error {
 		return fmt.Errorf("failed to create stderr pipe for exec command: %v", err)
 	}
 
+	writer := io.MultiWriter(os.Stderr, logFile)
+
 	log.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			m.Lock()
-			log.Println(scanner.Text())
+			fmt.Fprintf(writer, "%v\n", scanner.Text())
 			m.Unlock()
 		}
 	}()
@@ -72,7 +76,7 @@ func execCommand(path string, args []string) error {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 			m.Lock()
-			log.Println(scanner.Text())
+			fmt.Fprintf(writer, "%v\n", scanner.Text())
 			m.Unlock()
 		}
 	}()

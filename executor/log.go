@@ -45,4 +45,5 @@ func FinishLog() {
 	if logFile != nil {
 		logFile.Close()
 	}
+	log.SetOutput(os.Stderr)
 }
