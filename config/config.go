@@ -9,15 +9,15 @@ var (
 	SDAPIURL string
 	// SDStoreURL is SD_STORE_URL value
 	SDStoreURL string
-	// SDAPIToken is SD_API_TOKEN value
-	SDAPIToken string
+	// SDToken is SD_TOKEN value
+	SDToken string
 )
 
 // LoadConfig sets config data
 func LoadConfig() {
 	SDAPIURL = os.Getenv("SD_API_URL")
 	SDStoreURL = os.Getenv("SD_STORE_URL")
-	SDAPIToken = os.Getenv("SD_API_TOKEN")
+	SDToken = os.Getenv("SD_TOKEN")
 	if VERSION == "" {
 		VERSION = "0.0.0"
 	}

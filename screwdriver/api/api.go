@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
-
-	"github.com/screwdriver-cd/sd-cmd/config"
 )
 
 const (
@@ -13,20 +15,13 @@ const (
 
 // API is a Screwdriver API endpoint
 type API interface {
-	SetJWT() error
 	GetCommand(namespace, command, version string) (*Command, error)
 }
 
 type client struct {
-	baseURL  string
-	apiToken string
-	jwt      string
-	client   *http.Client
-}
-
-// JWT is a Screwdriver JWT
-type JWT struct {
-	Token string `json:"token"`
+	baseURL string
+	jwt     string
+	client  *http.Client
 }
 
 // ResponseError is an error response from the Screwdriver API
@@ -46,37 +41,88 @@ type Command struct {
 	Habitat     struct {
 		Mode    string `json:"mode"`
 		Package string `json:"package"`
-		Binary  string `json:"binary"`
+		Command string `json:"command"`
 	} `json:"habitat"`
 	Docker struct {
-		Image string `json:"image"`
+		Image   string `json:"image"`
+		Command string `json:"command"`
 	} `json:"docker"`
 	Binary struct {
 		File string `json:"file"`
 	} `json:"binary"`
 }
 
+func (e ResponseError) Error() string {
+	return fmt.Sprintf("Screwdriver API %d %s: %s", e.StatusCode, e.Reason, e.Message)
+}
+
 // New returns API object
-func New() (API, error) {
-	c := &client{
-		baseURL:  config.SDAPIURL,
-		apiToken: config.SDAPIToken,
-		client:   &http.Client{Timeout: timeoutSec * time.Second},
+func New(sdAPI, sdToken string) (API, error) {
+	c, err := newClient(sdAPI, sdToken)
+	if err != nil {
+		return nil, err
 	}
 	return API(c), nil
 }
 
-// SetJWT sets jwt to API
-func (c *client) SetJWT() error {
-	return nil
+func newClient(sdAPI, sdToken string) (*client, error) {
+	c := &client{
+		baseURL: sdAPI,
+		jwt:     sdToken,
+		client:  &http.Client{Timeout: timeoutSec * time.Second},
+	}
+	return c, nil
+}
+
+func handleResponse(res *http.Response) ([]byte, error) {
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Reading response Body from Screwdriver API: %v", err)
+	}
+
+	switch res.StatusCode / 100 {
+	case 2:
+		return body, nil
+	case 4:
+		res := new(ResponseError)
+		err = json.Unmarshal(body, res)
+		if err != nil {
+			return nil, fmt.Errorf("Unparseable error response from Screwdriver API: %v", err)
+		}
+		return nil, res
+	case 5:
+		return nil, fmt.Errorf("%v: Screwdriver API has internal server error", res.StatusCode)
+	default:
+		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API")
+	}
 }
 
 // GetCommand returns Command from Screwdriver API
 func (c client) GetCommand(namespace, command, version string) (*Command, error) {
 	cmd := new(Command)
-	cmd.Namespace = namespace
-	cmd.Command = command
-	cmd.Version = version
-	cmd.Format = "binary"
+
+	url := fmt.Sprintf("%scommands/%s/%s", c.baseURL, namespace+"%2F"+command, version)
+	req, err := http.NewRequest("GET", url, strings.NewReader(""))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)
+	}
+
+	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get command from Screwdriver API: %v", err)
+	}
+	defer res.Body.Close()
+	body, err := handleResponse(res)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, cmd)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal command: %v", err)
+	}
 	return cmd, nil
 }
