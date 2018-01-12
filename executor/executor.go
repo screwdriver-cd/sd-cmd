@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"sync"
 
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -49,9 +48,26 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	return nil, nil
 }
 
+func writeCommandLog(count int, content chan string, finish chan bool, done chan bool) {
+	writer := io.MultiWriter(os.Stderr, logFile)
+	for {
+		select {
+		case c := <-content:
+			fmt.Fprintf(writer, c)
+		case fin := <-finish:
+			if fin {
+				count--
+			}
+		}
+		if count <= 0 {
+			break
+		}
+	}
+	done <- true
+}
+
 func execCommand(path string, args []string) error {
 	cmd := exec.Command(path, args...)
-	m := new(sync.Mutex)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("failed to create stdout pipe for exec command: %v", err)
@@ -62,28 +78,34 @@ func execCommand(path string, args []string) error {
 		return fmt.Errorf("failed to create stderr pipe for exec command: %v", err)
 	}
 
-	writer := io.MultiWriter(os.Stderr, logFile)
-
+	content := make(chan string)
+	finish := make(chan bool)
+	done := make(chan bool)
 	log.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
-	go func() {
+	go func(content chan string, finish chan bool) {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			m.Lock()
-			fmt.Fprintf(writer, "%v\n", scanner.Text())
-			m.Unlock()
+			content <- fmt.Sprintf("%v\n", scanner.Text())
 		}
-	}()
+		finish <- true
+	}(content, finish)
 
-	go func() {
+	go func(content chan string, finish chan bool) {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			m.Lock()
-			fmt.Fprintf(writer, "%v\n", scanner.Text())
-			m.Unlock()
+			content <- fmt.Sprintf("%v\n", scanner.Text())
 		}
-	}()
+		finish <- true
+	}(content, finish)
+
+	go writeCommandLog(2, content, finish, done)
 
 	err = cmd.Run()
+
+	<-done
+	close(content)
+	close(finish)
+	close(done)
 	log.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 	state := cmd.ProcessState
 	log.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())

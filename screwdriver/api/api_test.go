@@ -76,7 +76,7 @@ func TestGetCommand(t *testing.T) {
 	}{
 		{200, "{{\"namespace\":\"invalid\",\"name\":\"json\",\"version\":\"1.0\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}"},
 		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": \"Access Denied\"}"},
-		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": {\"This error messeg json is broken\"}"},
+		{403, "{\"statusCode\": 403,\"error\": \"Forbidden\",\"message\": {\"This error message json is broken\"}"},
 		{500, "{\"statusCode\": 500,\"error\": \"InternalServerError\",\"message\": \"server error\"}"},
 		{200, "{\"statusCode\": 200,\"error\": \"JsonBroken\",{\"message\"}: \"This json is broken\"}"},
 		{600, "{\"statusCode\": 403,\"error\": \"Unknown\",\"message\": \"Unknown\"}"},
