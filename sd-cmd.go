@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"runtime/debug"
 
@@ -14,9 +13,22 @@ import (
 
 const minArgLength = 2
 
-var cleanExit = func() {
+func cleanExit() {
 	logger.CloseAll()
+}
+
+func successExit() {
+	cleanExit()
 	os.Exit(0)
+}
+
+// failureExit exits process with 1
+func failureExit(err error) {
+	cleanExit()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+	}
+	os.Exit(1)
 }
 
 // finalRecover makes one last attempt to recover from a panic.
@@ -25,8 +37,9 @@ func finalRecover() {
 	if p := recover(); p != nil {
 		fmt.Fprintln(os.Stderr, "ERROR: Something terrible has happened. Please file a ticket with this info:")
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n%v\n", p, debug.Stack())
+		failureExit(nil)
 	}
-	cleanExit()
+	successExit()
 }
 
 func init() {
@@ -67,13 +80,11 @@ func main() {
 
 	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
 	if err != nil {
-		log.Println(err)
-		os.Exit(0)
+		failureExit(err)
 	}
 
 	err = runCommand(sdAPI, os.Args)
 	if err != nil {
-		log.Println(err)
-		os.Exit(0)
+		failureExit(err)
 	}
 }
