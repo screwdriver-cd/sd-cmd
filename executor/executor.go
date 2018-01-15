@@ -15,7 +15,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-var lagger *logger.Logger
+var lager *logger.Logger
 
 // Executor is a Executor endpoint
 type Executor interface {
@@ -25,7 +25,7 @@ type Executor interface {
 func prepareLog(namespace, name, version string) (err error) {
 	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands", namespace, name, version)
 	filename := fmt.Sprintf("%v.log", time.Now().Unix())
-	lagger, err = logger.New(dirPath, filename, log.LstdFlags, false)
+	lager, err = logger.New(dirPath, filename, log.LstdFlags, false)
 	if err != nil {
 		return err
 	}
@@ -61,16 +61,16 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 
 func execCommand(path string, args []string) error {
 	cmd := exec.Command(path, args...)
-	lagger.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
+	lager.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 
-	cmd.Stdout = io.MultiWriter(lagger.File, os.Stderr)
+	cmd.Stdout = io.MultiWriter(lager.File, os.Stderr)
 	cmd.Stderr = cmd.Stdout
 
 	err := cmd.Run()
 
-	lagger.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
+	lager.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 	state := cmd.ProcessState
-	lagger.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
+	lager.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	if err != nil {
 		return fmt.Errorf("failed to exec command: %v", err)
 	}

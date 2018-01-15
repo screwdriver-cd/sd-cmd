@@ -63,55 +63,55 @@ func TestCreateLogFile(t *testing.T) {
 }
 
 func TestSetInfos(t *testing.T) {
-	lagger := new(Logger)
+	lager := new(Logger)
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lagger.SetInfos(d, log.Ldate, false)
+	lager.SetInfos(d, log.Ldate, false)
 
-	if lagger.Debug.Flags() != log.Ldate {
-		t.Errorf("lagger.Debug.Flags=%q, want %q", lagger.Debug.Flags(), log.Ldate)
+	if lager.Debug.Flags() != log.Ldate {
+		t.Errorf("lager.Debug.Flags=%q, want %q", lager.Debug.Flags(), log.Ldate)
 	}
-	if lagger.Error.Flags() != log.LstdFlags {
-		t.Errorf("lagger.Error.Flags=%q, want %q", lagger.Debug.Flags(), log.LstdFlags)
+	if lager.Error.Flags() != log.LstdFlags {
+		t.Errorf("lager.Error.Flags=%q, want %q", lager.Debug.Flags(), log.LstdFlags)
 	}
 }
 
 func TestCanLogFile(t *testing.T) {
-	lagger := new(Logger)
+	lager := new(Logger)
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
 
 	// check Error debug = false
-	lagger.SetInfos(d, 0, false)
+	lager.SetInfos(d, 0, false)
 	contents := "Hello this is Error debug false"
-	lagger.Error.Println(contents)
+	lager.Error.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
 		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
 	}
 	d.buffer.Reset()
 
 	// check Error debug = true
-	lagger.SetInfos(d, 0, true)
+	lager.SetInfos(d, 0, true)
 	contents = "Hello this is Error debug true"
-	lagger.Error.Println(contents)
+	lager.Error.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
 		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
 	}
 	d.buffer.Reset()
 
 	// check Debug debug = false
-	lagger.SetInfos(d, 0, false)
+	lager.SetInfos(d, 0, false)
 	contents = "Hello this is Debug debug false"
-	lagger.Debug.Println(contents)
+	lager.Debug.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
 		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
 	}
 	d.buffer.Reset()
 
 	// check Debug debug = true
-	lagger.SetInfos(d, 0, true)
+	lager.SetInfos(d, 0, true)
 	contents = "Hello this is Debug debug true"
-	lagger.Debug.Println(contents)
+	lager.Debug.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
 		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
 	}
@@ -124,19 +124,19 @@ func Example_logStderr() {
 	os.Stderr = os.Stdout
 	defer func() { os.Stderr = cacheFile }()
 
-	lagger := new(Logger)
+	lager := new(Logger)
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lagger.SetInfos(d, 0, false)
+	lager.SetInfos(d, 0, false)
 
 	// check Debug debug = false
 	contents := "Hello this is Debug debug false"
-	lagger.Debug.Print(contents)
+	lager.Debug.Print(contents)
 
 	// check Debug debug = true
-	lagger.SetInfos(d, 0, true)
+	lager.SetInfos(d, 0, true)
 	contents = "Hello this is Debug debug true"
-	lagger.Debug.Print(contents)
+	lager.Debug.Print(contents)
 
 	// Output:
 	// Hello this is Debug debug true

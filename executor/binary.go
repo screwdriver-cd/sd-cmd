@@ -65,27 +65,27 @@ func (b *Binary) install() (string, error) {
 
 // Run executes command and returns output
 func (b *Binary) Run() error {
-	lagger.Debug.Println("start downloading binary command.")
+	lager.Debug.Println("start downloading binary command.")
 
 	err := b.download()
 	if err != nil {
-		lagger.Debug.Println(err)
+		lager.Debug.Println(err)
 		return err
 	}
 
-	lagger.Debug.Println("start installing binary command.")
+	lager.Debug.Println("start installing binary command.")
 	path, err := b.install()
 	if err != nil {
-		lagger.Debug.Println(err)
+		lager.Debug.Println(err)
 		return err
 	}
 
-	lagger.Debug.Println("start executing binary command.")
+	lager.Debug.Println("start executing binary command.")
 	err = execCommand(path, b.Args)
 	if err != nil {
-		lagger.Debug.Println(err)
+		lager.Debug.Println(err)
 	} else {
-		lagger.Debug.Println("execute binary command succeeded.")
+		lager.Debug.Println("execute binary command succeeded.")
 	}
 	return err
 }
