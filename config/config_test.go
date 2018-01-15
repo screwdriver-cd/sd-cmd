@@ -51,6 +51,13 @@ func TestLoadConfig(t *testing.T) {
 	if SDArtifactsDir != dummySDArtifactsDir {
 		t.Errorf("SDAPIURL=%q, want %q", SDArtifactsDir, dummySDArtifactsDir)
 	}
+
+	// check unset env
+	os.Unsetenv("SD_API_URL")
+	LoadConfig()
+	if SDAPIURL != "" {
+		t.Errorf("SDAPIURL=%q, want blank", SDAPIURL)
+	}
 }
 
 func TestMain(m *testing.M) {
