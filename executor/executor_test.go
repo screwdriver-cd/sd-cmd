@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
+	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
@@ -33,6 +35,20 @@ var (
 	invalidShell string
 )
 
+var (
+	// logBuffer has log information
+	logBuffer *bytes.Buffer
+)
+
+type dummyLogFile struct {
+	buffer *bytes.Buffer
+}
+
+func (d *dummyLogFile) Close() error { return nil }
+func (d *dummyLogFile) Write(p []byte) (n int, err error) {
+	return d.buffer.Write(p)
+}
+
 func setup() {
 	config.SDAPIURL = "http://fake.com/v4/"
 	config.SDStoreURL = "http://fake.store/v1/"
@@ -42,6 +58,13 @@ func setup() {
 	validShell = string(b)
 	b, _ = ioutil.ReadFile("testdata/invalidShell.sh")
 	invalidShell = string(b)
+
+	// setting lagger for logging
+	l := new(logger.Logger)
+	logBuffer = bytes.NewBuffer([]byte{})
+	d := &dummyLogFile{buffer: logBuffer}
+	l.SetInfos(d, 0, true)
+	lagger = l
 }
 
 func teardown() {
@@ -127,20 +150,6 @@ func TestNew(t *testing.T) {
 	// failure. Screwdriver API error
 	sdapi = api.API(new(dummySDAPIBroken))
 	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
-
-	// failure. exec command is invalid
-	sdapi = api.API(new(dummySDAPIBinary))
-	_, err = New(sdapi, []string{"sd-cmd", "NO_TYPE", "ns/cmd@ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
-
-	// failure. exec command is invalid
-	sdapi = api.API(new(dummySDAPIBinary))
-	_, err = New(sdapi, []string{"sd-cmd", "exec", "arg", "ns/cmd@ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}

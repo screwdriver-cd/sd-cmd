@@ -3,20 +3,32 @@ package executor
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"log"
-	"os"
 	"os/exec"
+	"path/filepath"
+	"time"
 
+	"github.com/screwdriver-cd/sd-cmd/config"
+	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-const maxFullCommandPlaceOnArg = 2
+var lagger *logger.Logger
 
 // Executor is a Executor endpoint
 type Executor interface {
 	Run() error
+}
+
+func prepareLog(namespace, name, version string) (err error) {
+	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands", namespace, name, version)
+	filename := fmt.Sprintf("%v.log", time.Now().Unix())
+	lagger, err = logger.New(dirPath, filename, log.LstdFlags, false)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // New returns each format type of Executor
@@ -26,11 +38,9 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 		return nil, err
 	}
 
-	if itr > maxFullCommandPlaceOnArg {
-		return nil, fmt.Errorf("exec command argument is not right")
-	}
-	if itr == maxFullCommandPlaceOnArg && args[1] != "exec" {
-		return nil, fmt.Errorf("no such type of command")
+	err = prepareLog(ns, name, ver)
+	if err != nil {
+		return nil, err
 	}
 
 	spec, err := sdAPI.GetCommand(ns, name, ver)
@@ -49,11 +59,12 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 }
 
 func writeCommandLog(count int, content chan string, finish chan bool, done chan bool) {
-	writer := io.MultiWriter(os.Stderr, logFile)
+	laggerCommand := new(logger.Logger)
+	laggerCommand.SetInfos(lagger.File, 0, true)
 	for {
 		select {
 		case c := <-content:
-			fmt.Fprintf(writer, c)
+			laggerCommand.Debug.Printf("%v", c)
 		case fin := <-finish:
 			if fin {
 				count--
@@ -81,7 +92,7 @@ func execCommand(path string, args []string) error {
 	content := make(chan string)
 	finish := make(chan bool)
 	done := make(chan bool)
-	log.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
+	lagger.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 	go func(content chan string, finish chan bool) {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
@@ -106,9 +117,9 @@ func execCommand(path string, args []string) error {
 	close(content)
 	close(finish)
 	close(done)
-	log.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
+	lagger.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 	state := cmd.ProcessState
-	log.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
+	lagger.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	if err != nil {
 		return fmt.Errorf("failed to exec command: %v", err)
 	}

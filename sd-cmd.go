@@ -8,13 +8,14 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
+	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 const minArgLength = 2
 
 var cleanExit = func() {
-	executor.FinishLog()
+	logger.CloseAll()
 	os.Exit(0)
 }
 
@@ -33,12 +34,6 @@ func init() {
 }
 
 func runExecutor(sdAPI api.API, args []string) error {
-	err := executor.StartLog(args)
-	defer executor.FinishLog()
-
-	if err != nil {
-		return err
-	}
 	exec, err := executor.New(sdAPI, args)
 	if err != nil {
 		return err

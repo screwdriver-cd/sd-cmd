@@ -1,9 +1,7 @@
 package executor
 
 import (
-	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 
@@ -36,15 +34,6 @@ func dummyStoreCommand(body string) (cmd *store.Command) {
 	}
 }
 
-type dummyLogFile struct {
-	buffer *bytes.Buffer
-}
-
-func (d *dummyLogFile) Close() error { return nil }
-func (d *dummyLogFile) Write(p []byte) (n int, err error) {
-	return d.buffer.Write(p)
-}
-
 func TestNewBinary(t *testing.T) {
 	_, err := NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
 	if err != nil {
@@ -53,10 +42,7 @@ func TestNewBinary(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	buffer := bytes.NewBuffer([]byte{})
-	d := &dummyLogFile{buffer: buffer}
-	log.SetOutput(buffer)
-	logFile = d
+	logBuffer.Reset()
 
 	// success with no arguments
 	bin, _ := NewBinary(dummyAPICommand(binaryFormat), []string{})
@@ -65,10 +51,10 @@ func TestRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if !strings.Contains(buffer.String(), "Hello World\n") {
-		t.Errorf("log is %q, should include %q", buffer.String(), "Hello World\n")
+	if !strings.Contains(logBuffer.String(), "Hello World\n") {
+		t.Errorf("log is %q, should include %q", logBuffer.String(), "Hello World\n")
 	}
-	buffer.Reset()
+	logBuffer.Reset()
 
 	// success with arguments
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
@@ -77,16 +63,16 @@ func TestRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if !strings.Contains(buffer.String(), "Hello World\n") {
-		t.Errorf("log is %q, should include %q", buffer.String(), "Hello World")
+	if !strings.Contains(logBuffer.String(), "Hello World\n") {
+		t.Errorf("log is %q, should include %q", logBuffer.String(), "Hello World")
 	}
-	if !strings.Contains(buffer.String(), "arg1\n") {
-		t.Errorf("log is %q, should include %q", buffer.String(), "arg1\n")
+	if !strings.Contains(logBuffer.String(), "arg1\n") {
+		t.Errorf("log is %q, should include %q", logBuffer.String(), "arg1\n")
 	}
-	if !strings.Contains(buffer.String(), "arg2\n") {
-		t.Errorf("log is %q, should include %q", buffer.String(), "arg2\n")
+	if !strings.Contains(logBuffer.String(), "arg2\n") {
+		t.Errorf("log is %q, should include %q", logBuffer.String(), "arg2\n")
 	}
-	buffer.Reset()
+	logBuffer.Reset()
 
 	// failure. the command is broken
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})

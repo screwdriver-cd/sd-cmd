@@ -2,7 +2,6 @@ package executor
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -66,26 +65,27 @@ func (b *Binary) install() (string, error) {
 
 // Run executes command and returns output
 func (b *Binary) Run() error {
-	log.Println("start to download binary command.")
+	lagger.Debug.Println("start to download binary command.")
+
 	err := b.download()
 	if err != nil {
-		log.Println(err)
+		lagger.Debug.Println(err)
 		return err
 	}
 
-	log.Println("start to install binary command.")
+	lagger.Debug.Println("start to install binary command.")
 	path, err := b.install()
 	if err != nil {
-		log.Println(err)
+		lagger.Debug.Println(err)
 		return err
 	}
 
-	log.Println("start to execute binary command.")
+	lagger.Debug.Println("start to execute binary command.")
 	err = execCommand(path, b.Arg)
 	if err != nil {
-		log.Println(err)
+		lagger.Debug.Println(err)
 	} else {
-		log.Println("success to execute binary command.")
+		lagger.Debug.Println("success to execute binary command.")
 	}
 	return err
 }
