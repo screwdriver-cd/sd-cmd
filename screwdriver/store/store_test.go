@@ -76,12 +76,6 @@ func TestNew(t *testing.T) {
 		t.Errorf("New does not fulfill API interface")
 	}
 
-	// failure
-	sdCommand.Format = "docker"
-	store, err = New(sdCommand)
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
 }
 
 func TestGetCommand(t *testing.T) {
@@ -128,6 +122,23 @@ func TestGetCommand(t *testing.T) {
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
+	}
+
+	// failure.
+	sdCommand = dummySDCommand()
+	sdCommand.Format = "docker"
+	c, _ = newClient(sdCommand)
+	store = Store(c)
+	_, err = store.GetCommand()
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+
+	c, _ = newClient(nil)
+	store = Store(c)
+	_, err = store.GetCommand()
+	if err == nil {
+		t.Errorf("err=nil, want error")
 	}
 }
 

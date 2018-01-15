@@ -39,8 +39,8 @@ func teardown() {
 
 func TestLoadConfig(t *testing.T) {
 	LoadConfig()
-	if SDAPIURL != "dummy-api/" {
-		t.Errorf("SDAPIURL=%q, want %q", SDAPIURL, "dummy-api/")
+	if SDAPIURL != dummyAPIURL {
+		t.Errorf("SDAPIURL=%q, want %q", SDAPIURL, dummyAPIURL)
 	}
 	if SDToken != dummyToken {
 		t.Errorf("SDAPIURL=%q, want %q", SDToken, dummyToken)

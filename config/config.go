@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -20,19 +19,12 @@ var (
 	BaseCommandPath = "/opt/sd/commands/"
 )
 
-func addSlash(val string) string {
-	if val != "" && val[len(val)-1] != '/' {
-		return fmt.Sprintf("%s/", val)
-	}
-	return val
-}
-
 // LoadConfig sets config data
 func LoadConfig() {
-	SDAPIURL = addSlash(os.Getenv("SD_API_URL"))
-	SDStoreURL = addSlash(os.Getenv("SD_STORE_URL"))
+	SDAPIURL = os.Getenv("SD_API_URL")
+	SDStoreURL = os.Getenv("SD_STORE_URL")
 	SDToken = os.Getenv("SD_TOKEN")
-	SDArtifactsDir = addSlash(os.Getenv("SD_ARTIFACTS_DIR"))
+	SDArtifactsDir = os.Getenv("SD_ARTIFACTS_DIR")
 	if VERSION == "" {
 		VERSION = "0.0.0"
 	}

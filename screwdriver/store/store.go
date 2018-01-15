@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 	"time"
 
@@ -44,11 +46,14 @@ func (e ResponseError) Error() string {
 	return fmt.Sprintf("Store API %d %s", e.StatusCode, e.Reason)
 }
 
-func commandURL(spec *api.Command) (string, error) {
-	if spec.Format == "binary" {
-		url := fmt.Sprintf("%scommands/%s%%2F%s/%s", config.SDStoreURL,
-			spec.Namespace, spec.Name, spec.Version)
-		return url, nil
+func (c *client) commandURL() (string, error) {
+	if c.spec != nil && c.spec.Format == "binary" {
+		uri, err := url.Parse(c.baseURL)
+		if err != nil {
+			return "", fmt.Errorf("The base Screwdriver Store API is invalid %q", c.baseURL)
+		}
+		uri.Path = path.Join(uri.Path, "commands", c.spec.Namespace, c.spec.Name, c.spec.Version)
+		return uri.String(), nil
 	}
 	return "", fmt.Errorf("The format is not binary")
 }
@@ -63,12 +68,8 @@ func New(spec *api.Command) (Store, error) {
 }
 
 func newClient(spec *api.Command) (*client, error) {
-	baseURL, err := commandURL(spec)
-	if err != nil {
-		return nil, err
-	}
 	c := &client{
-		baseURL: baseURL,
+		baseURL: config.SDStoreURL,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 		spec:    spec,
 	}
@@ -114,7 +115,11 @@ func parseContentType(ct string) string {
 func (c client) GetCommand() (*Command, error) {
 	command := new(Command)
 	command.Spec = c.spec
-	request, err := http.NewRequest("GET", c.baseURL, strings.NewReader(""))
+	uri, err := c.commandURL()
+	if err != nil {
+		return nil, err
+	}
+	request, err := http.NewRequest("GET", uri, strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Store API: %v", err)
 	}
