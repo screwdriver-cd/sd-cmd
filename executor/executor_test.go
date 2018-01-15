@@ -59,12 +59,12 @@ func setup() {
 	b, _ = ioutil.ReadFile("testdata/invalidShell.sh")
 	invalidShell = string(b)
 
-	// setting lager for logging
+	// setting lgr for logging
 	l := new(logger.Logger)
 	logBuffer = bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: logBuffer}
 	l.SetInfos(d, 0, true)
-	lager = l
+	lgr = l
 }
 
 func teardown() {

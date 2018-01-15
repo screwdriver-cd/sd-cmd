@@ -21,14 +21,14 @@ type Logger struct {
 
 // New returns logger object
 func New(dirPath, filename string, flag int, debug bool) (*Logger, error) {
-	lager := new(Logger)
+	lgr := new(Logger)
 
 	file, err := CreateLogFile(dirPath, filename)
 	if err != nil {
 		return nil, err
 	}
-	lager.SetInfos(file, flag, debug)
-	return lager, nil
+	lgr.SetInfos(file, flag, debug)
+	return lgr, nil
 }
 
 // CreateLogFile create log file
