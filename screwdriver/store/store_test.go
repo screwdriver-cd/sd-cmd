@@ -68,7 +68,7 @@ func TestNew(t *testing.T) {
 
 	// success
 	sdCommand = dummySDCommand()
-	store, err = New(sdCommand)
+	store, err = New(config.SDStoreURL, sdCommand)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -81,7 +81,7 @@ func TestNew(t *testing.T) {
 func TestGetCommand(t *testing.T) {
 	// success
 	sdCommand := dummySDCommand()
-	c, _ := newClient(sdCommand)
+	c, _ := newClient(config.SDStoreURL, sdCommand)
 	store := Store(c)
 	dummyURL := fmt.Sprintf("/v1/commands/%s/%s/%s", dummyNameSpace, dummyName, dummyVersion)
 	c.client = makeFakeHTTPClient(t, 200, "Hello World", dummyURL, "text/plain")
@@ -98,7 +98,7 @@ func TestGetCommand(t *testing.T) {
 
 	// failure. check 4xx error message
 	sdCommand = dummySDCommand()
-	c, _ = newClient(sdCommand)
+	c, _ = newClient(config.SDStoreURL, sdCommand)
 	c.client = makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain")
 	store = Store(c)
 	_, err = store.GetCommand()
@@ -108,7 +108,7 @@ func TestGetCommand(t *testing.T) {
 
 	// failure. check some api response error
 	sdCommand = dummySDCommand()
-	c, _ = newClient(sdCommand)
+	c, _ = newClient(config.SDStoreURL, sdCommand)
 	clients := []*http.Client{
 		makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain"),
 		makeFakeHTTPClient(t, 500, "ERROR", "", "text/plain"),
@@ -127,14 +127,14 @@ func TestGetCommand(t *testing.T) {
 	// failure.
 	sdCommand = dummySDCommand()
 	sdCommand.Format = "docker"
-	c, _ = newClient(sdCommand)
+	c, _ = newClient(config.SDStoreURL, sdCommand)
 	store = Store(c)
 	_, err = store.GetCommand()
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
 
-	c, _ = newClient(nil)
+	c, _ = newClient(config.SDStoreURL, nil)
 	store = Store(c)
 	_, err = store.GetCommand()
 	if err == nil {

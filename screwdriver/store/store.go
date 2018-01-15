@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
@@ -59,17 +58,17 @@ func (c *client) commandURL() (string, error) {
 }
 
 // New returns Store object
-func New(spec *api.Command) (Store, error) {
-	c, err := newClient(spec)
+func New(baseURL string, spec *api.Command) (Store, error) {
+	c, err := newClient(baseURL, spec)
 	if err != nil {
 		return nil, err
 	}
 	return Store(c), nil
 }
 
-func newClient(spec *api.Command) (*client, error) {
+func newClient(baseURL string, spec *api.Command) (*client, error) {
 	c := &client{
-		baseURL: config.SDStoreURL,
+		baseURL: baseURL,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 		spec:    spec,
 	}
