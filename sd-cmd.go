@@ -47,7 +47,7 @@ func runExecutor(sdAPI api.API, args []string) error {
 
 func runCommand(sdAPI api.API, args []string) error {
 	if len(os.Args) < minArgLength {
-		return fmt.Errorf("The argument num is not enough")
+		return fmt.Errorf("The number of arguments is not enough")
 	}
 
 	switch args[1] {
