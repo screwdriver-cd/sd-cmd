@@ -2,7 +2,6 @@ package executor
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -63,8 +62,8 @@ func execCommand(path string, args []string) error {
 	cmd := exec.Command(path, args...)
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 
-	cmd.Stdout = io.MultiWriter(lgr.File, os.Stderr)
-	cmd.Stderr = cmd.Stdout
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 
