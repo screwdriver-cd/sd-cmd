@@ -93,13 +93,13 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 
 type dummySDAPIBinary struct{}
 
-func (d *dummySDAPIBinary) GetCommand(namespace, name, version string) (*api.Command, error) {
+func (d *dummySDAPIBinary) GetCommand(smallSpec *api.Command) (*api.Command, error) {
 	return dummyAPICommand(binaryFormat), nil
 }
 
 type dummySDAPIBroken struct{}
 
-func (d *dummySDAPIBroken) GetCommand(namespace, name, version string) (*api.Command, error) {
+func (d *dummySDAPIBroken) GetCommand(smallSpec *api.Command) (*api.Command, error) {
 	return nil, fmt.Errorf("Something error happen")
 }
 

@@ -17,7 +17,7 @@ const (
 
 // API is a Screwdriver API endpoint
 type API interface {
-	GetCommand(namespace, name, version string) (*Command, error)
+	GetCommand(smallSpec *Command) (*Command, error)
 }
 
 type client struct {
@@ -100,13 +100,13 @@ func handleResponse(res *http.Response) ([]byte, error) {
 }
 
 // GetCommand returns Command from Screwdriver API
-func (c client) GetCommand(namespace, name, version string) (*Command, error) {
+func (c client) GetCommand(smallSpec *Command) (*Command, error) {
 	cmd := new(Command)
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("The base Screwdriver API is invalid %q", c.baseURL)
 	}
-	uri.Path = path.Join(uri.Path, "commands", namespace, name, version)
+	uri.Path = path.Join(uri.Path, "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
 	req, err := http.NewRequest("GET", uri.String(), strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)

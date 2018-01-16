@@ -22,8 +22,8 @@ type Executor interface {
 	Run() error
 }
 
-func prepareLog(namespace, name, version string) (err error) {
-	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands", namespace, name, version)
+func prepareLog(smallSpec *api.Command) (err error) {
+	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
 	filename := fmt.Sprintf("%v.log", time.Now().Unix())
 	lgr, err = logger.New(dirPath, filename, log.LstdFlags, false)
 	if err != nil {
@@ -34,23 +34,23 @@ func prepareLog(namespace, name, version string) (err error) {
 
 // New returns each format type of Executor
 func New(sdAPI api.API, args []string) (Executor, error) {
-	ns, name, ver, itr, err := util.SplitCmdWithSearch(args)
+	smallSpec, pos, err := util.SplitCmdWithSearch(args)
 	if err != nil {
 		return nil, err
 	}
 
-	err = prepareLog(ns, name, ver)
+	err = prepareLog(smallSpec)
 	if err != nil {
 		return nil, err
 	}
 
-	spec, err := sdAPI.GetCommand(ns, name, ver)
+	spec, err := sdAPI.GetCommand(smallSpec)
 	if err != nil {
 		return nil, err
 	}
 	switch spec.Format {
 	case "binary":
-		return NewBinary(spec, args[itr+1:])
+		return NewBinary(spec, args[pos+1:])
 	case "habitat":
 		return nil, nil
 	case "docker":

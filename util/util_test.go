@@ -29,12 +29,12 @@ func TestSplitCmd(t *testing.T) {
 	}
 
 	for _, c := range fullCommands {
-		ns, name, ver, err := SplitCmd(c.fullCommand)
+		smallSpec, err := SplitCmd(c.fullCommand)
 		if err != nil {
 			t.Errorf("%q err=%q, want nil", c.fullCommand, err)
 		}
-		if ns != c.namespaceAns || name != c.nameAns || ver != c.versionAns {
-			t.Errorf("namespace=%q, name=%q, version=%q, want %q, %q, %q", ns, name, ver, c.namespaceAns, c.nameAns, c.versionAns)
+		if smallSpec.Namespace != c.namespaceAns || smallSpec.Name != c.nameAns || smallSpec.Version != c.versionAns {
+			t.Errorf("namespace=%q, name=%q, version=%q, want %q, %q, %q", smallSpec.Namespace, smallSpec.Name, smallSpec.Version, c.namespaceAns, c.nameAns, c.versionAns)
 		}
 	}
 
@@ -51,7 +51,7 @@ func TestSplitCmd(t *testing.T) {
 		"",
 	}
 	for _, cmdName := range fullCommandNames {
-		_, _, _, err := SplitCmd(cmdName)
+		_, err := SplitCmd(cmdName)
 		if err == nil {
 			t.Errorf("%q err=nil, want error", cmdName)
 		}
@@ -69,7 +69,7 @@ func TestSplitCmd(t *testing.T) {
 		"foo/bar@Tag",
 	}
 	for _, cmdName := range fullCommandNames {
-		_, _, _, err := SplitCmd(cmdName)
+		_, err := SplitCmd(cmdName)
 		if err == nil {
 			t.Errorf("%q err=nil, want error", cmdName)
 		}
@@ -78,16 +78,16 @@ func TestSplitCmd(t *testing.T) {
 
 func TestSplitCmdWithSearch(t *testing.T) {
 	// success
-	ns, name, ver, itr, err := SplitCmdWithSearch([]string{"exec", "foo/bar@1.0", "sample"})
+	smallSpec, pos, err := SplitCmdWithSearch([]string{"exec", "foo/bar@1.0", "sample"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if ns != "foo" || name != "bar" || ver != "1.0" || itr != 1 {
-		t.Errorf("namespace=%q, name=%q, version=%q, want %q, %q, %q", ns, name, ver, "foo", "bar", "1.0")
+	if smallSpec.Namespace != "foo" || smallSpec.Name != "bar" || smallSpec.Version != "1.0" || pos != 1 {
+		t.Errorf("namespace=%q, name=%q, version=%q, want %q, %q, %q", smallSpec.Namespace, smallSpec.Name, smallSpec.Version, "foo", "bar", "1.0")
 	}
 
 	// failure
-	_, _, _, _, err = SplitCmdWithSearch([]string{"exec", "foo-bar-1.0", "sample"})
+	_, _, err = SplitCmdWithSearch([]string{"exec", "foo-bar-1.0", "sample"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
