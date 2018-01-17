@@ -7,11 +7,28 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
+	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
-var cleanExit = func() {
+const minArgLength = 2
+
+func cleanExit() {
+	logger.CloseAll()
+}
+
+func successExit() {
+	cleanExit()
 	os.Exit(0)
+}
+
+// failureExit exits process with 1
+func failureExit(err error) {
+	cleanExit()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+	}
+	os.Exit(1)
 }
 
 // finalRecover makes one last attempt to recover from a panic.
@@ -20,54 +37,54 @@ func finalRecover() {
 	if p := recover(); p != nil {
 		fmt.Fprintln(os.Stderr, "ERROR: Something terrible has happened. Please file a ticket with this info:")
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n%v\n", p, debug.Stack())
+		failureExit(nil)
 	}
-	cleanExit()
+	successExit()
 }
 
 func init() {
 	config.LoadConfig()
 }
 
+func runExecutor(sdAPI api.API, args []string) error {
+	exec, err := executor.New(sdAPI, args)
+	if err != nil {
+		return err
+	}
+	err = exec.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func runCommand(sdAPI api.API, args []string) error {
+	if len(os.Args) < minArgLength {
+		return fmt.Errorf("The number of arguments is not enough")
+	}
+
 	switch args[1] {
 	case "exec":
-		executor, err := executor.New(sdAPI, args[2:])
-		if err != nil {
-			return fmt.Errorf("Failed to create executor: %v", err)
-		}
-		output, err := executor.Run()
-		if err != nil {
-			fmt.Println(string(output))
-			return fmt.Errorf("Failed to run exec command: %v", err)
-		}
-		fmt.Println(string(output))
-		return nil
+		return runExecutor(sdAPI, args)
 	case "publish":
 		return fmt.Errorf("publish is not implemented yet")
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:
-		return fmt.Errorf("No such type of command")
+		return runExecutor(sdAPI, args)
 	}
 }
 
 func main() {
 	defer finalRecover()
 
-	if len(os.Args) < 3 {
-		fmt.Printf("The argument num is not enough\n")
-		os.Exit(0)
-	}
-
 	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		failureExit(err)
 	}
 
 	err = runCommand(sdAPI, os.Args)
 	if err != nil {
-		fmt.Printf("error happen: %v\n", err)
-		os.Exit(0)
+		failureExit(err)
 	}
 }

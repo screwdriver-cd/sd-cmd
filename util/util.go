@@ -3,6 +3,8 @@ package util
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 // full command has <COMMAND_NAMESPACE>/<COMMAND_NAME>@<VERSION>.
@@ -46,7 +48,8 @@ func checkVersion(ver string) bool {
 
 // SplitCmd splits full command to namespace, command, version.
 // ex(ns/cmd/1.0.1 => ns cmd 1.0.1)
-func SplitCmd(cmd string) (namespace, command, version string, err error) {
+func SplitCmd(cmd string) (smallSpec *api.Command, err error) {
+	smallSpec = new(api.Command)
 	values := fullCommandRegexp.FindAllStringSubmatch(cmd, -1)
 	if len(values) < 1 {
 		err = fmt.Errorf("There is no full command")
@@ -62,19 +65,19 @@ func SplitCmd(cmd string) (namespace, command, version string, err error) {
 		err = fmt.Errorf("The version part is invalid")
 	}
 
-	namespace = values[0][1]
-	command = values[0][2]
-	version = values[0][3]
+	smallSpec.Namespace = values[0][1]
+	smallSpec.Name = values[0][2]
+	smallSpec.Version = values[0][3]
 	return
 }
 
 // SplitCmdWithSearch searches full command. If there is valid full command, return split full command name.
-func SplitCmdWithSearch(cmds []string) (namespace, command, version string, itr int, err error) {
+func SplitCmdWithSearch(cmds []string) (smallSpec *api.Command, pos int, err error) {
 	for i, val := range cmds {
-		ns, cmd, ver, err := SplitCmd(val)
+		smallSpec, err := SplitCmd(val)
 		if err == nil {
-			return ns, cmd, ver, i, err
+			return smallSpec, i, err
 		}
 	}
-	return "", "", "", -1, fmt.Errorf("There is no valid command format")
+	return nil, -1, fmt.Errorf("There is no valid command format")
 }

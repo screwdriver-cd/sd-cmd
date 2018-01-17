@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 	"time"
 )
@@ -15,7 +17,7 @@ const (
 
 // API is a Screwdriver API endpoint
 type API interface {
-	GetCommand(namespace, command, version string) (*Command, error)
+	GetCommand(smallSpec *Command) (*Command, error)
 }
 
 type client struct {
@@ -34,7 +36,7 @@ type ResponseError struct {
 // Command is a Screwdriver Command
 type Command struct {
 	Namespace   string `json:"namespace"`
-	Command     string `json:"command"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`
 	Format      string `json:"format"`
@@ -98,11 +100,14 @@ func handleResponse(res *http.Response) ([]byte, error) {
 }
 
 // GetCommand returns Command from Screwdriver API
-func (c client) GetCommand(namespace, command, version string) (*Command, error) {
+func (c client) GetCommand(smallSpec *Command) (*Command, error) {
 	cmd := new(Command)
-
-	url := fmt.Sprintf("%scommands/%s/%s", c.baseURL, namespace+"%2F"+command, version)
-	req, err := http.NewRequest("GET", url, strings.NewReader(""))
+	uri, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("The base Screwdriver API is invalid %q", c.baseURL)
+	}
+	uri.Path = path.Join(uri.Path, "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
+	req, err := http.NewRequest("GET", uri.String(), strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)
 	}
