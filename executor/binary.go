@@ -40,13 +40,13 @@ func (b *Binary) download() error {
 }
 
 func (b *Binary) install() (string, error) {
-	dirPath := filepath.Join(config.BaseCommandPath, b.Command.Spec.Namespace, b.Command.Spec.Name)
+	dirPath := filepath.Join(config.BaseCommandPath, b.Command.Spec.Namespace, b.Command.Spec.Name, b.Command.Spec.Version)
 
 	if err := os.MkdirAll(dirPath, 0777); err != nil {
 		return "", fmt.Errorf("Failed to create command directory: %v", err)
 	}
 
-	path := filepath.Join(dirPath, b.Command.Spec.Version)
+	path := filepath.Join(dirPath, b.Command.Spec.Binary.File)
 	file, err := os.Create(path)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create command file: %v", err)
