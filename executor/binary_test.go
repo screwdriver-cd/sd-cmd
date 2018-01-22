@@ -54,9 +54,7 @@ func TestRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	// if !strings.Contains(logBuffer.String(), "Hello World\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "Hello World\n")
-	// }
+
 	// check file directory
 	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, spec.Binary.File)
 	fInfo, err := os.Stat(binPath)
@@ -67,8 +65,6 @@ func TestRun(t *testing.T) {
 		t.Errorf("%q is directory, must be file", binPath)
 	}
 
-	logBuffer.Reset()
-
 	// success with arguments
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
 	bin.Store = store.Store(new(dummyStore))
@@ -76,16 +72,6 @@ func TestRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	// if !strings.Contains(logBuffer.String(), "Hello World\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "Hello World")
-	// }
-	// if !strings.Contains(logBuffer.String(), "arg1\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "arg1\n")
-	// }
-	// if !strings.Contains(logBuffer.String(), "arg2\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "arg2\n")
-	// }
-	logBuffer.Reset()
 
 	// failure. the command is broken
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
