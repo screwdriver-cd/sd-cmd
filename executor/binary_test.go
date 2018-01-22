@@ -2,8 +2,11 @@ package executor
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 )
 
@@ -44,16 +47,23 @@ func TestRun(t *testing.T) {
 	logBuffer.Reset()
 
 	// success with no arguments
-	bin, _ := NewBinary(dummyAPICommand(binaryFormat), []string{})
+	spec := dummyAPICommand(binaryFormat)
+	bin, _ := NewBinary(spec, []string{})
 	bin.Store = store.Store(new(dummyStore))
 	err := bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	// if !strings.Contains(logBuffer.String(), "Hello World\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "Hello World\n")
-	// }
-	logBuffer.Reset()
+
+	// check file directory
+	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, spec.Binary.File)
+	fInfo, err := os.Stat(binPath)
+	if os.IsNotExist(err) {
+		t.Errorf("err=%q, file should exist at %q", binPath, err)
+	}
+	if fInfo.IsDir() {
+		t.Errorf("%q is directory, must be file", binPath)
+	}
 
 	// success with arguments
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
@@ -62,16 +72,6 @@ func TestRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	// if !strings.Contains(logBuffer.String(), "Hello World\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "Hello World")
-	// }
-	// if !strings.Contains(logBuffer.String(), "arg1\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "arg1\n")
-	// }
-	// if !strings.Contains(logBuffer.String(), "arg2\n") {
-	// 	t.Errorf("log is %q, should include %q", logBuffer.String(), "arg2\n")
-	// }
-	logBuffer.Reset()
 
 	// failure. the command is broken
 	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
