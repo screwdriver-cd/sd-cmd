@@ -52,7 +52,7 @@ type Command struct {
 	Binary struct {
 		File string `json:"file"`
 	} `json:"binary"`
-	PipilineId   string `json:"pipelineId"`
+	PipelineId   string `json:"pipelineId"`
 }
 
 func (e ResponseError) Error() string {
