@@ -1,28 +1,28 @@
+
 shared:
-  image: golang
-  environment:
-    GOPATH: /sd/workspace
+    image: golang
+    environment:
+        GOPATH: /sd/workspace
 
 jobs:
-  test:
-    requires: [~pr, ~commit]
-    steps:
-      - get: go get -t ./...
-      - vet: go vet ./...
-      - gofmt: "find . -name '*.go' | xargs gofmt -s -w"
-      - test: go test ./...
-      - build: go build -a -o sd-cmd
-  deploy:
-    requires: [test]
-    steps:
-      - setup-ci: git clone https://github.com/screwdriver-cd/toolbox.git ci
-      - get: go get -t ./...
-      - gofmt: "find . -name '*.go' | xargs gofmt -s -w"
-      - tag: ./ci/git-tag.sh
-      - release: |
-          curl -sL https://git.io/goreleaser | bash
-    secrets:
-      # Pushing tags to Git
-      - GIT_KEY
-      # Pushing releases to GitHub
-      - GITHUB_TOKEN
+    main:
+        requires: [~pr, ~commit]
+        steps:
+            - get: go get -t ./...
+            - vet: go vet ./...
+            - gofmt: "find . -name '*.go' | xargs gofmt -s -w"
+            - test: go test ./...
+            - build: go build -a -o $SD_ARTIFACTS_DIR/sd-cmd
+
+    publish:
+        requires: [main]
+        steps:
+            - setup-ci: git clone https://github.com/screwdriver-cd/toolbox.git ci
+            - get: go get -t ./...
+            - tag: ./ci/git-tag.sh
+            - release: "curl -sL https://git.io/goreleaser | bash"
+        secrets:
+            # Pushing tags to Git
+            - GIT_KEY
+            # Pushing releases to GitHub
+            - GITHUB_TOKEN
