@@ -9,6 +9,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/executor"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/sonic-screwdriver-cd/sd-cmd/publisher"
 )
 
 const minArgLength = 2
@@ -58,6 +59,11 @@ func runExecutor(sdAPI api.API, args []string) error {
 	return nil
 }
 
+func runPublisher(inputCommand []string) {
+	pub := publisher.New(inputCommand)
+	pub.Run()
+}
+
 func runCommand(sdAPI api.API, args []string) error {
 	if len(os.Args) < minArgLength {
 		return fmt.Errorf("The number of arguments is not enough")
@@ -67,7 +73,8 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "exec":
 		return runExecutor(sdAPI, args)
 	case "publish":
-		return fmt.Errorf("publish is not implemented yet")
+		runPublisher(args)
+		return nil
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:

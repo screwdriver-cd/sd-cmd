@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sonic-screwdriver-cd/sd-cmd/util"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,6 +19,7 @@ const (
 // API is a Screwdriver API endpoint
 type API interface {
 	GetCommand(smallSpec *Command) (*Command, error)
+	PostCommand(commandSpec []byte) error
 }
 
 type client struct {
@@ -52,7 +54,7 @@ type Command struct {
 	Binary struct {
 		File string `json:"file"`
 	} `json:"binary"`
-	PipelineId   string `json:"pipelineId"`
+	PipelineId string `json:"pipelineId"`
 }
 
 func (e ResponseError) Error() string {
@@ -131,4 +133,10 @@ func (c client) GetCommand(smallSpec *Command) (*Command, error) {
 		return nil, fmt.Errorf("Failed to unmarshal command: %v", err)
 	}
 	return cmd, nil
+}
+
+func (c client) PostCommand(commandSpec []byte) error {
+	endpoint := c.baseURL + "/v4/commands"
+	util.HttpPost(endpoint, c.jwt, commandSpec)
+	return nil
 }
