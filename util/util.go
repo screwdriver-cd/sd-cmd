@@ -3,8 +3,6 @@ package util
 import (
 	"fmt"
 	"regexp"
-
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 // full command has <COMMAND_NAMESPACE>/<COMMAND_NAME>@<VERSION>.
@@ -30,6 +28,38 @@ var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
 // ex(latest stable feature-abc)
 var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 
+type Habitat struct {
+	Mode    string `json:"mode,omitempty" yaml:"mode,omitempty"`
+	Package string `json:"package,omitempty" yaml:"package,omitempty"`
+	Command string `json:"command,omitempty" yaml:"command,omitempty"`
+}
+
+type Docker struct {
+	Image   string `json:"image,omitempty" yaml:"image,omitempty"`
+	Command string `json:"command,omitempty" yaml:"command,omitempty"`
+}
+
+type Binary struct {
+	File string `json:"file,omitempty" yaml:"file,omitempty"`
+}
+
+type CommandSpec struct {
+	Namespace   string   `json:"namespace" yaml:"namespace"`
+	Name        string   `json:"name" yaml:"name"`
+	Description string   `json:"description" yaml:"description"`
+	Maintainer  string   `json:"maintainer" yaml:"maintainer"`
+	Version     string   `json:"version" yaml:"version"`
+	Format      string   `json:"format" yaml:"format"`
+	Habitat     *Habitat `json:"habitat,omitempty" yaml:"habitat,omitempty"`
+	Docker      *Docker  `json:"docker,omitempty" yaml:"docker,omitempty"`
+	Binary      *Binary  `json:"binary,omitempty" yaml:"binary,omitempty"`
+	PipelineID  int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
+}
+
+type PostPayload struct {
+	Yaml string `json:"yaml"`
+}
+
 func checkVersion(ver string) bool {
 	if caretRangesAndPinningRegexp.Match([]byte(ver)) {
 		return true
@@ -48,8 +78,8 @@ func checkVersion(ver string) bool {
 
 // SplitCmd splits full command to namespace, command, version.
 // ex(ns/cmd/1.0.1 => ns cmd 1.0.1)
-func SplitCmd(cmd string) (smallSpec *api.Command, err error) {
-	smallSpec = new(api.Command)
+func SplitCmd(cmd string) (smallSpec *CommandSpec, err error) {
+	smallSpec = new(CommandSpec)
 	values := fullCommandRegexp.FindAllStringSubmatch(cmd, -1)
 	if len(values) < 1 {
 		err = fmt.Errorf("There is no full command")
@@ -72,7 +102,7 @@ func SplitCmd(cmd string) (smallSpec *api.Command, err error) {
 }
 
 // SplitCmdWithSearch searches full command. If there is valid full command, return split full command name.
-func SplitCmdWithSearch(cmds []string) (smallSpec *api.Command, pos int, err error) {
+func SplitCmdWithSearch(cmds []string) (smallSpec *CommandSpec, pos int, err error) {
 	for i, val := range cmds {
 		smallSpec, err := SplitCmd(val)
 		if err == nil {

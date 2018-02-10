@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -25,7 +25,8 @@ type Store interface {
 type client struct {
 	baseURL string
 	client  *http.Client
-	spec    *api.Command
+	spec    *util.CommandSpec
+	jwt     string
 }
 
 // ResponseError is an error response from the Store API
@@ -38,7 +39,7 @@ type ResponseError struct {
 type Command struct {
 	Type string
 	Body []byte
-	Spec *api.Command
+	Spec *util.CommandSpec
 }
 
 func (e ResponseError) Error() string {
@@ -58,19 +59,20 @@ func (c *client) commandURL() (string, error) {
 }
 
 // New returns Store object
-func New(baseURL string, spec *api.Command) (Store, error) {
-	c, err := newClient(baseURL, spec)
+func New(baseURL string, spec *util.CommandSpec, sdToken string) (Store, error) {
+	c, err := newClient(baseURL, spec, sdToken)
 	if err != nil {
 		return nil, err
 	}
 	return Store(c), nil
 }
 
-func newClient(baseURL string, spec *api.Command) (*client, error) {
+func newClient(baseURL string, spec *util.CommandSpec, sdToken string) (*client, error) {
 	c := &client{
 		baseURL: baseURL,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 		spec:    spec,
+		jwt:     sdToken,
 	}
 	return c, nil
 }
@@ -122,6 +124,7 @@ func (c client) GetCommand() (*Command, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Store API: %v", err)
 	}
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
 	res, err := c.client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get command from Store API: %v", err)
