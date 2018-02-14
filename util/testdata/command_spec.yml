@@ -1,4 +1,4 @@
-# Namespace for the command
+## Namespace for the command
 namespace: foo
 # Command name itself
 name: bar
@@ -10,6 +10,23 @@ version: 1.0
 # Format the command is in (see below for examples)
 # Valid options: habitat, docker, binary
 format: habitat
+
+# Habitat specific config
+# if format: habitat
+habitat:
+    mode: remote
+    package: core/git/2.14.1
+    # If local
+    # mode: local
+    # package: ./foobar.hart
+    command: git
+
+# Docker specific config
+# if format: docker
+docker:
+    image: chefdk:1.2.3
+    # Optional, default: ""
+    command: knife
 
 # Binary specific config
 # if format: binary

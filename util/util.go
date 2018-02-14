@@ -28,26 +28,25 @@ var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
 // ex(latest stable feature-abc)
 var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 
-// Command is a Screwdriver Command
 type CommandSpec struct {
-	Namespace   string `json:"namespace"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Version     string `json:"version"`
-	Format      string `json:"format"`
+	Namespace   string `json:"namespace" yaml:"namespace"`
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+	Version     string `json:"version" yaml:"version"`
+	Format      string `json:"format" yaml:"format"`
 	Habitat     struct {
-		Mode    string `json:"mode"`
-		Package string `json:"package"`
-		Command string `json:"command"`
-	} `json:"habitat"`
+		Mode    string `json:"mode" yaml:"mode"`
+		Package string `json:"package" yaml:"package"`
+		Command string `json:"command" yaml:"command"`
+	} `json:"habitat" yaml:"habitat"`
 	Docker struct {
-		Image   string `json:"image"`
-		Command string `json:"command"`
-	} `json:"docker"`
+		Image   string `json:"image" yaml:"image"`
+		Command string `json:"command" yaml:"command"`
+	} `json:"docker" yaml:"docker"`
 	Binary struct {
-		File string `json:"file"`
-	} `json:"binary"`
-	PipelineId string `json:"pipelineId"`
+		File string `json:"file" yaml:"file"`
+	} `json:"binary" yaml:"binary"`
+	PipelineId string `json:"pipelineId" yaml:"pipelineId"`
 }
 
 func checkVersion(ver string) bool {

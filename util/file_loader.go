@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -27,19 +28,20 @@ type commandSpec struct {
 	}
 }
 
-func LoadYml(ymlPath string) commandSpec {
+func LoadYml(ymlPath string) CommandSpec {
 	data := loadFile(ymlPath)
 
-	cs := commandSpec{}
-	err := yaml.UnmarshalStrict(data, &cs)
+	cs := CommandSpec{}
+	err := yaml.Unmarshal(data, &cs)
 	if err != nil {
 		log.Fatalf("error: %v", err)
+		os.Exit(2)
 	}
 
 	return cs
 }
 
-func CommandSpecToJsonBytes(cs commandSpec) []byte {
+func CommandSpecToJsonBytes(cs CommandSpec) []byte {
 	d, _ := json.Marshal(&cs)
 	print(string(d))
 	return d
