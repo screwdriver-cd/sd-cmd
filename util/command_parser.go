@@ -1,7 +1,6 @@
 package util
 
 import "flag"
-import "fmt"
 
 func ParseCommand(command []string) map[string]string {
 	fs := flag.NewFlagSet(command[0], flag.ExitOnError)
@@ -11,9 +10,9 @@ func ParseCommand(command []string) map[string]string {
 
 	subCommand := command[1]
 	fs.Parse(command[2:])
-	fmt.Println("subComamand:", subCommand)
-	fmt.Println("ymlPath:", *ymlPath)
-	fmt.Println("args:", fs.Args())
+	// fmt.Println("subComamand:", subCommand)
+	// fmt.Println("ymlPath:", *ymlPath)
+	// fmt.Println("args:", fs.Args())
 
 	m := make(map[string]string)
 	m["subCommand"] = subCommand

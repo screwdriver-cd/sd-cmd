@@ -6,10 +6,10 @@ import (
 )
 
 func TestParseCommand(t *testing.T) {
+	// Parse success
 	command := []string{"sd-cmd", "publish", "-f", "command_spec.yml"}
 
 	actual := ParseCommand(command)
-
 	expected := map[string]string{
 		"subCommand": "publish",
 		"ymlPath":    "command_spec.yml",
