@@ -3,13 +3,14 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sonic-screwdriver-cd/sd-cmd/util"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/sonic-screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -62,21 +63,17 @@ func (e ResponseError) Error() string {
 }
 
 // New returns API object
-func New(sdAPI, sdToken string) (API, error) {
-	c, err := newClient(sdAPI, sdToken)
-	if err != nil {
-		return nil, err
-	}
-	return API(c), nil
+func New(sdAPI, sdToken string) API {
+	c := newClient(sdAPI, sdToken)
+	return API(c)
 }
 
-func newClient(sdAPI, sdToken string) (*client, error) {
-	c := &client{
+func newClient(sdAPI, sdToken string) *client {
+	return &client{
 		baseURL: sdAPI,
 		jwt:     sdToken,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 	}
-	return c, nil
 }
 
 func handleResponse(res *http.Response) ([]byte, error) {

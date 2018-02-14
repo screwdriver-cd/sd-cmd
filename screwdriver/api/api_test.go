@@ -43,18 +43,15 @@ func createSmallSpec(namespace, name, version string) *Command {
 }
 
 func TestNew(t *testing.T) {
-	client, err := New(fakeAPIURL, fakeSDToken)
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
+	client := New(fakeAPIURL, fakeSDToken)
 	if _, ok := client.(API); !ok {
-		t.Errorf("New does not fulfill API interface")
+		t.Errorf("Client should have API interface.")
 	}
 }
 
 func TestGetCommand(t *testing.T) {
 	// success
-	c, _ := newClient(fakeAPIURL, fakeSDToken)
+	c := newClient(fakeAPIURL, fakeSDToken)
 	api := API(c)
 	ns, name, ver := "foo", "bar", "1.0"
 	jsonMsg := fmt.Sprintf("{\"namespace\":\"%s\",\"name\":\"%s\",\"version\":\"%s\",\"format\":\"binary\",\"binary\":{\"file\":\"./foobar.sh\"}}", ns, name, ver)

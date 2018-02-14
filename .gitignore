@@ -11,3 +11,4 @@ sd-cmd
 # goreleaser
 
 /dist/
+util/debug.test
