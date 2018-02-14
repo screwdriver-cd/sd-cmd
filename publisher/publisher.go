@@ -16,7 +16,7 @@ type Publisher struct {
 }
 
 func (p *Publisher) Run() {
-	sdAPI, _ := api.New(config.SDAPIURL, config.SDToken)
+	sdAPI := api.New(config.SDAPIURL, config.SDToken)
 	sdAPI.PostCommand(p.commandSpec)
 }
 

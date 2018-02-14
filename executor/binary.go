@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 // Binary is a Binary Executor object
@@ -18,7 +18,7 @@ type Binary struct {
 }
 
 // NewBinary returns Binary object
-func NewBinary(spec *api.Command, arg []string) (*Binary, error) {
+func NewBinary(spec *util.CommandSpec, arg []string) (*Binary, error) {
 	storeapi, err := store.New(config.SDStoreURL, spec)
 	if err != nil {
 		return nil, err

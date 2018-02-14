@@ -14,6 +14,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -93,18 +94,28 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 
 type dummySDAPIBinary struct{}
 
-func (d *dummySDAPIBinary) GetCommand(smallSpec *api.Command) (*api.Command, error) {
+func (d *dummySDAPIBinary) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return dummyAPICommand(binaryFormat), nil
 }
 
+func (d *dummySDAPIBinary) PostCommand(smallSpec []byte) error {
+	return nil
+}
+
+// func (d duPostCommand(commandSpec []byte) error
+
 type dummySDAPIBroken struct{}
 
-func (d *dummySDAPIBroken) GetCommand(smallSpec *api.Command) (*api.Command, error) {
+func (d *dummySDAPIBroken) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, fmt.Errorf("Something error happen")
 }
 
-func dummyAPICommand(format string) (cmd *api.Command) {
-	cmd = &api.Command{
+func (d *dummySDAPIBroken) PostCommand(smallSpec []byte) error {
+	return fmt.Errorf("Something error happen")
+}
+
+func dummyAPICommand(format string) (cmd *util.CommandSpec) {
+	cmd = &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,

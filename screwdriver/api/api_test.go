@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"os"
 	"testing"
+
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -34,8 +36,8 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 	return &http.Client{Transport: tr}
 }
 
-func createSmallSpec(namespace, name, version string) *Command {
-	return &Command{
+func createSmallSpec(namespace, name, version string) *util.CommandSpec {
+	return &util.CommandSpec{
 		Namespace: namespace,
 		Name:      name,
 		Version:   version,

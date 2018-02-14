@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -49,8 +49,8 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 	return &http.Client{Transport: tr}
 }
 
-func dummySDCommand() (spec *api.Command) {
-	spec = &api.Command{
+func dummySDCommand() (spec *util.CommandSpec) {
+	spec = &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,
@@ -62,7 +62,7 @@ func dummySDCommand() (spec *api.Command) {
 }
 
 func TestNew(t *testing.T) {
-	var sdCommand *api.Command
+	var sdCommand *util.CommandSpec
 	var store Store
 	var err error
 

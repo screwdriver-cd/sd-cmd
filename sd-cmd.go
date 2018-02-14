@@ -8,8 +8,8 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
 	"github.com/screwdriver-cd/sd-cmd/logger"
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/publisher"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
 const minArgLength = 2
@@ -85,12 +85,9 @@ func runCommand(sdAPI api.API, args []string) error {
 func main() {
 	defer finalRecover()
 
-	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
-	if err != nil {
-		failureExit(err)
-	}
+	sdAPI := api.New(config.SDAPIURL, config.SDToken)
 
-	err = runCommand(sdAPI, os.Args)
+	err := runCommand(sdAPI, os.Args)
 	if err != nil {
 		failureExit(err)
 	}

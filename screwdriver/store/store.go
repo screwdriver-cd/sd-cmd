@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -25,7 +25,7 @@ type Store interface {
 type client struct {
 	baseURL string
 	client  *http.Client
-	spec    *api.Command
+	spec    *util.CommandSpec
 }
 
 // ResponseError is an error response from the Store API
@@ -38,7 +38,7 @@ type ResponseError struct {
 type Command struct {
 	Type string
 	Body []byte
-	Spec *api.Command
+	Spec *util.CommandSpec
 }
 
 func (e ResponseError) Error() string {
@@ -58,7 +58,7 @@ func (c *client) commandURL() (string, error) {
 }
 
 // New returns Store object
-func New(baseURL string, spec *api.Command) (Store, error) {
+func New(baseURL string, spec *util.CommandSpec) (Store, error) {
 	c, err := newClient(baseURL, spec)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func New(baseURL string, spec *api.Command) (Store, error) {
 	return Store(c), nil
 }
 
-func newClient(baseURL string, spec *api.Command) (*client, error) {
+func newClient(baseURL string, spec *util.CommandSpec) (*client, error) {
 	c := &client{
 		baseURL: baseURL,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
