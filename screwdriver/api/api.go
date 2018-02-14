@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sonic-screwdriver-cd/sd-cmd/util"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (

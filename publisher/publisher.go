@@ -1,9 +1,9 @@
 package publisher
 
 import (
-	"github.com/sonic-screwdriver-cd/sd-cmd/config"
-	"github.com/sonic-screwdriver-cd/sd-cmd/screwdriver/api"
-	"github.com/sonic-screwdriver-cd/sd-cmd/util"
+	"github.com/screwdriver-cd/sd-cmd/config"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 func init() {

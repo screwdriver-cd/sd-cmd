@@ -9,7 +9,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/executor"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
-	"github.com/sonic-screwdriver-cd/sd-cmd/publisher"
+	"github.com/screwdriver-cd/sd-cmd/publisher"
 )
 
 const minArgLength = 2
