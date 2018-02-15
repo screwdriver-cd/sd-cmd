@@ -2,17 +2,18 @@ package util
 
 import (
 	"testing"
+
+	"github.com/screwdriver-cd/sd-cmd/testdata"
 )
 
+var commandSpecYmlPath = testdata.TestDataRootPath + "/command_spec.yml"
+
 func TestLoadFile(t *testing.T) {
-	inputPath := "./testdata/command_spec.yml"
-	loadFile(inputPath)
+	loadFile(commandSpecYmlPath)
 }
 
 func TestLoadYml(t *testing.T) {
-	inputPath := "./testdata/command_spec.yml"
-
-	actual := LoadYml(inputPath)
+	actual := LoadYml(commandSpecYmlPath)
 
 	expect := CommandSpec{}
 	expect.Namespace = "foo"

@@ -2,6 +2,8 @@ package publisher
 
 import (
 	"testing"
+
+	"github.com/screwdriver-cd/sd-cmd/testdata"
 )
 
 // func TestNew(t *testing.T) {
@@ -12,6 +14,7 @@ import (
 // }
 
 func TestRun(t *testing.T) {
-	pub := New([]string{"sd-cmd", "publish", "-f", "./testdata/command_spec.yml"})
+	testDataPath := testdata.TestDataRootPath + "/command_spec.yml"
+	pub := New([]string{"sd-cmd", "publish", "-f", testDataPath})
 	pub.Run()
 }

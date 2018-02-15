@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -101,12 +102,13 @@ func handleResponse(res *http.Response) ([]byte, error) {
 
 // GetCommand returns Command from Screwdriver API
 func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	cmd := new(util.CommandSpec)
-	uri, err := url.Parse(c.baseURL)
+	uri, err := parseUrl(c.baseURL)
 	if err != nil {
-		return nil, fmt.Errorf("The base Screwdriver API is invalid %q", c.baseURL)
+		return nil, fmt.Errorf("Failed to parse URL on GET: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
+
+	// Request to api
 	req, err := http.NewRequest("GET", uri.String(), strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)
@@ -119,12 +121,18 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 		return nil, fmt.Errorf("Failed to get command from Screwdriver API: %v", err)
 	}
 	defer res.Body.Close()
+
+	// TODO: refactor
+	// res, err := httpRequest("GET", uri.String(), c.jwt, nil)
+
+	// Get response body
 	body, err := handleResponse(res)
 
 	if err != nil {
 		return nil, err
 	}
 
+	cmd := new(util.CommandSpec)
 	err = json.Unmarshal(body, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal command: %v", err)
@@ -133,7 +141,49 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 }
 
 func (c client) PostCommand(commandSpec []byte) error {
-	endpoint := c.baseURL + "/v4/commands"
-	util.HttpPost(endpoint, c.jwt, commandSpec)
+	uri, err := parseUrl(c.baseURL)
+	if err != nil {
+		return fmt.Errorf("Failed to parse URL on POST: %v", err)
+	}
+	uri.Path = path.Join(uri.Path, "commands")
+
+	_, err = httpRequest("POST", uri.Path, c.jwt, commandSpec)
+	if err != nil {
+		return fmt.Errorf("Post request failed: %q", err)
+	}
+
 	return nil
+}
+
+func parseUrl(urlstr string) (*url.URL, error) {
+	uri, err := url.Parse(urlstr)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse URL of Screwdriver API. URL is %q", urlstr)
+	}
+	return uri, nil
+}
+
+func httpRequest(method, url, token string, payload []byte) (*http.Response, error) {
+	req, err := http.NewRequest(
+		method,
+		url,
+		bytes.NewBuffer([]byte(payload)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// b, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	return resp, err
 }
