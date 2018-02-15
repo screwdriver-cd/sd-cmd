@@ -59,9 +59,13 @@ func runExecutor(sdAPI api.API, args []string) error {
 	return nil
 }
 
-func runPublisher(inputCommand []string) {
-	pub := publisher.New(inputCommand)
+func runPublisher(inputCommand []string) error {
+	pub, err := publisher.New(inputCommand)
+	if err != nil {
+		return fmt.Errorf("Fail to get publisher: %q", err)
+	}
 	pub.Run()
+	return nil
 }
 
 func runCommand(sdAPI api.API, args []string) error {
@@ -73,8 +77,7 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "exec":
 		return runExecutor(sdAPI, args)
 	case "publish":
-		runPublisher(args)
-		return nil
+		return runPublisher(args)
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:

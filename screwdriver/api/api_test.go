@@ -107,18 +107,6 @@ func TestGetCommand(t *testing.T) {
 	}
 }
 
-// func TestPostCommand(t *testing.T) {
-// 	cs := util.LoadYml(commandSpecYmlPath)
-// 	c := newClient(fakeAPIURL, fakeSDToken)
-// 	api := API(c)
-// 	commandSpec := util.CommandSpecToJsonBytes(cs)
-//
-// 	err := api.PostCommand(commandSpec)
-// 	if err != nil {
-// 		t.Errorf("err=%q, want nil", err)
-// 	}
-// }
-
 func TestHttpRequest(t *testing.T) {
 	ns, name, ver := "foo", "bar", "1.0"
 	jsonResponse := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)

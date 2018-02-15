@@ -13,7 +13,7 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadYml(t *testing.T) {
-	actual := LoadYml(commandSpecYmlPath)
+	actual, _ := LoadYml(commandSpecYmlPath)
 
 	expect := CommandSpec{}
 	expect.Namespace = "foo"
@@ -28,7 +28,7 @@ func TestLoadYml(t *testing.T) {
 	expect.Docker.Command = "knife"
 	expect.Binary.File = "./foobar.sh"
 
-	if actual != expect {
+	if *actual != expect {
 		t.Errorf("Result should be %v, is %v", expect, actual)
 	}
 }

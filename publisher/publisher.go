@@ -1,6 +1,8 @@
 package publisher
 
 import (
+	"fmt"
+
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -20,10 +22,17 @@ func (p *Publisher) Run() {
 	sdAPI.PostCommand(p.commandSpec)
 }
 
-func New(inputCommand []string) Publisher {
+func New(inputCommand []string) (*Publisher, error) {
 	var p Publisher
-	p.inputCommand = util.ParseCommand(inputCommand)
-	cs := util.LoadYml(p.inputCommand["ymlPath"])
-	p.commandSpec = util.CommandSpecToJsonBytes(cs)
-	return p
+	var err error
+	p.inputCommand, err = util.ParseCommand(inputCommand)
+	if err != nil {
+		return nil, fmt.Errorf("Command parse fail:%q", err)
+	}
+	cs, err := util.LoadYml(p.inputCommand["ymlPath"])
+	if err != nil {
+		return nil, fmt.Errorf("Yaml load failed:%q", err)
+	}
+	p.commandSpec = util.CommandSpecToJsonBytes(*cs)
+	return &p, nil
 }
