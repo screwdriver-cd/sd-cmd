@@ -46,7 +46,7 @@ type CommandSpec struct {
 	Binary struct {
 		File string `json:"file" yaml:"file"`
 	} `json:"binary" yaml:"binary"`
-	PipelineId string `json:"pipelineId" yaml:"pipelineId"`
+	PipelineId int `json:"pipelineId" yaml:"pipelineId"`
 }
 
 func checkVersion(ver string) bool {
