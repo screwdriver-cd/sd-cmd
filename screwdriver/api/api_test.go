@@ -28,9 +28,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 	}))
 	tr := &http.Transport{
 		Proxy: func(req *http.Request) (*url.URL, error) {
-			if endpoint == "" {
-				return url.Parse(server.URL)
-			} else if req.URL.Path == endpoint {
+			if endpoint == "" || req.URL.Path == endpoint {
 				return url.Parse(server.URL)
 			}
 			return req.URL, nil
@@ -57,10 +55,10 @@ func TestNew(t *testing.T) {
 func TestGetCommand(t *testing.T) {
 	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
-	api := API(c)
 	ns, name, ver := "foo", "bar", "1.0"
 	jsonMsg := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
 	c.client = makeFakeHTTPClient(t, 200, jsonMsg, fmt.Sprintf("/v4/commands/%s/%s/%s", ns, name, ver))
+	api := API(c)
 
 	// request
 	command, err := api.GetCommand(createSmallSpec(ns, name, ver))
@@ -117,10 +115,13 @@ func TestHttpRequest(t *testing.T) {
 	testServer := httptest.NewServer(fakeHandler)
 	defer testServer.Close()
 
+	c := newClient(fakeAPIURL, fakeSDToken)
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
 	// GET
 	method := "GET"
 
-	_, err := httpRequest(method, testServer.URL, fakeSDToken, nil)
+	_, _, err := c.httpRequest(method, testServer.URL, fakeSDToken, nil)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -130,7 +131,7 @@ func TestHttpRequest(t *testing.T) {
 	jsonPayload := `{"test":foo","data":"bar"}`
 	fakePayload := []byte(jsonPayload)
 
-	_, err = httpRequest(method, testServer.URL, fakeSDToken, fakePayload)
+	_, _, err = c.httpRequest(method, testServer.URL, fakeSDToken, fakePayload)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}

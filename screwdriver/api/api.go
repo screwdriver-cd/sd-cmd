@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -77,56 +76,40 @@ func newClient(sdAPI, sdToken string) *client {
 	}
 }
 
-func handleResponse(res *http.Response) ([]byte, error) {
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Reading response Body from Screwdriver API: %v", err)
-	}
-
-	switch res.StatusCode / 100 {
+func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
+	switch statusCode / 100 {
 	case 2:
-		return body, nil
+		return bodyBytes, nil
 	case 4:
 		res := new(ResponseError)
-		err = json.Unmarshal(body, res)
+		err := json.Unmarshal(bodyBytes, res)
 		if err != nil {
 			return nil, fmt.Errorf("Unparseable error response from Screwdriver API: %v", err)
 		}
 		return nil, res
 	case 5:
-		return nil, fmt.Errorf("%v: Screwdriver API has internal server error", res.StatusCode)
+		return nil, fmt.Errorf("%v: Screwdriver API has internal server error", statusCode)
 	default:
-		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API")
+		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API: Statuscode=%d", statusCode)
 	}
 }
 
 // GetCommand returns Command from Screwdriver API
 func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	uri, err := parseUrl(c.baseURL)
+	uri, err := parseURL(c.baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse URL on GET: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
 
 	// Request to api
-	req, err := http.NewRequest("GET", uri.String(), strings.NewReader(""))
+	bodyBytes, statusCode, err := c.httpRequest("GET", uri.String(), c.jwt, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create request about command to Screwdriver API: %v", err)
+		return nil, fmt.Errorf("Failed to get http response: %v", err)
 	}
-
-	req.Header.Set("Content-type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
-	res, err := c.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get command from Screwdriver API: %v", err)
-	}
-	defer res.Body.Close()
-
-	// TODO: refactor
-	// res, err := httpRequest("GET", uri.String(), c.jwt, nil)
 
 	// Get response body
-	body, err := handleResponse(res)
+	body, err := handleResponse(bodyBytes, statusCode)
 
 	if err != nil {
 		return nil, err
@@ -141,13 +124,13 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 }
 
 func (c client) PostCommand(commandSpec []byte) error {
-	uri, err := parseUrl(c.baseURL)
+	uri, err := parseURL(c.baseURL)
 	if err != nil {
 		return fmt.Errorf("Failed to parse URL on POST: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands")
 
-	_, err = httpRequest("POST", uri.Path, c.jwt, commandSpec)
+	_, _, err = c.httpRequest("POST", uri.Path, c.jwt, commandSpec)
 	if err != nil {
 		return fmt.Errorf("Post request failed: %q", err)
 	}
@@ -155,7 +138,7 @@ func (c client) PostCommand(commandSpec []byte) error {
 	return nil
 }
 
-func parseUrl(urlstr string) (*url.URL, error) {
+func parseURL(urlstr string) (*url.URL, error) {
 	uri, err := url.Parse(urlstr)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse URL of Screwdriver API. URL is %q", urlstr)
@@ -163,27 +146,28 @@ func parseUrl(urlstr string) (*url.URL, error) {
 	return uri, nil
 }
 
-func httpRequest(method, url, token string, payload []byte) (*http.Response, error) {
+func (c client) httpRequest(method, url, token string, payload []byte) ([]byte, int, error) {
 	req, err := http.NewRequest(
 		method,
 		url,
 		bytes.NewBuffer([]byte(payload)),
 	)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, 0, fmt.Errorf("Faild to get http response: %q", err)
 	}
 
-	// b, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	statusCode := resp.StatusCode
+
 	defer resp.Body.Close()
 
-	return resp, err
+	return body, statusCode, err
 }
