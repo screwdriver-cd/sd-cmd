@@ -64,7 +64,10 @@ func runPublisher(inputCommand []string) error {
 	if err != nil {
 		return fmt.Errorf("Fail to get publisher: %q", err)
 	}
-	pub.Run()
+	err = pub.Run()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

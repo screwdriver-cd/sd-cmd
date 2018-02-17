@@ -28,10 +28,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 	}))
 	tr := &http.Transport{
 		Proxy: func(req *http.Request) (*url.URL, error) {
-			if endpoint == "" || req.URL.Path == endpoint {
-				return url.Parse(server.URL)
-			}
-			return req.URL, nil
+			return url.Parse(server.URL)
 		},
 	}
 	return &http.Client{Transport: tr}
@@ -98,7 +95,7 @@ func TestGetCommand(t *testing.T) {
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		_, err := api.GetCommand(createSmallSpec(ns, name, ver))
+		_, err = api.GetCommand(createSmallSpec(ns, name, ver))
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
@@ -137,6 +134,55 @@ func TestHttpRequest(t *testing.T) {
 	}
 }
 
+func TestPostCommand(t *testing.T) {
+	// case success
+	c := newClient(fakeAPIURL, fakeSDToken)
+	ns, name, ver := "foo", "bar", "1.0"
+	jsonMsg := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
+	c.client = makeFakeHTTPClient(t, 200, jsonMsg, "/v4/commands")
+	api := API(c)
+
+	// request
+	err := api.PostCommand(createSmallSpec(ns, name, ver))
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case failure. check 4xx error message
+	errMsg := `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`
+	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
+	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
+	api = API(c)
+
+	// request
+	err = api.PostCommand(createSmallSpec(ns, name, ver))
+	if err.Error() != ansMsg {
+		t.Errorf("err=%q, want %q", errMsg, ansMsg)
+	}
+
+	// case failure. check some api response error
+	response := []struct {
+		code    int
+		message string
+	}{
+		{200, `{{"namespace":"invalid","name":"json","version":"1.0","format":"binary","binary":{"file":"./foobar.sh"}}`},
+		{403, `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`},
+		{403, `{"statusCode": 403,"error": "Forbidden","message": {"This error message json is broken"}`},
+		{500, `{"statusCode": 500,"error": "InternalServerError","message": "server error"}`},
+		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
+		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
+	}
+
+	// request
+	for _, res := range response {
+		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
+		api = API(c)
+		err = api.PostCommand(createSmallSpec(ns, name, ver))
+		if err == nil {
+			t.Errorf("err=nil, want error")
+		}
+	}
+}
 func TestMain(m *testing.M) {
 	ret := m.Run()
 	os.Exit(ret)

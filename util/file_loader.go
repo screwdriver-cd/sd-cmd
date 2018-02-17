@@ -44,6 +44,5 @@ func LoadYml(ymlPath string) (*CommandSpec, error) {
 
 func CommandSpecToJsonBytes(cs CommandSpec) []byte {
 	d, _ := json.Marshal(&cs)
-	print(string(d))
 	return d
 }

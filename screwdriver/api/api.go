@@ -20,7 +20,7 @@ const (
 // API is a Screwdriver API endpoint
 type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
-	PostCommand(commandSpec []byte) error
+	PostCommand(commandSpec *util.CommandSpec) error
 }
 
 type client struct {
@@ -62,11 +62,11 @@ func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
 		res := new(ResponseError)
 		err := json.Unmarshal(bodyBytes, res)
 		if err != nil {
-			return nil, fmt.Errorf("Unparseable error response from Screwdriver API: %v", err)
+			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
 		}
 		return nil, res
 	case 5:
-		return nil, fmt.Errorf("%v: Screwdriver API has internal server error", statusCode)
+		return nil, fmt.Errorf("%d: Screwdriver API has internal server error", statusCode)
 	default:
 		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API: Statuscode=%d", statusCode)
 	}
@@ -87,30 +87,36 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	}
 
 	// Get response body
-	body, err := handleResponse(bodyBytes, statusCode)
+	bodyBytes, err = handleResponse(bodyBytes, statusCode)
 
 	if err != nil {
 		return nil, err
 	}
 
 	cmd := new(util.CommandSpec)
-	err = json.Unmarshal(body, cmd)
+	err = json.Unmarshal(bodyBytes, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal command: %v", err)
 	}
 	return cmd, nil
 }
 
-func (c client) PostCommand(commandSpec []byte) error {
+func (c client) PostCommand(commandSpec *util.CommandSpec) error {
 	uri, err := parseURL(c.baseURL)
 	if err != nil {
 		return fmt.Errorf("Failed to parse URL on POST: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands")
 
-	_, _, err = c.httpRequest("POST", uri.Path, c.jwt, commandSpec)
+	payload := util.CommandSpecToJsonBytes(*commandSpec)
+	bodyBytes, statusCode, err := c.httpRequest("POST", uri.String(), c.jwt, payload)
 	if err != nil {
 		return fmt.Errorf("Post request failed: %q", err)
+	}
+
+	bodyBytes, err = handleResponse(bodyBytes, statusCode)
+	if err != nil {
+		return err
 	}
 
 	return nil

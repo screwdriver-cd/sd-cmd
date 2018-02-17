@@ -98,11 +98,9 @@ func (d *dummySDAPIBinary) GetCommand(smallSpec *util.CommandSpec) (*util.Comman
 	return dummyAPICommand(binaryFormat), nil
 }
 
-func (d *dummySDAPIBinary) PostCommand(smallSpec []byte) error {
+func (d *dummySDAPIBinary) PostCommand(smallSpec *util.CommandSpec) error {
 	return nil
 }
-
-// func (d duPostCommand(commandSpec []byte) error
 
 type dummySDAPIBroken struct{}
 
@@ -110,7 +108,7 @@ func (d *dummySDAPIBroken) GetCommand(smallSpec *util.CommandSpec) (*util.Comman
 	return nil, fmt.Errorf("Something error happen")
 }
 
-func (d *dummySDAPIBroken) PostCommand(smallSpec []byte) error {
+func (d *dummySDAPIBroken) PostCommand(smallSpec *util.CommandSpec) error {
 	return fmt.Errorf("Something error happen")
 }
 

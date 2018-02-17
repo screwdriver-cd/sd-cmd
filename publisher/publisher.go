@@ -14,12 +14,16 @@ func init() {
 
 type Publisher struct {
 	inputCommand map[string]string
-	commandSpec  []byte
+	commandSpec  *util.CommandSpec
 }
 
-func (p *Publisher) Run() {
+func (p *Publisher) Run() error {
 	sdAPI := api.New(config.SDAPIURL, config.SDToken)
-	sdAPI.PostCommand(p.commandSpec)
+	err := sdAPI.PostCommand(p.commandSpec)
+	if err != nil {
+		return fmt.Errorf("Post failed:%q", err)
+	}
+	return nil
 }
 
 func New(inputCommand []string) (*Publisher, error) {
@@ -29,10 +33,12 @@ func New(inputCommand []string) (*Publisher, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Command parse fail:%q", err)
 	}
+
 	cs, err := util.LoadYml(p.inputCommand["ymlPath"])
 	if err != nil {
 		return nil, fmt.Errorf("Yaml load failed:%q", err)
 	}
-	p.commandSpec = util.CommandSpecToJsonBytes(*cs)
+
+	p.commandSpec = cs
 	return &p, nil
 }
