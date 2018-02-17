@@ -116,7 +116,7 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) error {
 	payload := util.CommandSpecToJsonBytes(*commandSpec)
 	bodyBytes, statusCode, err := c.httpRequest("POST", uri.String(), c.jwt, payload)
 	if err != nil {
-		return fmt.Errorf("Post request failed: %q", err)
+		return fmt.Errorf("Post request failed: %v", err)
 	}
 
 	bodyBytes, err = handleResponse(bodyBytes, statusCode)
@@ -130,7 +130,7 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) error {
 func parseURL(urlstr string) (*url.URL, error) {
 	uri, err := url.Parse(urlstr)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse URL of Screwdriver API. URL is %q", urlstr)
+		return nil, fmt.Errorf("Failed to parse URL of Screwdriver API. URL is %v", urlstr)
 	}
 	return uri, nil
 }
@@ -150,7 +150,7 @@ func (c client) httpRequest(method, url, token string, payload []byte) ([]byte, 
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Faild to get http response: %q", err)
+		return nil, 0, fmt.Errorf("Faild to get http response: %v", err)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

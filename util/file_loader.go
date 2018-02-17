@@ -30,13 +30,13 @@ type commandSpec struct {
 func LoadYml(ymlPath string) (*CommandSpec, error) {
 	data, err := loadFile(ymlPath)
 	if err != nil {
-		return nil, fmt.Errorf("Fail to load yaml:%q", err)
+		return nil, fmt.Errorf("Fail to load yaml:%v", err)
 	}
 
 	cs := CommandSpec{}
 	err = yaml.Unmarshal(data, &cs)
 	if err != nil {
-		return nil, fmt.Errorf("Yaml parse failed %q", err)
+		return nil, fmt.Errorf("Yaml parse failed %v", err)
 	}
 
 	return &cs, nil

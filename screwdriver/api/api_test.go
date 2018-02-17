@@ -45,7 +45,7 @@ func createSmallSpec(namespace, name, version string) *util.CommandSpec {
 func TestNew(t *testing.T) {
 	client := New(fakeAPIURL, fakeSDToken)
 	if _, ok := client.(API); !ok {
-		t.Errorf("Client should have API interface.")
+		t.Errorf("Client should have API interface")
 	}
 }
 

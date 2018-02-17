@@ -14,7 +14,7 @@ func ParseCommand(command []string) (map[string]string, error) {
 	subCommand := command[1]
 	err := fs.Parse(command[2:])
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse input command:%q", err)
+		return nil, fmt.Errorf("Failed to parse input command:%v", err)
 	}
 
 	m := make(map[string]string)
