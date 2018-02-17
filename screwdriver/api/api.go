@@ -57,6 +57,11 @@ func newClient(sdAPI, sdToken string) *client {
 func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
 	switch statusCode / 100 {
 	case 2:
+		res := new(util.CommandSpec)
+		err := json.Unmarshal(bodyBytes, res)
+		if err != nil {
+			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
+		}
 		return bodyBytes, nil
 	case 4:
 		res := new(ResponseError)
@@ -66,7 +71,7 @@ func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
 		}
 		return nil, res
 	case 5:
-		return nil, fmt.Errorf("%d: Screwdriver API has internal server error", statusCode)
+		return nil, fmt.Errorf("Screwdriver API has internal server error: statusCode=%d", statusCode)
 	default:
 		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API: Statuscode=%d", statusCode)
 	}
