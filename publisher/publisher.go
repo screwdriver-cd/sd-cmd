@@ -23,6 +23,9 @@ func (p *Publisher) Run() error {
 	if err != nil {
 		return fmt.Errorf("Post failed:%q", err)
 	}
+
+	// Published successfully
+	println(p.commandSpec.Version)
 	return nil
 }
 
