@@ -86,7 +86,7 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	uri.Path = path.Join(uri.Path, "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
 
 	// Request to api
-	bodyBytes, statusCode, err := c.httpRequest("GET", uri.String(), c.jwt, nil)
+	bodyBytes, statusCode, err := c.httpRequest("GET", uri.String(), c.jwt, "")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get http response: %v", err)
 	}
@@ -107,14 +107,23 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 }
 
 func (c client) PostCommand(commandSpec *util.CommandSpec) error {
+	// Generate URL
 	uri, err := parseURL(c.baseURL)
 	if err != nil {
 		return fmt.Errorf("Failed to parse URL on POST: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands")
 
-	payload := util.CommandSpecToJsonBytes(*commandSpec)
-	bodyBytes, statusCode, err := c.httpRequest("POST", uri.String(), c.jwt, payload)
+	// Generate payload
+	commandSpecBytes, err := json.Marshal(&commandSpec)
+	var payload util.PostPayload
+	payload.Yaml = string(commandSpecBytes)
+	payloadBytes, err := json.Marshal(&payload)
+	if err != nil {
+		return fmt.Errorf("Failed to generate payload: %v", err)
+	}
+
+	bodyBytes, statusCode, err := c.httpRequest("POST", uri.String(), c.jwt, string(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("Post request failed: %v", err)
 	}
@@ -135,7 +144,7 @@ func parseURL(urlstr string) (*url.URL, error) {
 	return uri, nil
 }
 
-func (c client) httpRequest(method, url, token string, payload []byte) ([]byte, int, error) {
+func (c client) httpRequest(method, url, token string, payload string) ([]byte, int, error) {
 	req, err := http.NewRequest(
 		method,
 		url,

@@ -57,6 +57,7 @@ func dummySDCommand() (spec *util.CommandSpec) {
 		Version:     dummyVersion,
 		Format:      dummyFormat,
 	}
+	spec.Binary = new(util.Binary)
 	spec.Binary.File = dummyFile
 	return spec
 }

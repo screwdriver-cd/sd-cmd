@@ -1,7 +1,6 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 
@@ -14,17 +13,6 @@ func loadFile(filePath string) ([]byte, error) {
 		return nil, fmt.Errorf("Fail to read file:%q", err)
 	}
 	return dat, nil
-}
-
-type commandSpec struct {
-	Namespace   string `yaml:"namespace"`
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Version     string `yaml:"version"`
-	Format      string `yaml:"format"`
-	Binary      struct {
-		File string `yaml:"file"`
-	}
 }
 
 func LoadYml(ymlPath string) (*CommandSpec, error) {
@@ -40,9 +28,4 @@ func LoadYml(ymlPath string) (*CommandSpec, error) {
 	}
 
 	return &cs, nil
-}
-
-func CommandSpecToJsonBytes(cs CommandSpec) []byte {
-	d, _ := json.Marshal(&cs)
-	return d
 }

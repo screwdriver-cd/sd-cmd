@@ -118,7 +118,7 @@ func TestHttpRequest(t *testing.T) {
 	// GET
 	method := "GET"
 
-	_, _, err := c.httpRequest(method, testServer.URL, fakeSDToken, nil)
+	_, _, err := c.httpRequest(method, testServer.URL, fakeSDToken, "")
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -126,9 +126,8 @@ func TestHttpRequest(t *testing.T) {
 	// POST
 	method = "POST"
 	jsonPayload := `{"test":foo","data":"bar"}`
-	fakePayload := []byte(jsonPayload)
 
-	_, _, err = c.httpRequest(method, testServer.URL, fakeSDToken, fakePayload)
+	_, _, err = c.httpRequest(method, testServer.URL, fakeSDToken, jsonPayload)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}

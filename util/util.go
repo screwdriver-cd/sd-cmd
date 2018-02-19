@@ -28,25 +28,36 @@ var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
 // ex(latest stable feature-abc)
 var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 
+type Habitat struct {
+	Mode    string `json:"mode,omitempty" yaml:"mode,omitempty"`
+	Package string `json:"package,omitempty" yaml:"package,omitempty"`
+	Command string `json:"command,omitempty" yaml:"command,omitempty"`
+}
+
+type Docker struct {
+	Image   string `json:"image,omitempty" yaml:"image,omitempty"`
+	Command string `json:"command,omitempty" yaml:"command,omitempty"`
+}
+
+type Binary struct {
+	File string `json:"file,omitempty" yaml:"file,omitempty"`
+}
+
 type CommandSpec struct {
-	Namespace   string `json:"namespace" yaml:"namespace"`
-	Name        string `json:"name" yaml:"name"`
-	Description string `json:"description" yaml:"description"`
-	Version     string `json:"version" yaml:"version"`
-	Format      string `json:"format" yaml:"format"`
-	Habitat     struct {
-		Mode    string `json:"mode" yaml:"mode"`
-		Package string `json:"package" yaml:"package"`
-		Command string `json:"command" yaml:"command"`
-	} `json:"habitat" yaml:"habitat"`
-	Docker struct {
-		Image   string `json:"image" yaml:"image"`
-		Command string `json:"command" yaml:"command"`
-	} `json:"docker" yaml:"docker"`
-	Binary struct {
-		File string `json:"file" yaml:"file"`
-	} `json:"binary" yaml:"binary"`
-	PipelineId int `json:"pipelineId" yaml:"pipelineId"`
+	Namespace   string   `json:"namespace" yaml:"namespace"`
+	Name        string   `json:"name" yaml:"name"`
+	Description string   `json:"description" yaml:"description"`
+	Maintainer  string   `json:"maintainer" yaml:"maintainer"`
+	Version     string   `json:"version" yaml:"version"`
+	Format      string   `json:"format" yaml:"format"`
+	Habitat     *Habitat `json:"habitat,omitempty" yaml:"habitat,omitempty"`
+	Docker      *Docker  `json:"docker,omitempty" yaml:"docker,omitempty"`
+	Binary      *Binary  `json:"binary,omitempty" yaml:"binary,omitempty"`
+	PipelineID  int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
+}
+
+type PostPayload struct {
+	Yaml string `json:"yaml"`
 }
 
 func checkVersion(ver string) bool {
