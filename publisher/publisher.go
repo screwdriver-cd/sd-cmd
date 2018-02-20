@@ -47,11 +47,10 @@ func New(inputCommand []string) (*Publisher, error) {
 		return nil, fmt.Errorf("Command parse fail:%v1", err)
 	}
 
-	cs, err := util.LoadYml(p.inputCommand["ymlPath"])
+	p.commandSpec, err = util.LoadYml(p.inputCommand["ymlPath"])
 	if err != nil {
 		return nil, fmt.Errorf("Yaml load failed:%v", err)
 	}
 
-	p.commandSpec = cs
 	return &p, nil
 }
