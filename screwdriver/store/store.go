@@ -59,22 +59,18 @@ func (c *client) commandURL() (string, error) {
 }
 
 // New returns Store object
-func New(baseURL string, spec *util.CommandSpec, sdToken string) (Store, error) {
-	c, err := newClient(baseURL, spec, sdToken)
-	if err != nil {
-		return nil, err
-	}
-	return Store(c), nil
+func New(baseURL string, spec *util.CommandSpec, sdToken string) Store {
+	c := newClient(baseURL, spec, sdToken)
+	return Store(c)
 }
 
-func newClient(baseURL string, spec *util.CommandSpec, sdToken string) (*client, error) {
-	c := &client{
+func newClient(baseURL string, spec *util.CommandSpec, sdToken string) *client {
+	return &client{
 		baseURL: baseURL,
 		client:  &http.Client{Timeout: timeoutSec * time.Second},
 		spec:    spec,
 		jwt:     sdToken,
 	}
-	return c, nil
 }
 
 func handleResponse(res *http.Response) ([]byte, error) {
