@@ -28,21 +28,32 @@ var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
 // ex(latest stable feature-abc)
 var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 
+// A Habitat represents a set of data for Habitat.
+// All value will be omitted if it is not set.
+// This will works as a part of CommandSpec.
 type Habitat struct {
 	Mode    string `json:"mode,omitempty" yaml:"mode,omitempty"`
 	Package string `json:"package,omitempty" yaml:"package,omitempty"`
 	Command string `json:"command,omitempty" yaml:"command,omitempty"`
 }
 
+// A Docker represents a set of data for Docker.
+// All value will be omitted if it is not set.
+// This will works as a part of CommandSpec.
 type Docker struct {
 	Image   string `json:"image,omitempty" yaml:"image,omitempty"`
 	Command string `json:"command,omitempty" yaml:"command,omitempty"`
 }
 
+// A Binary represents a set of data for Binary.
+// All value will be omitted if it is not set.
+// This will works as a part of CommandSpec.
 type Binary struct {
 	File string `json:"file,omitempty" yaml:"file,omitempty"`
 }
 
+// A CommandSpec represents a set of data for commands.
+// Some value will be omitted if it is not set.
 type CommandSpec struct {
 	Namespace   string   `json:"namespace" yaml:"namespace"`
 	Name        string   `json:"name" yaml:"name"`
@@ -56,6 +67,8 @@ type CommandSpec struct {
 	PipelineID  int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
 }
 
+// PostPayload represents a set of data for posting command.
+// The key "yaml" and the value of json string is needed to post to api.
 type PostPayload struct {
 	Yaml string `json:"yaml"`
 }
