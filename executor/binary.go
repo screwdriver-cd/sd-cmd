@@ -19,10 +19,8 @@ type Binary struct {
 
 // NewBinary returns Binary object
 func NewBinary(spec *util.CommandSpec, arg []string) (*Binary, error) {
-	storeapi, err := store.New(config.SDStoreURL, spec, config.SDToken)
-	if err != nil {
-		return nil, err
-	}
+	storeapi := store.New(config.SDStoreURL, spec, config.SDToken)
+
 	binary := &Binary{
 		Args:  arg,
 		Store: storeapi,

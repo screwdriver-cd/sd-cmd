@@ -15,6 +15,8 @@ func loadFile(filePath string) ([]byte, error) {
 	return dat, nil
 }
 
+// LoadYml receives path for command spec.
+// It returns CommandSpec struct if yml is valid.
 func LoadYml(ymlPath string) (*CommandSpec, error) {
 	data, err := loadFile(ymlPath)
 	if err != nil {

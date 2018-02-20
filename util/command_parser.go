@@ -5,10 +5,12 @@ import (
 	"fmt"
 )
 
+// ParseCommand parses and check user input.
+// It returns a map if input is valid.
 func ParseCommand(command []string) (map[string]string, error) {
-	fs := flag.NewFlagSet(command[0], flag.ExitOnError)
+	fs := flag.NewFlagSet(command[0], flag.ContinueOnError)
 	var (
-		ymlPath = fs.String("f", "default-value", "Path of yaml to publish")
+		ymlPath = fs.String("f", "sd-command.yaml", "Path of yaml to publish")
 	)
 
 	subCommand := command[1]

@@ -7,7 +7,7 @@ import (
 
 func TestParseCommand(t *testing.T) {
 	// Parse success
-	command := []string{"sd-cmd", "publish", "-f", "command_spec.yml"}
+	command := []string{"sd-cmd", "publish", "-f", "sd-command.yaml"}
 
 	actual, err := ParseCommand(command)
 	if err != nil {
@@ -16,7 +16,7 @@ func TestParseCommand(t *testing.T) {
 
 	expected := map[string]string{
 		"subCommand": "publish",
-		"ymlPath":    "command_spec.yml",
+		"ymlPath":    "sd-command.yaml",
 	}
 
 	if !reflect.DeepEqual(actual, expected) {

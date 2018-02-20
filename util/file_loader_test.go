@@ -6,7 +6,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/testdata"
 )
 
-var commandSpecYmlPath = testdata.TestDataRootPath + "/command_spec.yml"
+var commandSpecYmlPath = testdata.TestDataRootPath + "/sd-command.yaml"
 
 func TestLoadFile(t *testing.T) {
 	loadFile(commandSpecYmlPath)
@@ -53,20 +53,5 @@ func TestLoadYml(t *testing.T) {
 	expect = "git"
 	if actual.Habitat.Command != expect {
 		t.Errorf("got %q\nwant %q", actual.Habitat.Command, expect)
-	}
-
-	expect = "chefdk:1.2.3"
-	if actual.Docker.Image != expect {
-		t.Errorf("got %q\nwant %q", actual.Docker.Image, expect)
-	}
-
-	expect = "knife"
-	if actual.Docker.Command != expect {
-		t.Errorf("got %q\nwant %q", actual.Docker.Command, expect)
-	}
-
-	expect = "./foobar.sh"
-	if actual.Binary.File != expect {
-		t.Errorf("got %q\nwant %q", actual.Binary.File, expect)
 	}
 }

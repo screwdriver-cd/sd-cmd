@@ -18,7 +18,7 @@ const (
 	fakeJWT     = "fake-jwt"
 )
 
-var commandSpecYmlPath = testdata.TestDataRootPath + "/command_spec.yml"
+var commandSpecYmlPath = testdata.TestDataRootPath + "/sd-command.yaml"
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

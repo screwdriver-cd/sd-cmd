@@ -159,10 +159,14 @@ func (c client) httpRequest(method, url, token string, payload string) ([]byte, 
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Faild to get http response: %v", err)
+		return nil, 0, fmt.Errorf("Failed to get http response: %v", err)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, 0, fmt.Errorf("Failed to read response body: %v", err)
+	}
+
 	statusCode := resp.StatusCode
 
 	defer resp.Body.Close()
