@@ -54,19 +54,4 @@ func TestLoadYml(t *testing.T) {
 	if actual.Habitat.Command != expect {
 		t.Errorf("got %q\nwant %q", actual.Habitat.Command, expect)
 	}
-
-	expect = "chefdk:1.2.3"
-	if actual.Docker.Image != expect {
-		t.Errorf("got %q\nwant %q", actual.Docker.Image, expect)
-	}
-
-	expect = "knife"
-	if actual.Docker.Command != expect {
-		t.Errorf("got %q\nwant %q", actual.Docker.Command, expect)
-	}
-
-	expect = "./foobar.sh"
-	if actual.Binary.File != expect {
-		t.Errorf("got %q\nwant %q", actual.Binary.File, expect)
-	}
 }

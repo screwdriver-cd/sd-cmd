@@ -20,15 +20,3 @@ habitat:
     # mode: local
     # package: ./foobar.hart
     command: git
-
-# Docker specific config
-# if format: docker
-docker:
-    image: chefdk:1.2.3
-    # Optional, default: ""
-    command: knife
-
-# Binary specific config
-# if format: binary
-binary:
-    file: ./foobar.sh
