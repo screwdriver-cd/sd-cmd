@@ -163,6 +163,10 @@ func (c client) httpRequest(method, url, token string, payload string) ([]byte, 
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, 0, fmt.Errorf("Failed to read response body: %v", err)
+	}
+
 	statusCode := resp.StatusCode
 
 	defer resp.Body.Close()
