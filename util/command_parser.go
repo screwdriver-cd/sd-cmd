@@ -10,7 +10,7 @@ import (
 func ParseCommand(command []string) (map[string]string, error) {
 	fs := flag.NewFlagSet(command[0], flag.ExitOnError)
 	var (
-		ymlPath = fs.String("f", "default-value", "Path of yaml to publish")
+		ymlPath = fs.String("f", "./sd-command.yaml", "Path of yaml to publish")
 	)
 
 	subCommand := command[1]
