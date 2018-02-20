@@ -8,10 +8,6 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-func init() {
-	config.LoadConfig()
-}
-
 // Publisher is a type to publish sdapi and sdstore.
 // It receives strings which input by a user.
 // If -f option is valid, yaml file will be loaded to commandSpec struct.
