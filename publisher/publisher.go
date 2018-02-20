@@ -39,9 +39,8 @@ func (p *Publisher) Run() error {
 
 // New is a method to Generate new Publisher.
 // Publisher variable will be returned if input command and yaml file is valid.
-func New(inputCommand []string) (*Publisher, error) {
-	var p Publisher
-	var err error
+func New(inputCommand []string) (p *Publisher, err error) {
+	p = new(Publisher)
 
 	p.inputCommand, err = util.ParseCommand(inputCommand)
 	if err != nil {
@@ -53,5 +52,5 @@ func New(inputCommand []string) (*Publisher, error) {
 		return nil, fmt.Errorf("Yaml load failed:%v", err)
 	}
 
-	return &p, nil
+	return
 }
