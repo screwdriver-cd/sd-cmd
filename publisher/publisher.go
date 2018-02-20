@@ -12,11 +12,15 @@ func init() {
 	config.LoadConfig()
 }
 
+// Publisher is a type to publish sdapi and sdstore.
+// It receive strings which input by user.
+// If -f option is valid, yml file will be loaded to commandSpec struct.
 type Publisher struct {
 	inputCommand map[string]string
 	commandSpec  *util.CommandSpec
 }
 
+// Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
 	sdAPI := api.New(config.SDAPIURL, config.SDToken)
 	err := sdAPI.PostCommand(p.commandSpec)
@@ -24,11 +28,17 @@ func (p *Publisher) Run() error {
 		return fmt.Errorf("Post failed:%v", err)
 	}
 
+	// TODO: Post binary to sdstore
+
+	// TODO: Show version number of command published by sd-cmd
 	// Published successfully
-	println(p.commandSpec.Version)
+	// println()
+
 	return nil
 }
 
+// New is a method to Generate new Publisher.
+// Publisher variable will be returned if input command and yml file is valid.
 func New(inputCommand []string) (*Publisher, error) {
 	var p Publisher
 	var err error
