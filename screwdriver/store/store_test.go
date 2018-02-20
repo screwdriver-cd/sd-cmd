@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -49,39 +49,36 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 	return &http.Client{Transport: tr}
 }
 
-func dummySDCommand() (spec *api.Command) {
-	spec = &api.Command{
+func dummySDCommand() (spec *util.CommandSpec) {
+	spec = &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,
 		Version:     dummyVersion,
 		Format:      dummyFormat,
 	}
+	spec.Binary = new(util.Binary)
 	spec.Binary.File = dummyFile
 	return spec
 }
 
 func TestNew(t *testing.T) {
-	var sdCommand *api.Command
+	var sdCommand *util.CommandSpec
 	var store Store
-	var err error
 
 	// success
 	sdCommand = dummySDCommand()
-	store, err = New(config.SDStoreURL, sdCommand, config.SDToken)
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
+	store = New(config.SDStoreURL, sdCommand, config.SDToken)
+
 	if _, ok := store.(Store); !ok {
 		t.Errorf("New does not fulfill API interface")
 	}
-
 }
 
 func TestGetCommand(t *testing.T) {
 	// success
 	sdCommand := dummySDCommand()
-	c, _ := newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	c := newClient(config.SDStoreURL, sdCommand, config.SDToken)
 	store := Store(c)
 	dummyURL := fmt.Sprintf("/v1/commands/%s/%s/%s", dummyNameSpace, dummyName, dummyVersion)
 	c.client = makeFakeHTTPClient(t, 200, "Hello World", dummyURL, "text/plain")
@@ -98,7 +95,7 @@ func TestGetCommand(t *testing.T) {
 
 	// failure. check 4xx error message
 	sdCommand = dummySDCommand()
-	c, _ = newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	c = newClient(config.SDStoreURL, sdCommand, config.SDToken)
 	c.client = makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain")
 	store = Store(c)
 	_, err = store.GetCommand()
@@ -108,7 +105,7 @@ func TestGetCommand(t *testing.T) {
 
 	// failure. check some api response error
 	sdCommand = dummySDCommand()
-	c, _ = newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	c = newClient(config.SDStoreURL, sdCommand, config.SDToken)
 	clients := []*http.Client{
 		makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain"),
 		makeFakeHTTPClient(t, 500, "ERROR", "", "text/plain"),
@@ -127,14 +124,14 @@ func TestGetCommand(t *testing.T) {
 	// failure.
 	sdCommand = dummySDCommand()
 	sdCommand.Format = "docker"
-	c, _ = newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	c = newClient(config.SDStoreURL, sdCommand, config.SDToken)
 	store = Store(c)
 	_, err = store.GetCommand()
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
 
-	c, _ = newClient(config.SDStoreURL, nil, config.SDToken)
+	c = newClient(config.SDStoreURL, nil, config.SDToken)
 	store = Store(c)
 	_, err = store.GetCommand()
 	if err == nil {
