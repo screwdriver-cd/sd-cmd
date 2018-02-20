@@ -36,6 +36,31 @@ type ResponseError struct {
 	Message    string `json:"message"`
 }
 
+<<<<<<< HEAD
+=======
+// Command is a Screwdriver Command
+type Command struct {
+	Namespace   string `json:"namespace"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Version     string `json:"version"`
+	Format      string `json:"format"`
+	Habitat     struct {
+		Mode    string `json:"mode"`
+		Package string `json:"package"`
+		Command string `json:"command"`
+	} `json:"habitat"`
+	Docker struct {
+		Image   string `json:"image"`
+		Command string `json:"command"`
+	} `json:"docker"`
+	Binary struct {
+		File string `json:"file"`
+	} `json:"binary"`
+	PipelineId int `json:"pipelineId"`
+}
+
+>>>>>>> origin
 func (e ResponseError) Error() string {
 	return fmt.Sprintf("Screwdriver API %d %s: %s", e.StatusCode, e.Reason, e.Message)
 }
