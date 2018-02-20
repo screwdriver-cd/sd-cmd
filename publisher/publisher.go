@@ -13,8 +13,8 @@ func init() {
 }
 
 // Publisher is a type to publish sdapi and sdstore.
-// It receive strings which input by user.
-// If -f option is valid, yml file will be loaded to commandSpec struct.
+// It receives strings which input by a user.
+// If -f option is valid, yaml file will be loaded to commandSpec struct.
 type Publisher struct {
 	inputCommand map[string]string
 	commandSpec  *util.CommandSpec
@@ -38,10 +38,11 @@ func (p *Publisher) Run() error {
 }
 
 // New is a method to Generate new Publisher.
-// Publisher variable will be returned if input command and yml file is valid.
+// Publisher variable will be returned if input command and yaml file is valid.
 func New(inputCommand []string) (*Publisher, error) {
 	var p Publisher
 	var err error
+
 	p.inputCommand, err = util.ParseCommand(inputCommand)
 	if err != nil {
 		return nil, fmt.Errorf("Command parse fail:%v1", err)
