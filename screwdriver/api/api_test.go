@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -18,7 +19,7 @@ const (
 	fakeJWT     = "fake-jwt"
 )
 
-var commandSpecYmlPath = testdata.TestDataRootPath + "/sd-command.yaml"
+var commandSpecYamlPath = testdata.TestDataRootPath + "/sd-command.yaml"
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +40,20 @@ func createSmallSpec(namespace, name, version string) *util.CommandSpec {
 		Namespace: namespace,
 		Name:      name,
 		Version:   version,
+	}
+}
+
+func createSpecBinary(namespace, name, version, filePath string) *util.CommandSpec {
+	b := &util.Binary{
+		File: filePath,
+	}
+
+	return &util.CommandSpec{
+		Namespace: namespace,
+		Name:      name,
+		Version:   version,
+		Format:    "binary",
+		Binary:    b,
 	}
 }
 
@@ -117,17 +132,11 @@ func TestHttpRequest(t *testing.T) {
 
 	// GET
 	method := "GET"
+	contentType := "application/json"
+	// No payload
+	payload := bytes.NewBuffer([]byte(""))
 
-	_, _, err := c.httpRequest(method, testServer.URL, fakeSDToken, "")
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-
-	// POST
-	method = "POST"
-	jsonPayload := `{"test":foo","data":"bar"}`
-
-	_, _, err = c.httpRequest(method, testServer.URL, fakeSDToken, jsonPayload)
+	_, _, err := c.httpRequest(method, testServer.URL, fakeSDToken, contentType, payload)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -137,14 +146,23 @@ func TestPostCommand(t *testing.T) {
 	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
 	ns, name, ver := "foo", "bar", "1.0"
-	jsonMsg := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
-	c.client = makeFakeHTTPClient(t, 200, jsonMsg, "/v4/commands")
+	binaryFilePath := testdata.TestDataRootPath + "/hello"
+	responseMsg := fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
+		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
+		"format":"binary","binary":{"file":"%s"},"pipelineId":250270}`,
+		ns, name, ver, binaryFilePath)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api := API(c)
 
 	// request
-	err := api.PostCommand(createSmallSpec(ns, name, ver))
+	specPath := testdata.TestDataRootPath + "/sd-command.yaml"
+	version, err := api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
+	}
+	expectVersion := "1.0"
+	if version != expectVersion {
+		t.Errorf("actual=%q, want %q", version, expectVersion)
 	}
 
 	// case failure. check 4xx error message
@@ -154,7 +172,7 @@ func TestPostCommand(t *testing.T) {
 	api = API(c)
 
 	// request
-	err = api.PostCommand(createSmallSpec(ns, name, ver))
+	_, err = api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
 	if err.Error() != ansMsg {
 		t.Errorf("err=%q, want %q", errMsg, ansMsg)
 	}
@@ -176,7 +194,7 @@ func TestPostCommand(t *testing.T) {
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		err = api.PostCommand(createSmallSpec(ns, name, ver))
+		_, err = api.PostCommand("dummy", createSpecBinary(ns, name, ver, binaryFilePath))
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}

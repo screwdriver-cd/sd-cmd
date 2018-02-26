@@ -9,14 +9,9 @@ description: |
 version: 1.0
 # Format the command is in (see below for examples)
 # Valid options: habitat, docker, binary
-format: habitat
+format: binary
 
-# Habitat specific config
-# if format: habitat
-habitat:
-    mode: remote
-    package: core/git/2.14.1
-    # If local
-    # mode: local
-    # package: ./foobar.hart
-    command: git
+# Binary specific config
+# if format: binary
+binary:
+    file: ./testdata/hello

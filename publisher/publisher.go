@@ -19,16 +19,15 @@ type Publisher struct {
 // Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
 	sdAPI := api.New(config.SDAPIURL, config.SDToken)
-	err := sdAPI.PostCommand(p.commandSpec)
+	specPath := p.inputCommand["yamlPath"]
+	version, err := sdAPI.PostCommand(specPath, p.commandSpec)
 	if err != nil {
 		return fmt.Errorf("Post failed:%v", err)
 	}
 
-	// TODO: Post binary to sdstore
-
-	// TODO: Show version number of command published by sd-cmd
 	// Published successfully
-	// println()
+	// Show version number of command published by sd-cmd
+	println(version)
 
 	return nil
 }
@@ -40,10 +39,10 @@ func New(inputCommand []string) (p *Publisher, err error) {
 
 	p.inputCommand, err = util.ParseCommand(inputCommand)
 	if err != nil {
-		return nil, fmt.Errorf("Command parse fail:%v", err)
+		return nil, fmt.Errorf("Failed to parse command:%v", err)
 	}
 
-	p.commandSpec, err = util.LoadYml(p.inputCommand["ymlPath"])
+	p.commandSpec, err = util.LoadYaml(p.inputCommand["yamlPath"])
 	if err != nil {
 		return nil, fmt.Errorf("Yaml load failed:%v", err)
 	}

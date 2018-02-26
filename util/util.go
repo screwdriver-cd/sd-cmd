@@ -55,6 +55,7 @@ type Binary struct {
 // A CommandSpec represents a set of data for commands.
 // Some value will be omitted if it is not set.
 type CommandSpec struct {
+	ID          int      `json:"id,omitempty" yaml:"id,omitempty"`
 	Namespace   string   `json:"namespace" yaml:"namespace"`
 	Name        string   `json:"name" yaml:"name"`
 	Description string   `json:"description" yaml:"description"`
@@ -67,9 +68,9 @@ type CommandSpec struct {
 	PipelineID  int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
 }
 
-// PostPayload represents a set of data for posting command.
+// PayloadYaml represents a set of data for posting command.
 // The key "yaml" and the value of json string is needed to post to api.
-type PostPayload struct {
+type PayloadYaml struct {
 	Yaml string `json:"yaml"`
 }
 

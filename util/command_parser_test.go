@@ -16,7 +16,7 @@ func TestParseCommand(t *testing.T) {
 
 	expected := map[string]string{
 		"subCommand": "publish",
-		"ymlPath":    "sd-command.yaml",
+		"yamlPath":   "sd-command.yaml",
 	}
 
 	if !reflect.DeepEqual(actual, expected) {

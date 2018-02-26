@@ -7,7 +7,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func loadFile(filePath string) ([]byte, error) {
+// LoadByte receives path of a file.
+// It returns the file content as byte array.
+func LoadByte(filePath string) ([]byte, error) {
 	dat, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("Fail to read file:%q", err)
@@ -15,10 +17,10 @@ func loadFile(filePath string) ([]byte, error) {
 	return dat, nil
 }
 
-// LoadYml receives path for command spec.
-// It returns CommandSpec struct if yml is valid.
-func LoadYml(ymlPath string) (*CommandSpec, error) {
-	data, err := loadFile(ymlPath)
+// LoadYaml receives path for command spec.
+// It returns CommandSpec struct if yaml is valid.
+func LoadYaml(yamlPath string) (*CommandSpec, error) {
+	data, err := LoadByte(yamlPath)
 	if err != nil {
 		return nil, fmt.Errorf("Fail to load yaml:%v", err)
 	}

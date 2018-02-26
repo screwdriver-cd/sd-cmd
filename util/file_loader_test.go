@@ -6,14 +6,14 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/testdata"
 )
 
-var commandSpecYmlPath = testdata.TestDataRootPath + "/sd-command.yaml"
+var commandSpecYamlPath = testdata.TestDataRootPath + "/sd-command.yaml"
 
 func TestLoadFile(t *testing.T) {
-	loadFile(commandSpecYmlPath)
+	LoadByte(commandSpecYamlPath)
 }
 
-func TestLoadYml(t *testing.T) {
-	actual, _ := LoadYml(commandSpecYmlPath)
+func TestLoadYaml(t *testing.T) {
+	actual, _ := LoadYaml(commandSpecYamlPath)
 
 	expect := "foo"
 	if actual.Namespace != expect {
@@ -35,23 +35,13 @@ func TestLoadYml(t *testing.T) {
 		t.Errorf("got %q\nwant %q", actual.Version, expect)
 	}
 
-	expect = "habitat"
+	expect = "binary"
 	if actual.Format != expect {
 		t.Errorf("got %q\nwant %q", actual.Format, expect)
 	}
 
-	expect = "remote"
-	if actual.Habitat.Mode != expect {
+	expect = "./testdata/hello"
+	if actual.Binary.File != expect {
 		t.Errorf("got %q\nwant %q", actual.Habitat.Mode, expect)
-	}
-
-	expect = "core/git/2.14.1"
-	if actual.Habitat.Package != expect {
-		t.Errorf("got %q\nwant %q", actual.Habitat.Package, expect)
-	}
-
-	expect = "git"
-	if actual.Habitat.Command != expect {
-		t.Errorf("got %q\nwant %q", actual.Habitat.Command, expect)
 	}
 }

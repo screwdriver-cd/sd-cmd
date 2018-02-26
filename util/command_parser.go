@@ -10,7 +10,7 @@ import (
 func ParseCommand(command []string) (map[string]string, error) {
 	fs := flag.NewFlagSet(command[0], flag.ContinueOnError)
 	var (
-		ymlPath = fs.String("f", "sd-command.yaml", "Path of yaml to publish")
+		yamlPath = fs.String("f", "sd-command.yaml", "Path of yaml to publish")
 	)
 
 	subCommand := command[1]
@@ -21,7 +21,7 @@ func ParseCommand(command []string) (map[string]string, error) {
 
 	m := make(map[string]string)
 	m["subCommand"] = subCommand
-	m["ymlPath"] = *ymlPath
+	m["yamlPath"] = *yamlPath
 
 	return m, err
 }
