@@ -92,7 +92,7 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	// No payload
 	payload := bytes.NewBuffer([]byte(""))
 
-	bodyBytes, statusCode, err := c.httpRequest("GET", uri.String(), c.jwt, contentType, payload)
+	bodyBytes, statusCode, err := c.httpRequest("GET", uri.String(), contentType, payload)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get http response: %v", err)
@@ -176,7 +176,7 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (str
 
 	// Send request
 	contentType := writer.FormDataContentType()
-	responseBytes, statusCode, err := c.httpRequest("POST", uri.String(), c.jwt, contentType, body)
+	responseBytes, statusCode, err := c.httpRequest("POST", uri.String(), contentType, body)
 	if err != nil {
 		return "", fmt.Errorf("Post request failed: %v", err)
 	}
@@ -197,7 +197,7 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (str
 	return responseSpec.Version, nil
 }
 
-func (c client) httpRequest(method, url, token string, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
+func (c client) httpRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
 	req, err := http.NewRequest(
 		method,
 		url,
@@ -208,7 +208,7 @@ func (c client) httpRequest(method, url, token string, contentType string, paylo
 	}
 
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
 
 	resp, err := c.client.Do(req)
 	if err != nil {

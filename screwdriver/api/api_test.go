@@ -136,7 +136,7 @@ func TestHttpRequest(t *testing.T) {
 	// No payload
 	payload := bytes.NewBuffer([]byte(""))
 
-	_, _, err := c.httpRequest(method, testServer.URL, fakeSDToken, contentType, payload)
+	_, _, err := c.httpRequest(method, testServer.URL, contentType, payload)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
