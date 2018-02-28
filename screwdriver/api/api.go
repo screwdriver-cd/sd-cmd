@@ -81,7 +81,7 @@ func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
 
 // GetCommand returns Command from Screwdriver API
 func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	uri, err := parseURL(c.baseURL)
+	uri, err := url.Parse(c.baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse URL on GET: %v", err)
 	}
@@ -127,7 +127,7 @@ func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err er
 
 func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (string, error) {
 	// Generate URL
-	uri, err := parseURL(c.baseURL)
+	uri, err := url.Parse(c.baseURL)
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse URL on POST: %v", err)
 	}
@@ -195,14 +195,6 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (str
 	}
 
 	return responseSpec.Version, nil
-}
-
-func parseURL(urlstr string) (*url.URL, error) {
-	uri, err := url.Parse(urlstr)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse URL of Screwdriver API. URL is %v", urlstr)
-	}
-	return uri, nil
 }
 
 func (c client) httpRequest(method, url, token string, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
