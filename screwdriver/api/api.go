@@ -22,7 +22,7 @@ const (
 // API is a Screwdriver API endpoint
 type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
-	PostCommand(specPath string, commandSpec *util.CommandSpec) (string, error)
+	PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error)
 }
 
 type client struct {
@@ -125,11 +125,11 @@ func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err er
 	return
 }
 
-func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (string, error) {
+func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	// Generate URL
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse URL on POST: %v", err)
+		return nil, fmt.Errorf("Failed to parse URL on POST: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands")
 
@@ -142,14 +142,14 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (str
 	// Convert command spec to payload
 	specBytes, err := specToPayloadBytes(commandSpec)
 	if err != nil {
-		return "", fmt.Errorf("Failed to convert spec to bytes:%v", err)
+		return nil, fmt.Errorf("Failed to convert spec to bytes:%v", err)
 	}
 
 	// Set yaml filename
 	fileNameYaml := filepath.Base(specPath)
 	yamlPart, err := writer.CreateFormFile("file", fileNameYaml)
 	if err != nil {
-		return "", fmt.Errorf("Failed to load spec file:%v", err)
+		return nil, fmt.Errorf("Failed to load spec file:%v", err)
 	}
 
 	// Write yaml part
@@ -159,14 +159,14 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (str
 		// Load binary from file
 		fileContentsBin, err := util.LoadByte(commandSpec.Binary.File)
 		if err != nil {
-			return "", fmt.Errorf("Failed to load binary file:%v", err)
+			return nil, fmt.Errorf("Failed to load binary file:%v", err)
 		}
 
 		// Set filename of binary
 		fileNameBin := filepath.Base(commandSpec.Binary.File)
 		binPart, err := writer.CreateFormFile("file", fileNameBin)
 		if err != nil {
-			return "", fmt.Errorf("Failed to create form of binary:%v", err)
+			return nil, fmt.Errorf("Failed to create form of binary:%v", err)
 		}
 
 		// Write binary part
@@ -178,23 +178,23 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (str
 	contentType := writer.FormDataContentType()
 	responseBytes, statusCode, err := c.httpRequest("POST", uri.String(), contentType, body)
 	if err != nil {
-		return "", fmt.Errorf("Post request failed: %v", err)
+		return nil, fmt.Errorf("Post request failed: %v", err)
 	}
 
 	// Check response
 	responseBytes, err = handleResponse(responseBytes, statusCode)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Get version of posted command
 	responseSpec := util.CommandSpec{}
 	err = json.Unmarshal(responseBytes, &responseSpec)
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse json response %v", err)
+		return nil, fmt.Errorf("Failed to parse json response %v", err)
 	}
 
-	return responseSpec.Version, nil
+	return &responseSpec, nil
 }
 
 func (c client) httpRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {

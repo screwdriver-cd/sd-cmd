@@ -156,13 +156,9 @@ func TestPostCommand(t *testing.T) {
 
 	// request
 	specPath := testdata.TestDataRootPath + "/sd-command.yaml"
-	version, err := api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
+	_, err := api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
-	}
-	expectVersion := "1.0"
-	if version != expectVersion {
-		t.Errorf("actual=%q, want %q", version, expectVersion)
 	}
 
 	// case failure. check 4xx error message

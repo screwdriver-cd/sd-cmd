@@ -20,14 +20,14 @@ type Publisher struct {
 func (p *Publisher) Run() error {
 	sdAPI := api.New(config.SDAPIURL, config.SDToken)
 	specPath := p.inputCommand["yamlPath"]
-	version, err := sdAPI.PostCommand(specPath, p.commandSpec)
+	specResponse, err := sdAPI.PostCommand(specPath, p.commandSpec)
 	if err != nil {
 		return fmt.Errorf("Post failed:%v", err)
 	}
 
 	// Published successfully
 	// Show version number of command published by sd-cmd
-	println(version)
+	println(specResponse.Version)
 
 	return nil
 }
