@@ -1,6 +1,7 @@
 package publisher
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
@@ -37,7 +38,7 @@ func (p *Publisher) Run() error {
 func New(inputCommand []string) (p *Publisher, err error) {
 	p = new(Publisher)
 
-	p.inputCommand, err = util.ParseCommand(inputCommand)
+	p.inputCommand, err = parseInputCommand(inputCommand)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse command:%v", err)
 	}
@@ -48,4 +49,23 @@ func New(inputCommand []string) (p *Publisher, err error) {
 	}
 
 	return
+}
+
+func parseInputCommand(inputCommand []string) (map[string]string, error) {
+	fs := flag.NewFlagSet(inputCommand[0], flag.ContinueOnError)
+	var (
+		yamlPath = fs.String("f", "sd-command.yaml", "Path of yaml to publish")
+	)
+
+	subCommand := inputCommand[1]
+	err := fs.Parse(inputCommand[2:])
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse input command:%v", err)
+	}
+
+	m := make(map[string]string)
+	m["subCommand"] = subCommand
+	m["yamlPath"] = *yamlPath
+
+	return m, err
 }
