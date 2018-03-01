@@ -28,7 +28,7 @@ func (p *Publisher) Run() error {
 
 	// Published successfully
 	// Show version number of command published by sd-cmd
-	println(specResponse.Version)
+	fmt.Println(specResponse.Version)
 
 	return nil
 }
