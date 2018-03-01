@@ -92,30 +92,20 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	// No payload
 	payload := bytes.NewBuffer([]byte(""))
 
-	bodyBytes, statusCode, err := c.httpRequest("GET", uri.String(), contentType, payload)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get http response: %v", err)
-	}
-
-	// Check response body
-	bodyBytes, err = handleResponse(bodyBytes, statusCode)
-
+	responseSpec, err := c.httpRequest("GET", uri.String(), contentType, payload)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := new(util.CommandSpec)
-	err = json.Unmarshal(bodyBytes, cmd)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal command: %v", err)
-	}
-	return cmd, nil
+	return responseSpec, nil
 }
 
 func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err error) {
 	// Generate yaml payload bytes
 	commandSpecBytes, err := json.Marshal(&commandSpec)
+	if err != nil {
+		return nil, err
+	}
 	var payload util.PayloadYaml
 	payload.Yaml = string(commandSpecBytes)
 	specBytes, err = json.Marshal(&payload)
@@ -125,58 +115,48 @@ func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err er
 	return
 }
 
-func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	// Generate URL
-	uri, err := url.Parse(c.baseURL)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse URL on POST: %v", err)
-	}
-	uri.Path = path.Join(uri.Path, "commands")
-
-	// Generate payload
-
-	// Prepare body
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
+func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *util.CommandSpec) error {
 	// Convert command spec to payload
 	specBytes, err := specToPayloadBytes(commandSpec)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to convert spec to bytes:%v", err)
+		return fmt.Errorf("Failed to convert spec to bytes:%v", err)
 	}
 
 	// Set yaml filename
 	fileNameYaml := filepath.Base(specPath)
 	yamlPart, err := writer.CreateFormFile("file", fileNameYaml)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load spec file:%v", err)
+		return fmt.Errorf("Failed to load spec file:%v", err)
 	}
-
 	// Write yaml part
 	yamlPart.Write(specBytes)
 
-	if commandSpec.Format == "binary" {
-		// Load binary from file
-		fileContentsBin, err := util.LoadByte(commandSpec.Binary.File)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to load binary file:%v", err)
-		}
+	return nil
+}
 
-		// Set filename of binary
-		fileNameBin := filepath.Base(commandSpec.Binary.File)
-		binPart, err := writer.CreateFormFile("file", fileNameBin)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create form of binary:%v", err)
-		}
-
-		// Write binary part
-		binPart.Write(fileContentsBin)
+func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) error {
+	// Load binary from file
+	fileContentsBin, err := util.LoadByte(commandSpec.Binary.File)
+	if err != nil {
+		return fmt.Errorf("Failed to load binary file:%v", err)
 	}
-	writer.Close()
 
+	// Set filename of binary
+	fileNameBin := filepath.Base(commandSpec.Binary.File)
+	binPart, err := writer.CreateFormFile("file", fileNameBin)
+	if err != nil {
+		return fmt.Errorf("Failed to create form of binary:%v", err)
+	}
+
+	// Write binary part
+	binPart.Write(fileContentsBin)
+
+	return nil
+}
+
+func (c client) httpRequest(httpMethod string, uri string, contentType string, body *bytes.Buffer) (*util.CommandSpec, error) {
 	// Send request
-	contentType := writer.FormDataContentType()
-	responseBytes, statusCode, err := c.httpRequest("POST", uri.String(), contentType, body)
+	responseBytes, statusCode, err := c.sendHTTPRequest(httpMethod, uri, contentType, body)
 	if err != nil {
 		return nil, fmt.Errorf("Post request failed: %v", err)
 	}
@@ -187,17 +167,58 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 		return nil, err
 	}
 
-	// Get version of posted command
+	// Get response
 	responseSpec := util.CommandSpec{}
 	err = json.Unmarshal(responseBytes, &responseSpec)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse json response %v", err)
 	}
 
-	return &responseSpec, nil
+	return &responseSpec, err
 }
 
-func (c client) httpRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
+func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	// Generate payload
+	// Prepare body
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	writeMultipartYaml(writer, specPath, commandSpec)
+
+	var err error
+	switch commandSpec.Format {
+	case "binary":
+		err = writeMultipartBin(writer, commandSpec)
+	case "habitat":
+		return nil, fmt.Errorf("Posting habitat is not implemented yet")
+	case "docker":
+		return nil, fmt.Errorf("Posting docker is not implemented yet")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	writer.Close()
+
+	// Generate URL
+	uri, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse URL on POST: %v", err)
+	}
+	uri.Path = path.Join(uri.Path, "commands")
+
+	// Send request
+	contentType := writer.FormDataContentType()
+	responseSpec, err := c.httpRequest("POST", uri.String(), contentType, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return responseSpec, nil
+}
+
+func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
 	req, err := http.NewRequest(
 		method,
 		url,

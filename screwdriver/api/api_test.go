@@ -117,7 +117,7 @@ func TestGetCommand(t *testing.T) {
 	}
 }
 
-func TestHttpRequest(t *testing.T) {
+func TestSendHTTPRequest(t *testing.T) {
 	ns, name, ver := "foo", "bar", "1.0"
 	jsonResponse := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
 	var fakeHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +136,7 @@ func TestHttpRequest(t *testing.T) {
 	// No payload
 	payload := bytes.NewBuffer([]byte(""))
 
-	_, _, err := c.httpRequest(method, testServer.URL, contentType, payload)
+	_, _, err := c.sendHTTPRequest(method, testServer.URL, contentType, payload)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
