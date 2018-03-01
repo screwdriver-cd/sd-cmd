@@ -129,7 +129,10 @@ func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *
 		return fmt.Errorf("Failed to load spec file:%v", err)
 	}
 	// Write yaml part
-	yamlPart.Write(specBytes)
+	_, err = yamlPart.Write(specBytes)
+	if err != nil {
+		return fmt.Errorf("Failed to write yaml part to the request body:%v", err)
+	}
 
 	return nil
 }
@@ -183,9 +186,11 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	writeMultipartYaml(writer, specPath, commandSpec)
+	err := writeMultipartYaml(writer, specPath, commandSpec)
+	if err != nil {
+		return nil, err
+	}
 
-	var err error
 	switch commandSpec.Format {
 	case "binary":
 		err = writeMultipartBin(writer, commandSpec)
