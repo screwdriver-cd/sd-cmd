@@ -102,13 +102,13 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 
 func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err error) {
 	// Generate yaml payload bytes
-	commandSpecBytes, err := json.Marshal(&commandSpec)
+	commandSpecBytes, err := json.Marshal(commandSpec)
 	if err != nil {
 		return nil, err
 	}
 	var payload util.PayloadYaml
 	payload.Yaml = string(commandSpecBytes)
-	specBytes, err = json.Marshal(&payload)
+	specBytes, err = json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -171,13 +171,13 @@ func (c client) httpRequest(httpMethod string, uri string, contentType string, b
 	}
 
 	// Get response
-	responseSpec := util.CommandSpec{}
-	err = json.Unmarshal(responseBytes, &responseSpec)
+	responseSpec := &util.CommandSpec{}
+	err = json.Unmarshal(responseBytes, responseSpec)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse json response %v", err)
 	}
 
-	return &responseSpec, err
+	return responseSpec, err
 }
 
 func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {

@@ -25,11 +25,11 @@ func LoadYaml(yamlPath string) (*CommandSpec, error) {
 		return nil, fmt.Errorf("Fail to load yaml:%v", err)
 	}
 
-	cs := CommandSpec{}
-	err = yaml.Unmarshal(data, &cs)
+	cs := &CommandSpec{}
+	err = yaml.Unmarshal(data, cs)
 	if err != nil {
 		return nil, fmt.Errorf("Yaml parse failed %v", err)
 	}
 
-	return &cs, nil
+	return cs, nil
 }
