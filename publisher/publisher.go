@@ -58,14 +58,18 @@ func parseInputCommand(inputCommand []string) (map[string]string, error) {
 	)
 
 	subCommand := inputCommand[1]
+	if subCommand != "publish" {
+		return nil, fmt.Errorf("Failed to parse input subcommand")
+	}
+
 	err := fs.Parse(inputCommand[2:])
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse input command:%v", err)
+		return nil, fmt.Errorf("Failed to parse input args:%v", err)
 	}
 
 	m := make(map[string]string)
 	m["subCommand"] = subCommand
 	m["yamlPath"] = *yamlPath
 
-	return m, err
+	return m, nil
 }
