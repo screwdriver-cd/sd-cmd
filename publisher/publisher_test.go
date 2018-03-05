@@ -8,7 +8,7 @@ import (
 
 func TestRun(t *testing.T) {
 	testDataPath := datafortest.TestDataRootPath + "/yaml/sd-command.yaml"
-	pub, err := New([]string{"sd-cmd", "publish", "-f", testDataPath})
+	pub, err := New([]string{"-f", testDataPath})
 	if err != nil {
 		t.Errorf("err=%v, want nil", err)
 	}

@@ -76,7 +76,7 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "exec":
 		return runExecutor(sdAPI, args)
 	case "publish":
-		return runPublisher(args)
+		return runPublisher(args[2:])
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:

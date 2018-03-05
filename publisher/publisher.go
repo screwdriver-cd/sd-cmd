@@ -13,14 +13,14 @@ import (
 // It receives strings which input by a user.
 // If -f option is valid, yaml file will be loaded to commandSpec struct.
 type Publisher struct {
-	inputCommand map[string]string
-	commandSpec  *util.CommandSpec
+	specPath    string
+	commandSpec *util.CommandSpec
 }
 
 // Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
 	sdAPI := api.New(config.SDAPIURL, config.SDToken)
-	specPath := p.inputCommand["yamlPath"]
+	specPath := p.specPath
 	specResponse, err := sdAPI.PostCommand(specPath, p.commandSpec)
 	if err != nil {
 		return fmt.Errorf("Post failed:%v", err)
@@ -38,12 +38,12 @@ func (p *Publisher) Run() error {
 func New(inputCommand []string) (p *Publisher, err error) {
 	p = new(Publisher)
 
-	p.inputCommand, err = parseInputCommand(inputCommand)
+	p.specPath, err = parsePublishCommand(inputCommand)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse command:%v", err)
 	}
 
-	p.commandSpec, err = util.LoadYaml(p.inputCommand["yamlPath"])
+	p.commandSpec, err = util.LoadYaml(p.specPath)
 	if err != nil {
 		return nil, fmt.Errorf("Yaml load failed:%v", err)
 	}
@@ -51,25 +51,14 @@ func New(inputCommand []string) (p *Publisher, err error) {
 	return
 }
 
-func parseInputCommand(inputCommand []string) (map[string]string, error) {
+func parsePublishCommand(inputCommand []string) (string, error) {
 	fs := flag.NewFlagSet(inputCommand[0], flag.ContinueOnError)
-	var (
-		yamlPath = fs.String("f", "sd-command.yaml", "Path of yaml to publish")
-	)
+	yamlPath := fs.String("f", "sd-command.yaml", "Path of yaml to publish")
 
-	subCommand := inputCommand[1]
-	if subCommand != "publish" {
-		return nil, fmt.Errorf("Failed to parse input subcommand")
-	}
-
-	err := fs.Parse(inputCommand[2:])
+	err := fs.Parse(inputCommand)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse input args:%v", err)
+		return "", fmt.Errorf("Failed to parse input args:%v", err)
 	}
 
-	m := make(map[string]string)
-	m["subCommand"] = subCommand
-	m["yamlPath"] = *yamlPath
-
-	return m, nil
+	return *yamlPath, nil
 }
