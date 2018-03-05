@@ -90,7 +90,7 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	// Request to api
 	const contentType = "application/json"
 	// No payload
-	payload := bytes.NewBuffer([]byte(""))
+	payload := new(bytes.Buffer)
 
 	responseSpec, err := c.httpRequest("GET", uri.String(), contentType, payload)
 	if err != nil {
