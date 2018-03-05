@@ -14,4 +14,4 @@ format: binary
 # Binary specific config
 # if format: binary
 binary:
-    file: ./testdata/hello
+    file: ./datafortest/binary/hello

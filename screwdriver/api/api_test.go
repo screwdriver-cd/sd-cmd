@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/screwdriver-cd/sd-cmd/testdata"
+	"github.com/screwdriver-cd/sd-cmd/datafortest"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
@@ -19,7 +19,7 @@ const (
 	fakeJWT     = "fake-jwt"
 )
 
-var commandSpecYamlPath = testdata.TestDataRootPath + "/sd-command.yaml"
+var commandSpecYamlPath = datafortest.TestDataRootPath + "/sd-command.yaml"
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +146,7 @@ func TestPostCommand(t *testing.T) {
 	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
 	ns, name, ver := "foo", "bar", "1.0"
-	binaryFilePath := testdata.TestDataRootPath + "/hello"
+	binaryFilePath := datafortest.TestDataRootPath + "/binary/hello"
 	responseMsg := fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
 		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
 		"format":"binary","binary":{"file":"%s"},"pipelineId":250270}`,
@@ -155,7 +155,7 @@ func TestPostCommand(t *testing.T) {
 	api := API(c)
 
 	// request
-	specPath := testdata.TestDataRootPath + "/sd-command.yaml"
+	specPath := datafortest.TestDataRootPath + "/yaml/sd-command.yaml"
 	_, err := api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)

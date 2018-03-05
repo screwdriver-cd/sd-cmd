@@ -3,10 +3,10 @@ package util
 import (
 	"testing"
 
-	"github.com/screwdriver-cd/sd-cmd/testdata"
+	"github.com/screwdriver-cd/sd-cmd/datafortest"
 )
 
-var commandSpecYamlPath = testdata.TestDataRootPath + "/sd-command.yaml"
+var commandSpecYamlPath = datafortest.TestDataRootPath + "/yaml/sd-command.yaml"
 
 func TestLoadFile(t *testing.T) {
 	LoadByte(commandSpecYamlPath)
@@ -40,7 +40,7 @@ func TestLoadYaml(t *testing.T) {
 		t.Errorf("got %q\nwant %q", actual.Format, expect)
 	}
 
-	expect = "./testdata/hello"
+	expect = "./datafortest/binary/hello"
 	if actual.Binary.File != expect {
 		t.Errorf("got %q\nwant %q", actual.Habitat.Mode, expect)
 	}
