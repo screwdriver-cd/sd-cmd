@@ -152,7 +152,10 @@ func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) 
 	}
 
 	// Write binary part
-	binPart.Write(fileContentsBin)
+	_, err = binPart.Write(fileContentsBin)
+	if err != nil {
+		return fmt.Errorf("Failed to write binary to form:%v", err)
+	}
 
 	return nil
 }
