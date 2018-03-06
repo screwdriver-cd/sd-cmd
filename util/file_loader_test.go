@@ -30,6 +30,11 @@ func TestLoadYaml(t *testing.T) {
 		t.Errorf("got %q\nwant %q", actual.Description, expect)
 	}
 
+	expect = "foo@bar.com"
+	if actual.Maintainer != expect {
+		t.Errorf("got %q\nwant %q", actual.Maintainer, expect)
+	}
+
 	expect = "1.0"
 	if actual.Version != expect {
 		t.Errorf("got %q\nwant %q", actual.Version, expect)

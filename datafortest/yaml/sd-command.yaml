@@ -5,6 +5,8 @@ name: bar
 # Description of the command and what it does
 description: |
   Lorem ipsum dolor sit amet.
+# Maintainer of the command
+maintainer: foo@bar.com
 # Major and Minor version number (patch is automatic)
 version: 1.0
 # Format the command is in (see below for examples)
