@@ -52,7 +52,7 @@ func New(inputCommand []string) (p *Publisher, err error) {
 }
 
 func parsePublishCommand(inputCommand []string) (string, error) {
-	fs := flag.NewFlagSet(inputCommand[0], flag.ContinueOnError)
+	fs := flag.NewFlagSet("publish", flag.ContinueOnError)
 	yamlPath := fs.String("f", "sd-command.yaml", "Path of yaml to publish")
 
 	err := fs.Parse(inputCommand)
