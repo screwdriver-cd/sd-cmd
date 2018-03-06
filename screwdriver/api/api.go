@@ -227,11 +227,7 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 }
 
 func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
-	req, err := http.NewRequest(
-		method,
-		url,
-		payload,
-	)
+	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
 		return nil, 0, err
 	}
