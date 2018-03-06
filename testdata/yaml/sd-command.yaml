@@ -12,8 +12,7 @@ version: 1.0
 # Format the command is in (see below for examples)
 # Valid options: habitat, docker, binary
 format: binary
-
 # Binary specific config
 # if format: binary
 binary:
-    file: ./datafortest/binary/hello
+    file: ./testdata/binary/hello
