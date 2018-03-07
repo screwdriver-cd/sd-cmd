@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -71,25 +68,6 @@ func setup() {
 func teardown() {
 	os.RemoveAll(config.BaseCommandPath)
 	os.RemoveAll(config.SDArtifactsDir)
-}
-
-func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(code)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, body)
-	}))
-	tr := &http.Transport{
-		Proxy: func(req *http.Request) (*url.URL, error) {
-			if endpoint == "" {
-				return url.Parse(server.URL)
-			} else if req.URL.Path == endpoint {
-				return url.Parse(server.URL)
-			}
-			return req.URL, nil
-		},
-	}
-	return &http.Client{Transport: tr}
 }
 
 type dummySDAPIBinary struct{}

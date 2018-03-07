@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
@@ -15,12 +14,12 @@ import (
 type Publisher struct {
 	specPath    string
 	commandSpec *util.CommandSpec
+	sdAPI       api.API
 }
 
 // Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
-	sdAPI := api.New(config.SDAPIURL, config.SDToken)
-	specResponse, err := sdAPI.PostCommand(p.specPath, p.commandSpec)
+	specResponse, err := p.sdAPI.PostCommand(p.specPath, p.commandSpec)
 	if err != nil {
 		return fmt.Errorf("Post failed:%v", err)
 	}
@@ -34,9 +33,10 @@ func (p *Publisher) Run() error {
 
 // New is a method to Generate new Publisher.
 // Publisher variable will be returned if input command and yaml file is valid.
-func New(inputCommand []string) (p *Publisher, err error) {
+func New(api api.API, inputCommand []string) (p *Publisher, err error) {
 	p = new(Publisher)
 
+	p.sdAPI = api
 	p.specPath, err = parsePublishCommand(inputCommand)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse command:%v", err)

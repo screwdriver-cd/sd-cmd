@@ -45,6 +45,6 @@ func TestLoadYaml(t *testing.T) {
 
 	expect = "./testdata/binary/hello"
 	if actual.Binary.File != expect {
-		t.Errorf("got %q\nwant %q", actual.Habitat.Mode, expect)
+		t.Errorf("got %q\nwant %q", actual.Binary.File, expect)
 	}
 }

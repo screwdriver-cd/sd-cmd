@@ -60,7 +60,8 @@ func runExecutor(sdAPI api.API, args []string) error {
 }
 
 func runPublisher(inputCommand []string) error {
-	pub, err := publisher.New(inputCommand)
+	sdAPI := api.New(config.SDAPIURL, config.SDToken)
+	pub, err := publisher.New(sdAPI, inputCommand)
 	if err != nil {
 		return fmt.Errorf("Fail to get publisher: %v", err)
 	}
