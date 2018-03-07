@@ -99,14 +99,15 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	return responseSpec, nil
 }
 
-func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err error) {
+func specToPayloadBuf(commandSpec *util.CommandSpec) (bodyBuff *bytes.Buffer, err error) {
 	commandSpecBytes, err := json.Marshal(commandSpec)
 	if err != nil {
 		return nil, err
 	}
 	var payload util.PayloadYaml
 	payload.Yaml = string(commandSpecBytes)
-	specBytes, err = json.Marshal(payload)
+	specBytes, err := json.Marshal(payload)
+	bodyBuff = bytes.NewBuffer(specBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -114,13 +115,12 @@ func specToPayloadBytes(commandSpec *util.CommandSpec) (specBytes []byte, err er
 }
 
 func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *util.CommandSpec) error {
-	specBytes, err := specToPayloadBytes(commandSpec)
+	specBytes, err := json.Marshal(commandSpec)
 	if err != nil {
 		return fmt.Errorf("Failed to convert spec to bytes:%v", err)
 	}
 
-	fileNameYaml := filepath.Base(specPath)
-	yamlPart, err := writer.CreateFormFile("file", fileNameYaml)
+	yamlPart, err := writer.CreateFormField("spec")
 	if err != nil {
 		return fmt.Errorf("Failed to load spec file:%v", err)
 	}
@@ -140,7 +140,7 @@ func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) 
 	}
 
 	fileNameBin := filepath.Base(commandSpec.Binary.File)
-	binPart, err := writer.CreateFormFile("file", fileNameBin)
+	binPart, err := writer.CreateFormFile("binary", fileNameBin)
 	if err != nil {
 		return fmt.Errorf("Failed to create form of binary:%v", err)
 	}
@@ -173,29 +173,39 @@ func (c client) httpRequest(httpMethod string, uri string, contentType string, b
 	return responseSpec, err
 }
 
-func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func writeMultipart(specPath string, commandSpec *util.CommandSpec) (*bytes.Buffer, string, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
 	err := writeMultipartYaml(writer, specPath, commandSpec)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
+	err = writeMultipartBin(writer, commandSpec)
+	if err != nil {
+		return nil, "", err
+	}
+	writer.Close()
+
+	contentType := writer.FormDataContentType()
+
+	return body, contentType, nil
+}
+
+func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	var (
+		body        *bytes.Buffer
+		contentType string
+		err         error
+	)
 	switch commandSpec.Format {
 	case "binary":
-		err = writeMultipartBin(writer, commandSpec)
-	case "habitat":
-		return nil, fmt.Errorf("Posting habitat is not implemented yet")
-	case "docker":
-		return nil, fmt.Errorf("Posting docker is not implemented yet")
+		body, contentType, err = writeMultipart(specPath, commandSpec)
+	case "habitat", "docker":
+		body, err = specToPayloadBuf(commandSpec)
+		contentType = "application/json"
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	writer.Close()
 
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
@@ -203,7 +213,6 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	}
 	uri.Path = path.Join(uri.Path, "commands")
 
-	contentType := writer.FormDataContentType()
 	responseSpec, err := c.httpRequest("POST", uri.String(), contentType, body)
 	if err != nil {
 		return nil, err
