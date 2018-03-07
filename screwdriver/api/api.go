@@ -205,6 +205,8 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	case "habitat", "docker":
 		body, err = specToPayloadBuf(commandSpec)
 		contentType = "application/json"
+	default:
+		return nil, fmt.Errorf(`Unknown "Format" value of command spec: %v`, err)
 	}
 
 	uri, err := url.Parse(c.baseURL)
