@@ -56,7 +56,7 @@ func TestRun(t *testing.T) {
 	}
 
 	// check file directory
-	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, spec.Binary.File)
+	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyFileName)
 	fInfo, err := os.Stat(binPath)
 	if os.IsNotExist(err) {
 		t.Errorf("err=%q, file should exist at %q", binPath, err)

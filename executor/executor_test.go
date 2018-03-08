@@ -24,7 +24,8 @@ const (
 	dummyNameSpace   = "foo-dummy"
 	dummyName        = "name-dummy"
 	dummyVersion     = "1.0.1"
-	dummyFile        = "sd-step"
+	dummyFileName    = "sd-step"
+	dummyFile        = "/dummy/" + dummyFileName
 	dummyDescription = "dummy description"
 )
 
