@@ -44,7 +44,8 @@ func (b *Binary) install() (string, error) {
 		return "", fmt.Errorf("Failed to create command directory: %v", err)
 	}
 
-	path := filepath.Join(dirPath, b.Command.Spec.Binary.File)
+	filename := filepath.Base(b.Command.Spec.Binary.File)
+	path := filepath.Join(dirPath, filename)
 	file, err := os.Create(path)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create command file: %v", err)
