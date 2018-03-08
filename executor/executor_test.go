@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,6 +11,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
 const (
@@ -72,45 +70,35 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
-func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(code)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, body)
-	}))
-	tr := &http.Transport{
-		Proxy: func(req *http.Request) (*url.URL, error) {
-			if endpoint == "" {
-				return url.Parse(server.URL)
-			} else if req.URL.Path == endpoint {
-				return url.Parse(server.URL)
-			}
-			return req.URL, nil
-		},
-	}
-	return &http.Client{Transport: tr}
-}
-
 type dummySDAPIBinary struct{}
 
-func (d *dummySDAPIBinary) GetCommand(smallSpec *api.Command) (*api.Command, error) {
+func (d *dummySDAPIBinary) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return dummyAPICommand(binaryFormat), nil
+}
+
+func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return nil, nil
 }
 
 type dummySDAPIBroken struct{}
 
-func (d *dummySDAPIBroken) GetCommand(smallSpec *api.Command) (*api.Command, error) {
+func (d *dummySDAPIBroken) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, fmt.Errorf("Something error happen")
 }
 
-func dummyAPICommand(format string) (cmd *api.Command) {
-	cmd = &api.Command{
+func (d *dummySDAPIBroken) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return nil, fmt.Errorf("Something error happen")
+}
+
+func dummyAPICommand(format string) (cmd *util.CommandSpec) {
+	cmd = &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,
 		Version:     dummyVersion,
 		Format:      format,
 	}
+	cmd.Binary = new(util.Binary)
 	cmd.Binary.File = dummyFile
 	return cmd
 }

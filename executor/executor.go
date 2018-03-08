@@ -21,7 +21,7 @@ type Executor interface {
 	Run() error
 }
 
-func prepareLog(smallSpec *api.Command) (err error) {
+func prepareLog(smallSpec *util.CommandSpec) (err error) {
 	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
 	filename := fmt.Sprintf("%v.log", time.Now().Unix())
 	lgr, err = logger.New(dirPath, filename, log.LstdFlags, false)

@@ -8,6 +8,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
 	"github.com/screwdriver-cd/sd-cmd/logger"
+	"github.com/screwdriver-cd/sd-cmd/publisher"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 )
 
@@ -58,6 +59,15 @@ func runExecutor(sdAPI api.API, args []string) error {
 	return nil
 }
 
+func runPublisher(inputCommand []string) error {
+	sdAPI := api.New(config.SDAPIURL, config.SDToken)
+	pub, err := publisher.New(sdAPI, inputCommand)
+	if err != nil {
+		return fmt.Errorf("Fail to get publisher: %v", err)
+	}
+	return pub.Run()
+}
+
 func runCommand(sdAPI api.API, args []string) error {
 	if len(os.Args) < minArgLength {
 		return fmt.Errorf("The number of arguments is not enough")
@@ -67,7 +77,7 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "exec":
 		return runExecutor(sdAPI, args)
 	case "publish":
-		return fmt.Errorf("publish is not implemented yet")
+		return runPublisher(args[2:])
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	default:
@@ -78,12 +88,9 @@ func runCommand(sdAPI api.API, args []string) error {
 func main() {
 	defer finalRecover()
 
-	sdAPI, err := api.New(config.SDAPIURL, config.SDToken)
-	if err != nil {
-		failureExit(err)
-	}
+	sdAPI := api.New(config.SDAPIURL, config.SDToken)
 
-	err = runCommand(sdAPI, os.Args)
+	err := runCommand(sdAPI, os.Args)
 	if err != nil {
 		failureExit(err)
 	}
