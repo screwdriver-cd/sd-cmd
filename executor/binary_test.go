@@ -38,7 +38,7 @@ func (d *dummyStore) GetCommand() (*store.Command, error) {
 }
 
 func TestNewBinary(t *testing.T) {
-	_, err := NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
+	_, err := NewBinary(dummySpec(binaryFormat), []string{"arg1", "arg2"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -48,16 +48,16 @@ func TestRun(t *testing.T) {
 	logBuffer.Reset()
 
 	// success with no arguments
-	spec := dummyAPICommand(binaryFormat)
+	spec := dummySpec(binaryFormat)
 	bin, _ := NewBinary(spec, []string{})
-	bin.Store = newDummyStore("binary", validShell, spec, nil)
+	bin.Store = newDummyStore(binaryFormat, validShell, spec, nil)
 	err := bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
 
 	// check file directory
-	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyFileName)
+	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyBinaryFileName)
 	fInfo, err := os.Stat(binPath)
 	if os.IsNotExist(err) {
 		t.Errorf("err=%q, file should exist at %q", binPath, err)
@@ -67,27 +67,27 @@ func TestRun(t *testing.T) {
 	}
 
 	// success with arguments
-	spec = dummyAPICommand(binaryFormat)
+	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{"arg1", "arg2"})
-	bin.Store = newDummyStore("binary", validShell, spec, nil)
+	bin.Store = newDummyStore(binaryFormat, validShell, spec, nil)
 	err = bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
 
 	// failure. the command is broken
-	spec = dummyAPICommand(binaryFormat)
+	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{})
-	bin.Store = newDummyStore("binary", invalidShell, spec, nil)
+	bin.Store = newDummyStore(binaryFormat, invalidShell, spec, nil)
 	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
 
 	// failure. the store api return error
-	spec = dummyAPICommand(binaryFormat)
+	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{})
-	bin.Store = newDummyStore("binary", validShell, spec, fmt.Errorf("store cause error"))
+	bin.Store = newDummyStore(binaryFormat, validShell, spec, fmt.Errorf("store cause error"))
 	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
