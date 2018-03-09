@@ -51,11 +51,11 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	case "binary":
 		return NewBinary(spec, args[pos+1:])
 	case "habitat":
-		return nil, nil
+		return nil, fmt.Errorf("habitat executor is not implemented yet")
 	case "docker":
-		return nil, nil
+		return nil, fmt.Errorf("docker executor is not implemented yet")
 	}
-	return nil, nil
+	return nil, fmt.Errorf("Unknowen type")
 }
 
 func execCommand(path string, args []string) error {

@@ -99,8 +99,11 @@ func dummyAPICommand(format string) (cmd *util.CommandSpec) {
 		Version:     dummyVersion,
 		Format:      format,
 	}
-	cmd.Binary = new(util.Binary)
-	cmd.Binary.File = dummyFile
+	switch format {
+	case "binary":
+		cmd.Binary = new(util.Binary)
+		cmd.Binary.File = dummyFile
+	}
 	return cmd
 }
 
