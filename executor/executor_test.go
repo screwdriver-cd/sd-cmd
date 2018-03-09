@@ -167,6 +167,30 @@ func TestNew(t *testing.T) {
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
+
+	// failure. habitat type(not implemented yet)
+	spec = dummySpec(habitatFormat)
+	sdapi = newDummySDAPI(habitatFormat, spec, nil)
+	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+
+	// failure. docker type(not implemented yet)
+	spec = dummySpec(dockerFormat)
+	sdapi = newDummySDAPI(dockerFormat, spec, nil)
+	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+
+	// failure. Unknown type
+	spec = dummySpec("Unknown")
+	sdapi = newDummySDAPI("Unknown", spec, nil)
+	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
 }
 
 func TestMain(m *testing.M) {
