@@ -75,6 +75,24 @@ func TestRun(t *testing.T) {
 		t.Errorf("err=%q, want nil", err)
 	}
 
+	// success binary.file is relative path
+	spec = dummySpec(binaryFormat)
+	spec.Binary.File = "./sample/relative_path"
+	bin, _ = NewBinary(spec, []string{})
+	bin.Store = newDummyStore(binaryFormat, validShell, spec, nil)
+	err = bin.Run()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+	binPath = filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, "relative_path")
+	fInfo, err = os.Stat(binPath)
+	if os.IsNotExist(err) {
+		t.Errorf("err=%q, file should exist at %q", binPath, err)
+	}
+	if fInfo.IsDir() {
+		t.Errorf("%q is directory, must be file", binPath)
+	}
+
 	// failure. the command is broken
 	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{})
