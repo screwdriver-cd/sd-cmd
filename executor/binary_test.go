@@ -12,25 +12,22 @@ import (
 )
 
 type dummyStore struct {
-	cmdType string
-	body    []byte
-	spec    *util.CommandSpec
-	err     error
+	body []byte
+	spec *util.CommandSpec
+	err  error
 }
 
-func newDummyStore(cmdType string, body string, spec *util.CommandSpec, err error) store.Store {
+func newDummyStore(body string, spec *util.CommandSpec, err error) store.Store {
 	ds := &dummyStore{
-		cmdType: cmdType,
-		body:    []byte(body),
-		spec:    spec,
-		err:     err,
+		body: []byte(body),
+		spec: spec,
+		err:  err,
 	}
 	return store.Store(ds)
 }
 
 func (d *dummyStore) GetCommand() (*store.Command, error) {
 	storeCmd := &store.Command{
-		Type: d.cmdType,
 		Body: d.body,
 		Spec: d.spec,
 	}
@@ -50,7 +47,7 @@ func TestRun(t *testing.T) {
 	// success with no arguments
 	spec := dummySpec(binaryFormat)
 	bin, _ := NewBinary(spec, []string{})
-	bin.Store = newDummyStore(binaryFormat, validShell, spec, nil)
+	bin.Store = newDummyStore(validShell, spec, nil)
 	err := bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -69,7 +66,7 @@ func TestRun(t *testing.T) {
 	// success with arguments
 	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{"arg1", "arg2"})
-	bin.Store = newDummyStore(binaryFormat, validShell, spec, nil)
+	bin.Store = newDummyStore(validShell, spec, nil)
 	err = bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -79,7 +76,7 @@ func TestRun(t *testing.T) {
 	spec = dummySpec(binaryFormat)
 	spec.Binary.File = "./sample/relative_path"
 	bin, _ = NewBinary(spec, []string{})
-	bin.Store = newDummyStore(binaryFormat, validShell, spec, nil)
+	bin.Store = newDummyStore(validShell, spec, nil)
 	err = bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -96,7 +93,7 @@ func TestRun(t *testing.T) {
 	// failure. the command is broken
 	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{})
-	bin.Store = newDummyStore(binaryFormat, invalidShell, spec, nil)
+	bin.Store = newDummyStore(invalidShell, spec, nil)
 	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
@@ -105,7 +102,7 @@ func TestRun(t *testing.T) {
 	// failure. the store api return error
 	spec = dummySpec(binaryFormat)
 	bin, _ = NewBinary(spec, []string{})
-	bin.Store = newDummyStore(binaryFormat, validShell, spec, fmt.Errorf("store cause error"))
+	bin.Store = newDummyStore(validShell, spec, fmt.Errorf("store cause error"))
 	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")

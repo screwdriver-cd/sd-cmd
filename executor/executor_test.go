@@ -77,9 +77,8 @@ func teardown() {
 }
 
 type dummySDAPI struct {
-	cmdType string
-	spec    *util.CommandSpec
-	err     error
+	spec *util.CommandSpec
+	err  error
 }
 
 func (d *dummySDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -90,11 +89,10 @@ func (d *dummySDAPI) PostCommand(specPath string, smallSpec *util.CommandSpec) (
 	return nil, nil
 }
 
-func newDummySDAPI(cmdType string, spec *util.CommandSpec, err error) api.API {
+func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 	d := &dummySDAPI{
-		cmdType: cmdType,
-		spec:    spec,
-		err:     err,
+		spec: spec,
+		err:  err,
 	}
 	return api.API(d)
 }
@@ -127,7 +125,7 @@ func dummySpec(format string) (cmd *util.CommandSpec) {
 func TestNew(t *testing.T) {
 	// success
 	spec := dummySpec(binaryFormat)
-	sdapi := newDummySDAPI(binaryFormat, spec, nil)
+	sdapi := newDummySDAPI(spec, nil)
 	executor, err := New(sdapi, []string{"ns/cmd@ver"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -138,7 +136,7 @@ func TestNew(t *testing.T) {
 
 	// success binary mode
 	spec = dummySpec(binaryFormat)
-	sdapi = newDummySDAPI(binaryFormat, spec, nil)
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -146,7 +144,7 @@ func TestNew(t *testing.T) {
 
 	// failure. no command
 	spec = dummySpec(binaryFormat)
-	sdapi = newDummySDAPI(binaryFormat, spec, nil)
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{})
 	if err == nil {
 		t.Errorf("err=nil, want error")
@@ -154,7 +152,7 @@ func TestNew(t *testing.T) {
 
 	// failure. invalid command
 	spec = dummySpec(binaryFormat)
-	sdapi = newDummySDAPI(binaryFormat, spec, nil)
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{"sd-cmd", "ns@cmd/ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
@@ -162,7 +160,7 @@ func TestNew(t *testing.T) {
 
 	// failure. Screwdriver API error
 	spec = dummySpec(binaryFormat)
-	sdapi = newDummySDAPI(binaryFormat, spec, fmt.Errorf("Something error happen"))
+	sdapi = newDummySDAPI(spec, fmt.Errorf("Something error happen"))
 	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
@@ -170,7 +168,7 @@ func TestNew(t *testing.T) {
 
 	// failure. habitat type(not implemented yet)
 	spec = dummySpec(habitatFormat)
-	sdapi = newDummySDAPI(habitatFormat, spec, nil)
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
@@ -178,7 +176,7 @@ func TestNew(t *testing.T) {
 
 	// failure. docker type(not implemented yet)
 	spec = dummySpec(dockerFormat)
-	sdapi = newDummySDAPI(dockerFormat, spec, nil)
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
@@ -186,7 +184,7 @@ func TestNew(t *testing.T) {
 
 	// failure. Unknown type
 	spec = dummySpec("Unknown")
-	sdapi = newDummySDAPI("Unknown", spec, nil)
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
