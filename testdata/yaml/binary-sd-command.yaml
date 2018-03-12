@@ -1,0 +1,18 @@
+## Namespace for the command
+namespace: foo
+# Command name itself
+name: bar
+# Description of the command and what it does
+description: |
+  Lorem ipsum dolor sit amet.
+# Maintainer of the command
+maintainer: foo@bar.com
+# Major and Minor version number (patch is automatic)
+version: 1.0
+# Format the command is in (see below for examples)
+# Valid options: habitat, docker, binary
+format: binary
+# Binary specific config
+# if format: binary
+binary:
+    file: ./testdata/binary/hello
