@@ -28,4 +28,7 @@ func LoadConfig() {
 	if VERSION == "" {
 		VERSION = "0.0.0"
 	}
+	if len(os.Getenv("SD_BASE_COMMAND_PATH")) != 0 {
+		BaseCommandPath = os.Getenv("SD_BASE_COMMAND_PATH")
+	}
 }
