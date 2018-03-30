@@ -14,6 +14,7 @@ const (
 	dummyToken          = "dummy-token"
 	dummyStoreURL       = "dummy-store/"
 	dummySDArtifactsDir = "dummy/sd/Artifacts/"
+	dummyCustomCmdPath  = "/sd/commands/"
 )
 
 func setEnv(key, value string) {
@@ -43,13 +44,16 @@ func TestLoadConfig(t *testing.T) {
 		t.Errorf("SDAPIURL=%q, want %q", SDAPIURL, dummyAPIURL)
 	}
 	if SDToken != dummyToken {
-		t.Errorf("SDAPIURL=%q, want %q", SDToken, dummyToken)
+		t.Errorf("SDToken=%q, want %q", SDToken, dummyToken)
 	}
 	if SDStoreURL != dummyStoreURL {
-		t.Errorf("SDAPIURL=%q, want %q", SDStoreURL, dummyStoreURL)
+		t.Errorf("SDStoreURL=%q, want %q", SDStoreURL, dummyStoreURL)
 	}
 	if SDArtifactsDir != dummySDArtifactsDir {
-		t.Errorf("SDAPIURL=%q, want %q", SDArtifactsDir, dummySDArtifactsDir)
+		t.Errorf("SDArtifactsDir=%q, want %q", SDArtifactsDir, dummySDArtifactsDir)
+	}
+	if BaseCommandPath != "/opt/sd/commands/" {
+		t.Errorf("BaseCommandPath=%q, want /opt/sd/commands/", BaseCommandPath)
 	}
 
 	// check unset env
@@ -57,6 +61,13 @@ func TestLoadConfig(t *testing.T) {
 	LoadConfig()
 	if SDAPIURL != "" {
 		t.Errorf("SDAPIURL=%q, want blank", SDAPIURL)
+	}
+
+	// set SD_BASE_COMMAND_PATH
+	setEnv("SD_BASE_COMMAND_PATH", dummyCustomCmdPath)
+	LoadConfig()
+	if BaseCommandPath != dummyCustomCmdPath {
+		t.Errorf("BaseCommandPath=%q, want %q", BaseCommandPath, dummyCustomCmdPath)
 	}
 }
 
