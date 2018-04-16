@@ -25,10 +25,7 @@ func prepareLog(smallSpec *util.CommandSpec) (err error) {
 	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 	filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
 	lgr, err = logger.New(dirPath, filename, log.LstdFlags, false)
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
 
 // New returns each format type of Executor
@@ -47,6 +44,7 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	switch spec.Format {
 	case "binary":
 		return NewBinary(spec, args[pos+1:])
@@ -54,8 +52,9 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 		return nil, nil
 	case "docker":
 		return nil, nil
+	default:
+		return nil, nil
 	}
-	return nil, nil
 }
 
 func execCommand(path string, args []string) error {
