@@ -22,8 +22,8 @@ type Executor interface {
 }
 
 func prepareLog(smallSpec *util.CommandSpec) (err error) {
-	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
-	filename := fmt.Sprintf("%v.log", time.Now().Unix())
+	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
+	filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
 	lgr, err = logger.New(dirPath, filename, log.LstdFlags, false)
 	if err != nil {
 		return err
