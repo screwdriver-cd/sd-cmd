@@ -27,6 +27,9 @@ const (
 	dummyFileName    = "sd-step"
 	dummyFile        = "/dummy/" + dummyFileName
 	dummyDescription = "dummy description"
+	dummyMode        = "dummy_mode"
+	dummyPackage     = "core/dummy"
+	dummyCommand     = "dummy_get"
 )
 
 var (
@@ -74,10 +77,20 @@ func teardown() {
 type dummySDAPIBinary struct{}
 
 func (d *dummySDAPIBinary) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return dummyAPICommand(binaryFormat), nil
+	return dummyAPICommandBinary(binaryFormat), nil
 }
 
 func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return nil, nil
+}
+
+type dummySDAPIHabitat struct{}
+
+func (d *dummySDAPIHabitat) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return dummyAPICommandHabitat(habitatFormat), nil
+}
+
+func (d *dummySDAPIHabitat) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, nil
 }
 
@@ -91,17 +104,32 @@ func (d *dummySDAPIBroken) PostCommand(specPath string, smallSpec *util.CommandS
 	return nil, fmt.Errorf("Something error happen")
 }
 
-func dummyAPICommand(format string) (cmd *util.CommandSpec) {
-	cmd = &util.CommandSpec{
+func dummyAPICommandBinary(format string) (cmd *util.CommandSpec) {
+	return &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,
 		Version:     dummyVersion,
 		Format:      format,
+		Binary: &util.Binary{
+			File: dummyFile,
+		},
 	}
-	cmd.Binary = new(util.Binary)
-	cmd.Binary.File = dummyFile
-	return cmd
+}
+
+func dummyAPICommandHabitat(format string) (cmd *util.CommandSpec) {
+	return &util.CommandSpec{
+		Namespace:   dummyNameSpace,
+		Name:        dummyName,
+		Description: dummyDescription,
+		Version:     dummyVersion,
+		Format:      format,
+		Habitat: &util.Habitat{
+			Mode:    dummyMode,
+			Package: dummyPackage,
+			Command: dummyCommand,
+		},
+	}
 }
 
 func TestNew(t *testing.T) {
@@ -117,6 +145,12 @@ func TestNew(t *testing.T) {
 
 	// success
 	sdapi = api.API(new(dummySDAPIBinary))
+	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	sdapi = api.API(new(dummySDAPIHabitat))
 	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)

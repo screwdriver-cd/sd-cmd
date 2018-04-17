@@ -14,7 +14,10 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-var lgr *logger.Logger
+var (
+	command = exec.Command
+	lgr     *logger.Logger
+)
 
 // Executor is a Executor endpoint
 type Executor interface {
@@ -49,7 +52,7 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	case "binary":
 		return NewBinary(spec, args[pos+1:])
 	case "habitat":
-		return nil, nil
+		return NewHabitat(spec, args[pos+1:])
 	case "docker":
 		return nil, nil
 	default:
@@ -58,7 +61,7 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 }
 
 func execCommand(path string, args []string) error {
-	cmd := exec.Command(path, args...)
+	cmd := command(path, args...)
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 
 	cmd.Stdout = os.Stdout
@@ -67,10 +70,11 @@ func execCommand(path string, args []string) error {
 	err := cmd.Run()
 
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
-	state := cmd.ProcessState
-	lgr.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	if err != nil {
 		return fmt.Errorf("failed to exec command: %v", err)
 	}
+
+	state := cmd.ProcessState
+	lgr.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	return nil
 }
