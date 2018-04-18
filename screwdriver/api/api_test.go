@@ -18,7 +18,32 @@ const (
 	fakeJWT     = "fake-jwt"
 )
 
-var commandSpecYamlPath = "../testdata/yaml/sd-command.yaml"
+const (
+	binaryFormat  = "binary"
+	dockerFormat  = "docker"
+	habitatFormat = "habitat"
+)
+
+const (
+	dummyNameSpace      = "foo-dummy"
+	dummyName           = "name-dummy"
+	dummyVersion        = "1.0.1"
+	dummyDescription    = "dummy description"
+	dummyBinaryFileName = "sd-step"
+	dummyBinaryFile     = "/dummy/" + dummyBinaryFileName
+	dummyDockerImage    = "chefdk:1.2.3"
+	dummyDockerCmd      = "knife"
+	dummyHabitatMode    = "remote"
+	dummyHabitatPkg     = "core/git/2.14.1"
+	dummyHabitatCmd     = "git"
+)
+
+var (
+	binarySpecYamlPath  = "../testdata/yaml/binary-sd-command.yaml"
+	habitatSpecYamlPath = "../testdata/yaml/habitat-sd-command.yaml"
+	dockerSpecYamlPath  = "../testdata/yaml/docker-sd-command.yaml"
+	binaryFilePath      = "../../testdata/binary/hello"
+)
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -34,26 +59,37 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 	return &http.Client{Transport: tr}
 }
 
-func createSmallSpec(namespace, name, version string) *util.CommandSpec {
+func dummySmallSpec() (cmd *util.CommandSpec) {
 	return &util.CommandSpec{
-		Namespace: namespace,
-		Name:      name,
-		Version:   version,
+		Namespace: dummyNameSpace,
+		Name:      dummyName,
+		Version:   dummyVersion,
 	}
 }
 
-func createSpecBinary(namespace, name, version, filePath string) *util.CommandSpec {
-	b := &util.Binary{
-		File: filePath,
+func dummySpec(format string) (cmd *util.CommandSpec) {
+	cmd = &util.CommandSpec{
+		Namespace:   dummyNameSpace,
+		Name:        dummyName,
+		Description: dummyDescription,
+		Version:     dummyVersion,
+		Format:      format,
 	}
-
-	return &util.CommandSpec{
-		Namespace: namespace,
-		Name:      name,
-		Version:   version,
-		Format:    "binary",
-		Binary:    b,
+	switch format {
+	case binaryFormat:
+		cmd.Binary = new(util.Binary)
+		cmd.Binary.File = dummyBinaryFile
+	case dockerFormat:
+		cmd.Docker = new(util.Docker)
+		cmd.Docker.Command = dummyDockerCmd
+		cmd.Docker.Image = dummyDockerImage
+	case habitatFormat:
+		cmd.Habitat = new(util.Habitat)
+		cmd.Habitat.Command = dummyHabitatCmd
+		cmd.Habitat.Mode = dummyHabitatMode
+		cmd.Habitat.Package = dummyHabitatPkg
 	}
+	return cmd
 }
 
 func TestNew(t *testing.T) {
@@ -64,20 +100,22 @@ func TestNew(t *testing.T) {
 }
 
 func TestGetCommand(t *testing.T) {
-	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
-	ns, name, ver := "foo", "bar", "1.0"
-	jsonMsg := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
-	c.client = makeFakeHTTPClient(t, 200, jsonMsg, fmt.Sprintf("/v4/commands/%s/%s/%s", ns, name, ver))
+
+	// case success
+	smallSpec := dummySmallSpec()
+	jsonMsg := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`,
+		smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
+	c.client = makeFakeHTTPClient(t, 200, jsonMsg, fmt.Sprintf("/v4/commands/%s/%s/%s", smallSpec.Namespace, smallSpec.Name, smallSpec.Version))
 	api := API(c)
 
 	// request
-	command, err := api.GetCommand(createSmallSpec(ns, name, ver))
+	command, err := api.GetCommand(smallSpec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if command.Namespace != ns {
-		t.Errorf("command.Namespace=%q, want %q", command.Namespace, ns)
+	if command.Namespace != smallSpec.Namespace {
+		t.Errorf("command.Namespace=%q, want %q", command.Namespace, smallSpec.Namespace)
 	}
 
 	// case failure. check 4xx error message
@@ -87,7 +125,7 @@ func TestGetCommand(t *testing.T) {
 	api = API(c)
 
 	// request
-	_, err = api.GetCommand(createSmallSpec(ns, name, ver))
+	_, err = api.GetCommand(dummySmallSpec())
 	if err.Error() != ansMsg {
 		t.Errorf("err=%q, want %q", errMsg, ansMsg)
 	}
@@ -109,7 +147,7 @@ func TestGetCommand(t *testing.T) {
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		_, err = api.GetCommand(createSmallSpec(ns, name, ver))
+		_, err = api.GetCommand(dummySmallSpec())
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
@@ -142,37 +180,63 @@ func TestSendHTTPRequest(t *testing.T) {
 }
 
 func TestPostCommand(t *testing.T) {
-	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
-	ns, name, ver := "foo", "bar", "1.0"
-	binaryFilePath := "../../testdata/binary/hello"
+
+	// case success binary
+	spec := dummySpec(binaryFormat)
+	spec.Binary.File = binaryFilePath
 	responseMsg := fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
 		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
 		"format":"binary","binary":{"file":"%s"},"pipelineId":250270}`,
-		ns, name, ver, binaryFilePath)
+		spec.Namespace, spec.Name, spec.Version, spec.Binary.File)
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api := API(c)
+	_, err := api.PostCommand(binarySpecYamlPath, spec)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
 
-	// request
-	specPath := "../../testdata/yaml/sd-command.yaml"
-	_, err := api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
+	// case success habitat
+	spec = dummySpec(dockerFormat)
+	responseMsg = fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
+		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
+		"format":"habitat","habitat":{"image":"%s", "command":"%s"},"pipelineId":250271}`,
+		spec.Namespace, spec.Name, spec.Version, spec.Docker.Image, spec.Docker.Command)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
+	api = API(c)
+	_, err = api.PostCommand(habitatSpecYamlPath, spec)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case success docker
+	spec = dummySpec(habitatFormat)
+	responseMsg = fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
+		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
+		"format":"habitat","habitat":{"mode":"%s", "package":"%s", "command":"%s"},"pipelineId":250271}`,
+		spec.Namespace, spec.Name, spec.Version, spec.Habitat.Mode, spec.Habitat.Package, spec.Habitat.Command)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
+	api = API(c)
+	_, err = api.PostCommand(dockerSpecYamlPath, spec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
 
 	// case failure. check 4xx error message
+	spec = dummySpec(binaryFormat)
+	spec.Binary.File = binaryFilePath
 	errMsg := `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`
 	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
 	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
 	api = API(c)
-
-	// request
-	_, err = api.PostCommand(specPath, createSpecBinary(ns, name, ver, binaryFilePath))
+	_, err = api.PostCommand(binarySpecYamlPath, spec)
 	if err.Error() != ansMsg {
 		t.Errorf("err=%q, want %q", errMsg, ansMsg)
 	}
 
 	// case failure. check some api response error
+	spec = dummySpec(binaryFormat)
+	spec.Binary.File = binaryFilePath
 	response := []struct {
 		code    int
 		message string
@@ -184,16 +248,24 @@ func TestPostCommand(t *testing.T) {
 		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
 		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
 	}
-
-	// request
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		_, err = api.PostCommand("dummy", createSpecBinary(ns, name, ver, binaryFilePath))
+		_, err = api.PostCommand("dummy", spec)
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
 	}
+
+	// case faillure. unknown format
+	spec = dummySpec("unknown")
+	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
+	api = API(c)
+	_, err = api.PostCommand(binarySpecYamlPath, spec)
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+
 }
 func TestMain(m *testing.M) {
 	ret := m.Run()

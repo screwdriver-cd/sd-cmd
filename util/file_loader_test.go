@@ -4,7 +4,10 @@ import (
 	"testing"
 )
 
-var commandSpecYamlPath = "../testdata/yaml/sd-command.yaml"
+const (
+	commandSpecYamlPath        = "../testdata/yaml/sd-command.yaml"
+	invalidCommandSpecYamlPath = "../testdata/yaml/invalid_sd-command.yaml"
+)
 
 func TestLoadFile(t *testing.T) {
 	LoadByte(commandSpecYamlPath)
@@ -46,5 +49,17 @@ func TestLoadYaml(t *testing.T) {
 	expect = "./testdata/binary/hello"
 	if actual.Binary.File != expect {
 		t.Errorf("got %q\nwant %q", actual.Binary.File, expect)
+	}
+
+	// failure. no yaml path
+	actual, err := LoadYaml("./there/is/no/such/path")
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+
+	// failure. invalid yaml
+	actual, err = LoadYaml(invalidCommandSpecYamlPath)
+	if err == nil {
+		t.Errorf("err=nil, want error")
 	}
 }

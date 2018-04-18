@@ -8,36 +8,34 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
+	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-type dummyStore struct{}
+type dummyStore struct {
+	body []byte
+	spec *util.CommandSpec
+	err  error
+}
+
+func newDummyStore(body string, spec *util.CommandSpec, err error) store.Store {
+	ds := &dummyStore{
+		body: []byte(body),
+		spec: spec,
+		err:  err,
+	}
+	return store.Store(ds)
+}
 
 func (d *dummyStore) GetCommand() (*store.Command, error) {
-	return dummyStoreCommand(validShell), nil
-}
-
-type dummyStoreBroken struct{}
-
-func (d *dummyStoreBroken) GetCommand() (*store.Command, error) {
-	return dummyStoreCommand(invalidShell), nil
-}
-
-type dummyStoreError struct{}
-
-func (d *dummyStoreError) GetCommand() (*store.Command, error) {
-	return dummyStoreCommand(validShell), fmt.Errorf("store cause error")
-}
-
-func dummyStoreCommand(body string) (cmd *store.Command) {
-	return &store.Command{
-		Type: "binary",
-		Body: []byte(body),
-		Spec: dummyAPICommand(binaryFormat),
+	storeCmd := &store.Command{
+		Body: d.body,
+		Spec: d.spec,
 	}
+	return storeCmd, d.err
 }
 
 func TestNewBinary(t *testing.T) {
-	_, err := NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
+	_, err := NewBinary(dummySpec(binaryFormat), []string{"arg1", "arg2"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -47,16 +45,16 @@ func TestRun(t *testing.T) {
 	logBuffer.Reset()
 
 	// success with no arguments
-	spec := dummyAPICommand(binaryFormat)
+	spec := dummySpec(binaryFormat)
 	bin, _ := NewBinary(spec, []string{})
-	bin.Store = store.Store(new(dummyStore))
+	bin.Store = newDummyStore(validShell, spec, nil)
 	err := bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
 
 	// check file directory
-	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyFileName)
+	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyBinaryFileName)
 	fInfo, err := os.Stat(binPath)
 	if os.IsNotExist(err) {
 		t.Errorf("err=%q, file should exist at %q", binPath, err)
@@ -66,24 +64,45 @@ func TestRun(t *testing.T) {
 	}
 
 	// success with arguments
-	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
-	bin.Store = store.Store(new(dummyStore))
+	spec = dummySpec(binaryFormat)
+	bin, _ = NewBinary(spec, []string{"arg1", "arg2"})
+	bin.Store = newDummyStore(validShell, spec, nil)
 	err = bin.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
 
+	// success binary.file is relative path
+	spec = dummySpec(binaryFormat)
+	spec.Binary.File = "./sample/relative_path"
+	bin, _ = NewBinary(spec, []string{})
+	bin.Store = newDummyStore(validShell, spec, nil)
+	err = bin.Run()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+	binPath = filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, "relative_path")
+	fInfo, err = os.Stat(binPath)
+	if os.IsNotExist(err) {
+		t.Errorf("err=%q, file should exist at %q", binPath, err)
+	}
+	if fInfo.IsDir() {
+		t.Errorf("%q is directory, must be file", binPath)
+	}
+
 	// failure. the command is broken
-	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
-	bin.Store = store.Store(new(dummyStoreBroken))
+	spec = dummySpec(binaryFormat)
+	bin, _ = NewBinary(spec, []string{})
+	bin.Store = newDummyStore(invalidShell, spec, nil)
 	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
 
 	// failure. the store api return error
-	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
-	bin.Store = store.Store(new(dummyStoreError))
+	spec = dummySpec(binaryFormat)
+	bin, _ = NewBinary(spec, []string{})
+	bin.Store = newDummyStore(validShell, spec, fmt.Errorf("store cause error"))
 	err = bin.Run()
 	if err == nil {
 		t.Errorf("err=nil, want error")
