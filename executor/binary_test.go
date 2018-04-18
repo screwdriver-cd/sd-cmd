@@ -32,12 +32,12 @@ func dummyStoreCommand(body string) (cmd *store.Command) {
 	return &store.Command{
 		Type: "binary",
 		Body: []byte(body),
-		Spec: dummyAPICommandBinary(binaryFormat),
+		Spec: dummyAPICommand(binaryFormat),
 	}
 }
 
 func TestNewBinary(t *testing.T) {
-	_, err := NewBinary(dummyAPICommandBinary(binaryFormat), []string{"arg1", "arg2"})
+	_, err := NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -47,7 +47,7 @@ func TestRun(t *testing.T) {
 	logBuffer.Reset()
 
 	// success with no arguments
-	spec := dummyAPICommandBinary(binaryFormat)
+	spec := dummyAPICommand(binaryFormat)
 	bin, _ := NewBinary(spec, []string{})
 	bin.Store = store.Store(new(dummyStore))
 	err := bin.Run()
@@ -66,7 +66,7 @@ func TestRun(t *testing.T) {
 	}
 
 	// success with arguments
-	bin, _ = NewBinary(dummyAPICommandBinary(binaryFormat), []string{"arg1", "arg2"})
+	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{"arg1", "arg2"})
 	bin.Store = store.Store(new(dummyStore))
 	err = bin.Run()
 	if err != nil {
@@ -74,7 +74,7 @@ func TestRun(t *testing.T) {
 	}
 
 	// failure. the command is broken
-	bin, _ = NewBinary(dummyAPICommandBinary(binaryFormat), []string{})
+	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
 	bin.Store = store.Store(new(dummyStoreBroken))
 	err = bin.Run()
 	if err == nil {
@@ -82,7 +82,7 @@ func TestRun(t *testing.T) {
 	}
 
 	// failure. the store api return error
-	bin, _ = NewBinary(dummyAPICommandBinary(binaryFormat), []string{})
+	bin, _ = NewBinary(dummyAPICommand(binaryFormat), []string{})
 	bin.Store = store.Store(new(dummyStoreError))
 	err = bin.Run()
 	if err == nil {

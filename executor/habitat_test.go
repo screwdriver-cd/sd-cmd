@@ -19,7 +19,7 @@ func fakeExecCommand(name string, args ...string) *exec.Cmd {
 }
 
 func TestNewHabitat(t *testing.T) {
-	_, err := NewHabitat(dummyAPICommandHabitat(habitatFormat), dummyArgs)
+	_, err := NewHabitat(dummyAPICommand(habitatFormat), dummyArgs)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -30,7 +30,7 @@ func TestRunHabitat(t *testing.T) {
 	command = fakeExecCommand
 	defer func() { command = exec.Command }()
 
-	spec := dummyAPICommandHabitat(habitatFormat)
+	spec := dummyAPICommand(habitatFormat)
 	hab, _ := NewHabitat(spec, dummyArgs)
 	err := hab.Run()
 	if err != nil {

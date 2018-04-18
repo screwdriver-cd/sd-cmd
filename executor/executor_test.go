@@ -30,6 +30,7 @@ const (
 	dummyMode        = "dummy_mode"
 	dummyPackage     = "core/dummy"
 	dummyCommand     = "dummy_get"
+	dummyImage       = "dummy:latest"
 )
 
 var (
@@ -77,7 +78,7 @@ func teardown() {
 type dummySDAPIBinary struct{}
 
 func (d *dummySDAPIBinary) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return dummyAPICommandBinary(binaryFormat), nil
+	return dummyAPICommand(binaryFormat), nil
 }
 
 func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -87,7 +88,7 @@ func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandS
 type dummySDAPIHabitat struct{}
 
 func (d *dummySDAPIHabitat) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return dummyAPICommandHabitat(habitatFormat), nil
+	return dummyAPICommand(habitatFormat), nil
 }
 
 func (d *dummySDAPIHabitat) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -104,31 +105,46 @@ func (d *dummySDAPIBroken) PostCommand(specPath string, smallSpec *util.CommandS
 	return nil, fmt.Errorf("Something error happen")
 }
 
-func dummyAPICommandBinary(format string) (cmd *util.CommandSpec) {
-	return &util.CommandSpec{
-		Namespace:   dummyNameSpace,
-		Name:        dummyName,
-		Description: dummyDescription,
-		Version:     dummyVersion,
-		Format:      format,
-		Binary: &util.Binary{
-			File: dummyFile,
-		},
-	}
-}
-
-func dummyAPICommandHabitat(format string) (cmd *util.CommandSpec) {
-	return &util.CommandSpec{
-		Namespace:   dummyNameSpace,
-		Name:        dummyName,
-		Description: dummyDescription,
-		Version:     dummyVersion,
-		Format:      format,
-		Habitat: &util.Habitat{
-			Mode:    dummyMode,
-			Package: dummyPackage,
-			Command: dummyCommand,
-		},
+func dummyAPICommand(format string) (cmd *util.CommandSpec) {
+	switch format {
+	case binaryFormat:
+		return &util.CommandSpec{
+			Namespace:   dummyNameSpace,
+			Name:        dummyName,
+			Description: dummyDescription,
+			Version:     dummyVersion,
+			Format:      format,
+			Binary: &util.Binary{
+				File: dummyFile,
+			},
+		}
+	case habitatFormat:
+		return &util.CommandSpec{
+			Namespace:   dummyNameSpace,
+			Name:        dummyName,
+			Description: dummyDescription,
+			Version:     dummyVersion,
+			Format:      format,
+			Habitat: &util.Habitat{
+				Mode:    dummyMode,
+				Package: dummyPackage,
+				Command: dummyCommand,
+			},
+		}
+	case dockerFormat:
+		return &util.CommandSpec{
+			Namespace:   dummyNameSpace,
+			Name:        dummyName,
+			Description: dummyDescription,
+			Version:     dummyVersion,
+			Format:      format,
+			Docker: &util.Docker{
+				Image:   dummyImage,
+				Command: dummyCommand,
+			},
+		}
+	default:
+		return nil
 	}
 }
 
