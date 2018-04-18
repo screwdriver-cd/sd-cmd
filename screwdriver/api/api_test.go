@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -190,6 +191,62 @@ func TestPostCommand(t *testing.T) {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
 		_, err = api.PostCommand("dummy", createSpecBinary(ns, name, ver, binaryFilePath))
+		if err == nil {
+			t.Errorf("err=nil, want error")
+		}
+	}
+}
+
+func TestValidateCommand(t *testing.T) {
+	// case success
+	c := newClient(fakeAPIURL, fakeSDToken)
+	responseMsg := fmt.Sprintf(`{"errors": [] }`)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/validate/command")
+	api := API(c)
+
+	// request
+	yamlPath := "../../testdata/yaml/sd-command.yaml"
+	yamlByte, err := ioutil.ReadFile(yamlPath)
+	if err != nil {
+		t.Errorf("err=:%q", err)
+	}
+	yamlString := string(yamlByte)
+
+	_, err = api.ValidateCommand(yamlString)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case failure. check 4xx error message
+	errMsg := `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`
+	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
+	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
+	api = API(c)
+
+	// request
+	_, err = api.ValidateCommand(yamlString)
+	if err.Error() != ansMsg {
+		t.Errorf("err=%q, want %q", errMsg, ansMsg)
+	}
+
+	// case failure. check some api response error
+	response := []struct {
+		code    int
+		message string
+	}{
+		{200, `{{"namespace":"invalid","name":"json","version":"1.0","format":"binary","binary":{"file":"./foobar.sh"}}`},
+		{403, `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`},
+		{403, `{"statusCode": 403,"error": "Forbidden","message": {"This error message json is broken"}`},
+		{500, `{"statusCode": 500,"error": "InternalServerError","message": "server error"}`},
+		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
+		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
+	}
+
+	// request
+	for _, res := range response {
+		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
+		api = API(c)
+		_, err = api.ValidateCommand("dummy")
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}

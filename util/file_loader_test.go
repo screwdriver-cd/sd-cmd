@@ -48,3 +48,7 @@ func TestLoadYaml(t *testing.T) {
 		t.Errorf("got %q\nwant %q", actual.Binary.File, expect)
 	}
 }
+
+func TestLoadString(t *testing.T) {
+	LoadString(commandSpecYamlPath)
+}

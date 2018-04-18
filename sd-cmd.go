@@ -10,6 +10,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/publisher"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/validator"
 )
 
 const minArgLength = 2
@@ -65,6 +66,15 @@ func runPublisher(inputCommand []string) error {
 	return pub.Run()
 }
 
+func runValidator(inputCommand []string) error {
+	sdAPI := api.New(config.SDAPIURL, config.SDToken)
+	val, err := validator.New(sdAPI, inputCommand)
+	if err != nil {
+		return fmt.Errorf("Fail to get validator: %v", err)
+	}
+	return val.Run()
+}
+
 func runCommand(sdAPI api.API, args []string) error {
 	if len(os.Args) < minArgLength {
 		return fmt.Errorf("The number of arguments is not enough")
@@ -77,6 +87,8 @@ func runCommand(sdAPI api.API, args []string) error {
 		return runPublisher(args[2:])
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
+	case "validate":
+		return runValidator(args[2:])
 	default:
 		return runExecutor(sdAPI, args)
 	}

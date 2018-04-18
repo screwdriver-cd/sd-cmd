@@ -23,6 +23,7 @@ const (
 type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
 	PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error)
+	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 }
 
 type client struct {
@@ -97,6 +98,17 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	}
 
 	return responseSpec, nil
+}
+
+func writeValidateBody(yamlString string) (bodyBuff *bytes.Buffer, err error) {
+	var payload util.PayloadYaml
+	payload.Yaml = yamlString
+	validateBytes, err := json.Marshal(payload)
+	bodyBuff = bytes.NewBuffer(validateBytes)
+	if err != nil {
+		return nil, err
+	}
+	return
 }
 
 func specToPayloadBuf(commandSpec *util.CommandSpec) (bodyBuff *bytes.Buffer, err error) {
@@ -221,6 +233,47 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	}
 
 	return responseSpec, nil
+}
+
+func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+	var (
+		body        *bytes.Buffer
+		contentType = "application/json"
+		err         error
+	)
+	body, err = writeValidateBody(yamlString)
+
+	uri, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse URL on POST: %v", err)
+	}
+	uri.Path = path.Join(uri.Path, "validator/command")
+
+	responseBytes, statusCode, err := c.sendHTTPRequest("POST", uri.String(), contentType, body)
+	if err != nil {
+		return nil, fmt.Errorf("Post request failed: %v", err)
+	}
+
+	switch statusCode / 100 {
+	case 2:
+		res := new(util.ValidateResponse)
+		err := json.Unmarshal(responseBytes, res)
+		if err != nil {
+			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v, res=%v", statusCode, err, string(responseBytes))
+		}
+		return res, nil
+	case 4:
+		res := new(ResponseError)
+		err := json.Unmarshal(responseBytes, res)
+		if err != nil {
+			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
+		}
+		return nil, res
+	case 5:
+		return nil, fmt.Errorf("Screwdriver API has internal server error: statusCode=%d", statusCode)
+	default:
+		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API: Statuscode=%d", statusCode)
+	}
 }
 
 func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {

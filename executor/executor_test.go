@@ -85,6 +85,10 @@ func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandS
 	return nil, nil
 }
 
+func (d *dummySDAPIBinary) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+	return nil, nil
+}
+
 type dummySDAPIHabitat struct{}
 
 func (d *dummySDAPIHabitat) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -92,6 +96,10 @@ func (d *dummySDAPIHabitat) GetCommand(smallSpec *util.CommandSpec) (*util.Comma
 }
 
 func (d *dummySDAPIHabitat) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return nil, nil
+}
+
+func (d *dummySDAPIHabitat) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
 	return nil, nil
 }
 
@@ -103,6 +111,10 @@ func (d *dummySDAPIBroken) GetCommand(smallSpec *util.CommandSpec) (*util.Comman
 
 func (d *dummySDAPIBroken) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, fmt.Errorf("Something error happen")
+}
+
+func (d *dummySDAPIBroken) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+	return nil, nil
 }
 
 func dummyAPICommand(format string) (cmd *util.CommandSpec) {

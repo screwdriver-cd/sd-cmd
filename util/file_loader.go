@@ -33,3 +33,14 @@ func LoadYaml(yamlPath string) (*CommandSpec, error) {
 
 	return cs, nil
 }
+
+// LoadString receives path of a file.
+// It returns the file content as string.
+func LoadString(filePath string) (string, error) {
+	data, err := LoadByte(filePath)
+	if err != nil {
+		return "", fmt.Errorf("Fail to read file:%v", err)
+	}
+
+	return string(data), nil
+}
