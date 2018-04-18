@@ -106,46 +106,34 @@ func (d *dummySDAPIBroken) PostCommand(specPath string, smallSpec *util.CommandS
 }
 
 func dummyAPICommand(format string) (cmd *util.CommandSpec) {
+	cmd = &util.CommandSpec{
+		Namespace:   dummyNameSpace,
+		Name:        dummyName,
+		Description: dummyDescription,
+		Version:     dummyVersion,
+		Format:      format,
+	}
+
 	switch format {
 	case binaryFormat:
-		return &util.CommandSpec{
-			Namespace:   dummyNameSpace,
-			Name:        dummyName,
-			Description: dummyDescription,
-			Version:     dummyVersion,
-			Format:      format,
-			Binary: &util.Binary{
-				File: dummyFile,
-			},
+		cmd.Binary = &util.Binary{
+			File: dummyFile,
 		}
 	case habitatFormat:
-		return &util.CommandSpec{
-			Namespace:   dummyNameSpace,
-			Name:        dummyName,
-			Description: dummyDescription,
-			Version:     dummyVersion,
-			Format:      format,
-			Habitat: &util.Habitat{
-				Mode:    dummyMode,
-				Package: dummyPackage,
-				Command: dummyCommand,
-			},
+		cmd.Habitat = &util.Habitat{
+			Mode:    dummyMode,
+			Package: dummyPackage,
+			Command: dummyCommand,
 		}
 	case dockerFormat:
-		return &util.CommandSpec{
-			Namespace:   dummyNameSpace,
-			Name:        dummyName,
-			Description: dummyDescription,
-			Version:     dummyVersion,
-			Format:      format,
-			Docker: &util.Docker{
-				Image:   dummyImage,
-				Command: dummyCommand,
-			},
+		cmd.Docker = &util.Docker{
+			Image:   dummyImage,
+			Command: dummyCommand,
 		}
 	default:
 		return nil
 	}
+	return cmd
 }
 
 func TestNew(t *testing.T) {

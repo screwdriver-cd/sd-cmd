@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
@@ -54,9 +55,9 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	case "habitat":
 		return NewHabitat(spec, args[pos+1:])
 	case "docker":
-		return nil, nil
+		return nil, errors.New("the docker format is not yet implemented")
 	default:
-		return nil, nil
+		return nil, errors.New("the format is not allowed")
 	}
 }
 
