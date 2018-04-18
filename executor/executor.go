@@ -8,13 +8,17 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-var lgr *logger.Logger
+var (
+	command = exec.Command
+	lgr     *logger.Logger
+)
 
 // Executor is a Executor endpoint
 type Executor interface {
@@ -25,10 +29,7 @@ func prepareLog(smallSpec *util.CommandSpec) (err error) {
 	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 	filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
 	lgr, err = logger.New(dirPath, filename, log.LstdFlags, false)
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
 
 // New returns each format type of Executor
@@ -47,19 +48,21 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	switch spec.Format {
 	case "binary":
 		return NewBinary(spec, args[pos+1:])
 	case "habitat":
-		return nil, nil
+		return NewHabitat(spec, args[pos+1:])
 	case "docker":
-		return nil, nil
+		return nil, errors.New("the docker format is not yet implemented")
+	default:
+		return nil, errors.New("the format is not allowed")
 	}
-	return nil, nil
 }
 
 func execCommand(path string, args []string) error {
-	cmd := exec.Command(path, args...)
+	cmd := command(path, args...)
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 
 	cmd.Stdout = os.Stdout
@@ -68,10 +71,11 @@ func execCommand(path string, args []string) error {
 	err := cmd.Run()
 
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
-	state := cmd.ProcessState
-	lgr.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	if err != nil {
 		return fmt.Errorf("failed to exec command: %v", err)
 	}
+
+	state := cmd.ProcessState
+	lgr.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
 	return nil
 }

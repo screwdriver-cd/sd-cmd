@@ -47,16 +47,13 @@ func init() {
 	config.LoadConfig()
 }
 
-func runExecutor(sdAPI api.API, args []string) error {
+func runExecutor(sdAPI api.API, args []string) (err error) {
 	exec, err := executor.New(sdAPI, args)
 	if err != nil {
-		return err
+		return
 	}
 	err = exec.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
 
 func runPublisher(inputCommand []string) error {

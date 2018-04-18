@@ -27,6 +27,10 @@ const (
 	dummyFileName    = "sd-step"
 	dummyFile        = "/dummy/" + dummyFileName
 	dummyDescription = "dummy description"
+	dummyMode        = "dummy_mode"
+	dummyPackage     = "core/dummy"
+	dummyCommand     = "dummy_get"
+	dummyImage       = "dummy:latest"
 )
 
 var (
@@ -81,6 +85,16 @@ func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandS
 	return nil, nil
 }
 
+type dummySDAPIHabitat struct{}
+
+func (d *dummySDAPIHabitat) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return dummyAPICommand(habitatFormat), nil
+}
+
+func (d *dummySDAPIHabitat) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return nil, nil
+}
+
 type dummySDAPIBroken struct{}
 
 func (d *dummySDAPIBroken) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -99,8 +113,26 @@ func dummyAPICommand(format string) (cmd *util.CommandSpec) {
 		Version:     dummyVersion,
 		Format:      format,
 	}
-	cmd.Binary = new(util.Binary)
-	cmd.Binary.File = dummyFile
+
+	switch format {
+	case binaryFormat:
+		cmd.Binary = &util.Binary{
+			File: dummyFile,
+		}
+	case habitatFormat:
+		cmd.Habitat = &util.Habitat{
+			Mode:    dummyMode,
+			Package: dummyPackage,
+			Command: dummyCommand,
+		}
+	case dockerFormat:
+		cmd.Docker = &util.Docker{
+			Image:   dummyImage,
+			Command: dummyCommand,
+		}
+	default:
+		return nil
+	}
 	return cmd
 }
 
@@ -117,6 +149,12 @@ func TestNew(t *testing.T) {
 
 	// success
 	sdapi = api.API(new(dummySDAPIBinary))
+	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	sdapi = api.API(new(dummySDAPIHabitat))
 	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
