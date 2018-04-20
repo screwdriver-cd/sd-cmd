@@ -252,7 +252,7 @@ func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, erro
 	res := new(util.ValidateResponse)
 	err = json.Unmarshal(responseBytes, res)
 	if err != nil {
-		return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v, res=%v", statusCode, err)
+		return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
 	}
 	return res, nil
 }
