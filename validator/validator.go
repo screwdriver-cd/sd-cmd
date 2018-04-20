@@ -31,7 +31,7 @@ func (v *Validator) Run() error {
 		return fmt.Errorf("Command is not valid for the following reasons:\n%v", errorMessage)
 	}
 
-	fmt.Println("Validation Succesfull.")
+	fmt.Println("Validation completed successfully.")
 
 	return nil
 }
