@@ -80,7 +80,7 @@ type ValidateResponse struct {
 }
 
 type ValidateError struct {
-	Message   string   `json:"message"`
+	Message string `json:"message"`
 }
 
 func checkVersion(ver string) bool {

@@ -60,11 +60,6 @@ func newClient(sdAPI, sdToken string) *client {
 func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
 	switch statusCode / 100 {
 	case 2:
-		res := new(util.CommandSpec)
-		err := json.Unmarshal(bodyBytes, res)
-		if err != nil {
-			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
-		}
 		return bodyBytes, nil
 	case 4:
 		res := new(ResponseError)
@@ -254,26 +249,16 @@ func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, erro
 		return nil, fmt.Errorf("Post request failed: %v", err)
 	}
 
-	switch statusCode / 100 {
-	case 2:
-		res := new(util.ValidateResponse)
-		err := json.Unmarshal(responseBytes, res)
-		if err != nil {
-			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v, res=%v", statusCode, err, string(responseBytes))
-		}
-		return res, nil
-	case 4:
-		res := new(ResponseError)
-		err := json.Unmarshal(responseBytes, res)
-		if err != nil {
-			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
-		}
-		return nil, res
-	case 5:
-		return nil, fmt.Errorf("Screwdriver API has internal server error: statusCode=%d", statusCode)
-	default:
-		return nil, fmt.Errorf("Unknown error happen while communicate with Screwdriver API: Statuscode=%d", statusCode)
+	respnseBytes, err = handleResponse(responseBytes, statusCode)
+	if err != nil {
+		return nil, err
 	}
+	res := new(util.ValidateResponse)
+	err = json.Unmarshal(responseBytes, res)
+	if err != nil {
+		return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v, res=%v", statusCode, err)
+	}
+	return res, nil
 }
 
 func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
