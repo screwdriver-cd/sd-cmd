@@ -231,12 +231,8 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 }
 
 func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
-	var (
-		body        *bytes.Buffer
-		contentType = "application/json"
-		err         error
-	)
-	body, err = writeValidateBody(yamlString)
+	contentType := "application/json"
+	body, err := writeValidateBody(yamlString)
 
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
