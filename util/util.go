@@ -79,6 +79,7 @@ type ValidateResponse struct {
 	Errors []ValidateError `json:"errors"`
 }
 
+// ValidateError represents an error message of a command validation.
 type ValidateError struct {
 	Message string `json:"message"`
 }
