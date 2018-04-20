@@ -245,7 +245,7 @@ func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, erro
 		return nil, fmt.Errorf("Post request failed: %v", err)
 	}
 
-	respnseBytes, err = handleResponse(responseBytes, statusCode)
+	responseBytes, err = handleResponse(responseBytes, statusCode)
 	if err != nil {
 		return nil, err
 	}
