@@ -7,7 +7,10 @@ import (
 var commandSpecYamlPath = "../testdata/yaml/sd-command.yaml"
 
 func TestLoadFile(t *testing.T) {
-	LoadByte(commandSpecYamlPath)
+	_, err := LoadByte(commandSpecYamlPath)
+	if err != nil {
+		t.Errorf("err=%v, want nil", err)
+	}
 }
 
 func TestLoadYaml(t *testing.T) {
@@ -46,5 +49,12 @@ func TestLoadYaml(t *testing.T) {
 	expect = "./testdata/binary/hello"
 	if actual.Binary.File != expect {
 		t.Errorf("got %q\nwant %q", actual.Binary.File, expect)
+	}
+}
+
+func TestLoadString(t *testing.T) {
+	_, err := LoadString(commandSpecYamlPath)
+	if err != nil {
+		t.Errorf("err=%v, want nil", err)
 	}
 }

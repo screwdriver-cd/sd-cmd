@@ -74,6 +74,16 @@ type PayloadYaml struct {
 	Yaml string `json:"yaml"`
 }
 
+// ValidateResponse represents a response from API when validates command.
+type ValidateResponse struct {
+	Errors []ValidateError `json:"errors"`
+}
+
+// ValidateError represents an error message of a command validation.
+type ValidateError struct {
+	Message string `json:"message"`
+}
+
 func checkVersion(ver string) bool {
 	if caretRangesAndPinningRegexp.Match([]byte(ver)) {
 		return true

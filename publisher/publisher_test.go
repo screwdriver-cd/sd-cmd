@@ -38,6 +38,10 @@ func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandS
 	return dummyAPICommand("binary"), nil
 }
 
+func (d *dummySDAPIBinary) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+	return nil, nil
+}
+
 func TestNew(t *testing.T) {
 	// success
 	testDataPath := "../testdata/yaml/sd-command.yaml"

@@ -23,6 +23,7 @@ const (
 type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
 	PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error)
+	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 }
 
 type client struct {
@@ -59,11 +60,6 @@ func newClient(sdAPI, sdToken string) *client {
 func handleResponse(bodyBytes []byte, statusCode int) ([]byte, error) {
 	switch statusCode / 100 {
 	case 2:
-		res := new(util.CommandSpec)
-		err := json.Unmarshal(bodyBytes, res)
-		if err != nil {
-			return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
-		}
 		return bodyBytes, nil
 	case 4:
 		res := new(ResponseError)
@@ -97,6 +93,17 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	}
 
 	return responseSpec, nil
+}
+
+func writeValidateBody(yamlString string) (bodyBuff *bytes.Buffer, err error) {
+	var payload util.PayloadYaml
+	payload.Yaml = yamlString
+	validateBytes, err := json.Marshal(payload)
+	bodyBuff = bytes.NewBuffer(validateBytes)
+	if err != nil {
+		return nil, err
+	}
+	return
 }
 
 func specToPayloadBuf(commandSpec *util.CommandSpec) (bodyBuff *bytes.Buffer, err error) {
@@ -221,6 +228,33 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	}
 
 	return responseSpec, nil
+}
+
+func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+	contentType := "application/json"
+	body, err := writeValidateBody(yamlString)
+
+	uri, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse URL on POST: %v", err)
+	}
+	uri.Path = path.Join(uri.Path, "validator/command")
+
+	responseBytes, statusCode, err := c.sendHTTPRequest("POST", uri.String(), contentType, body)
+	if err != nil {
+		return nil, fmt.Errorf("Post request failed: %v", err)
+	}
+
+	responseBytes, err = handleResponse(responseBytes, statusCode)
+	if err != nil {
+		return nil, err
+	}
+	res := new(util.ValidateResponse)
+	err = json.Unmarshal(responseBytes, res)
+	if err != nil {
+		return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
+	}
+	return res, nil
 }
 
 func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
