@@ -61,21 +61,22 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	}
 }
 
-func execCommand(path string, args []string) error {
+func execCommand(path string, args []string) (err error) {
 	cmd := command(path, args...)
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 	if err != nil {
-		return fmt.Errorf("failed to exec command: %v", err)
+		lgr.Debug.Printf("failed to exec command: %v", err)
+		return
 	}
 
 	state := cmd.ProcessState
 	lgr.Debug.Printf("System Time: %v, User Time: %v\n", state.SystemTime(), state.UserTime())
-	return nil
+	return
 }

@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime/debug"
+	"syscall"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
@@ -13,7 +15,10 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/validator"
 )
 
-const minArgLength = 2
+const (
+	minArgLength           = 2
+	defaultFailureExitCode = 1
+)
 
 func cleanExit() {
 	logger.CloseAll()
@@ -29,8 +34,13 @@ func failureExit(err error) {
 	cleanExit()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
+				os.Exit(status.ExitStatus())
+			}
+		}
 	}
-	os.Exit(1)
+	os.Exit(defaultFailureExitCode)
 }
 
 // finalRecover makes one last attempt to recover from a panic.
