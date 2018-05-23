@@ -49,14 +49,16 @@ func TestGetBinDirPath(t *testing.T) {
 	spec := dummyAPICommand(binaryFormat)
 	bin, _ := NewBinary(spec, []string{})
 	bin.Store = store.Store(new(dummyStore))
-	assert.Equal(t, bin.getBinDirPath(), "/tmp/sd/foo-dummy/name-dummy/1.0.1")
+	// Note: config.BaseCommandPath is customized for test.
+	// see executor/executor_test.go
+	assert.Equal(t, bin.getBinDirPath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1"))
 }
 
 func TestGetBinFilePath(t *testing.T) {
 	spec := dummyAPICommand(binaryFormat)
 	bin, _ := NewBinary(spec, []string{})
 	bin.Store = store.Store(new(dummyStore))
-	assert.Equal(t, bin.getBinFilePath(), "/tmp/sd/foo-dummy/name-dummy/1.0.1/sd-step")
+	assert.Equal(t, bin.getBinFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/sd-step"))
 }
 
 func TestIsInstalled(t *testing.T) {
