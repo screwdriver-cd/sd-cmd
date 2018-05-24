@@ -141,20 +141,28 @@ func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *
 }
 
 func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) error {
-	fileContentsBin, err := util.LoadByte(commandSpec.Binary.File)
-	if err != nil {
-		return fmt.Errorf("Failed to load binary file:%v", err)
+	var filePath string
+	switch commandSpec.Format {
+	case "binary":
+		filePath = commandSpec.Binary.File
+	case "habitat":
+		filePath = commandSpec.Habitat.Package
 	}
 
-	fileNameBin := filepath.Base(commandSpec.Binary.File)
-	binPart, err := writer.CreateFormFile("binary", fileNameBin)
+	fileContents, err := util.LoadByte(filePath)
 	if err != nil {
-		return fmt.Errorf("Failed to create form of binary:%v", err)
+		return fmt.Errorf("Failed to load file:%v", err)
 	}
 
-	_, err = binPart.Write(fileContentsBin)
+	fileName := filepath.Base(filePath)
+	filePart, err := writer.CreateFormFile(commandSpec.Format, fileName)
 	if err != nil {
-		return fmt.Errorf("Failed to write binary to form:%v", err)
+		return fmt.Errorf("Failed to create form of %s:%v", commandSpec.Format, err)
+	}
+
+	_, err = filePart.Write(fileContents)
+	if err != nil {
+		return fmt.Errorf("Failed to write file contents to form:%v", err)
 	}
 
 	return nil
@@ -209,7 +217,14 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	switch commandSpec.Format {
 	case "binary":
 		body, contentType, err = writeMultipart(specPath, commandSpec)
-	case "habitat", "docker":
+	case "habitat":
+		if commandSpec.Habitat.Mode == "remote" {
+			body, err = specToPayloadBuf(commandSpec)
+			contentType = "application/json"
+		} else {
+			body, contentType, err = writeMultipart(specPath, commandSpec)
+		}
+	case "docker":
 		body, err = specToPayloadBuf(commandSpec)
 		contentType = "application/json"
 	default:

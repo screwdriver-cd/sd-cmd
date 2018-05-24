@@ -26,6 +26,11 @@ const (
 )
 
 const (
+	habitatModeRemote = "remote"
+	habitatModeLocal  = "local"
+)
+
+const (
 	dummyNamespace      = "foo-dummy"
 	dummyName           = "name-dummy"
 	dummyVersion        = "1.0.1"
@@ -34,16 +39,18 @@ const (
 	dummyBinaryFile     = "/dummy/" + dummyBinaryFileName
 	dummyDockerImage    = "chefdk:1.2.3"
 	dummyDockerCmd      = "knife"
-	dummyHabitatMode    = "remote"
+	dummyHabitatMode    = habitatModeRemote
 	dummyHabitatPkg     = "core/git/2.14.1"
 	dummyHabitatCmd     = "git"
 )
 
 var (
-	binarySpecYamlPath  = "../testdata/yaml/binary-sd-command.yaml"
-	habitatSpecYamlPath = "../testdata/yaml/habitat-sd-command.yaml"
-	dockerSpecYamlPath  = "../testdata/yaml/docker-sd-command.yaml"
-	binaryFilePath      = "../../testdata/binary/hello"
+	binarySpecYamlPath        = "../testdata/yaml/binary-sd-command.yaml"
+	habitatRemoteSpecYamlPath = "../testdata/yaml/habitat-remote-sd-command.yaml"
+	habitatLocalSpecYamlPath  = "../testdata/yaml/habitat-local-sd-command.yaml"
+	dockerSpecYamlPath        = "../testdata/yaml/docker-sd-command.yaml"
+	binaryFilePath            = "../../testdata/binary/hello"
+	habitatPackagePath        = "../../testdata/binary/hello.hart"
 )
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
@@ -91,20 +98,6 @@ func dummySpec(format string) (cmd *util.CommandSpec) {
 		cmd.Habitat.Package = dummyHabitatPkg
 	}
 	return cmd
-}
-
-func createSpecBinary(namespace, name, version, filePath string) *util.CommandSpec {
-	b := &util.Binary{
-		File: filePath,
-	}
-
-	return &util.CommandSpec{
-		Namespace: namespace,
-		Name:      name,
-		Version:   version,
-		Format:    "binary",
-		Binary:    b,
-	}
 }
 
 func TestNew(t *testing.T) {
@@ -223,7 +216,7 @@ func TestPostCommand(t *testing.T) {
 		t.Errorf("err=%q, want nil", err)
 	}
 
-	// case success habitat
+	// case success habitat remote
 	spec = dummySpec(habitatFormat)
 	responseMsg = fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
 		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
@@ -232,7 +225,23 @@ func TestPostCommand(t *testing.T) {
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api = API(c)
 
-	_, err = api.PostCommand(habitatSpecYamlPath, spec)
+	_, err = api.PostCommand(habitatRemoteSpecYamlPath, spec)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case success habitat local
+	spec = dummySpec(habitatFormat)
+	spec.Habitat.Mode = habitatModeLocal
+	spec.Habitat.Package = habitatPackagePath
+	responseMsg = fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
+		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
+		"format":"habitat","habitat":{"mode":"%s", "package":"%s", "command":"%s"},"pipelineId":250271}`,
+		spec.Namespace, spec.Name, spec.Version, spec.Habitat.Mode, spec.Habitat.Package, spec.Habitat.Command)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
+	api = API(c)
+
+	_, err = api.PostCommand(habitatLocalSpecYamlPath, spec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
