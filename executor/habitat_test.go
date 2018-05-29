@@ -4,7 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/screwdriver-cd/sd-cmd/config"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 )
 
 var dummyArgs = []string{"arg1", "arg2"}
@@ -23,6 +29,42 @@ func TestNewHabitat(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
+}
+
+func TestGetPkgDirPath(t *testing.T) {
+	spec := dummyAPICommand(habitatFormat)
+	hab, _ := NewHabitat(spec, []string{})
+	hab.Store = store.Store(new(dummyStore))
+	// Note: config.BaseCommandPath is customized for test.
+	// see executor/executor_test.go
+	assert.Equal(t, hab.getPkgDirPath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1"))
+}
+
+func TestGetPkgFilePath(t *testing.T) {
+	spec := dummyAPICommand(habitatFormat)
+	hab, _ := NewHabitat(spec, []string{})
+	hab.Store = store.Store(new(dummyStore))
+	assert.Equal(t, hab.getPkgFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy"))
+}
+
+func TestIsDownloaded(t *testing.T) {
+	spec := dummyAPICommand(habitatFormat)
+	hab, _ := NewHabitat(spec, []string{})
+	hab.Store = store.Store(new(dummyStore))
+	// Not exists
+	assert.False(t, hab.isDownloaded())
+
+	// 0 size file
+	os.MkdirAll(hab.getPkgDirPath(), 0777)
+	file, _ := os.Create(hab.getPkgFilePath())
+	assert.False(t, hab.isDownloaded())
+
+	// non 0 size file
+	file.Write(([]byte)("dummy script."))
+	assert.True(t, hab.isDownloaded())
+
+	defer file.Close()
+	defer os.RemoveAll(hab.getPkgDirPath())
 }
 
 func TestRunHabitat(t *testing.T) {
