@@ -189,7 +189,7 @@ func TestSendHTTPRequest(t *testing.T) {
 func TestPostCommand(t *testing.T) {
 	c := newClient(fakeAPIURL, fakeSDToken)
 
-	// case success biary
+	// case success binary
 	spec := dummySpec(binaryFormat)
 	spec.Binary.File = binaryFilePath
 	responseMsg := fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
@@ -283,7 +283,7 @@ func TestPostCommand(t *testing.T) {
 		}
 	}
 
-	// case filure. unknown format
+	// case failure. unknown format
 	spec = dummySpec("unknown")
 	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
 	api = API(c)

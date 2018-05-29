@@ -10,7 +10,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-var habPath = "/hab/bin/hab"
+const habPath = "/hab/bin/hab"
 
 // Habitat is the Habitat Executor struct
 type Habitat struct {
@@ -98,6 +98,8 @@ func (h *Habitat) Run() (err error) {
 	lgr.Debug.Println("start installing habitat command.")
 
 	if h.Spec.Habitat.Mode == "local" && h.isDownloaded() == false {
+		lgr.Debug.Println("start downloading local mode habitat package.")
+
 		err = h.download()
 		if err != nil {
 			lgr.Debug.Println(err)
