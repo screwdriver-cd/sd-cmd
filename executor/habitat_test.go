@@ -122,7 +122,7 @@ func TestHelperProcess(t *testing.T) {
 		}
 		for i := range execDummyArgs {
 			if args[i] != execDummyArgs[i] {
-				fmt.Fprintf(os.Stderr, "exec cmd args is expected %v, but %v\n", dummyLen, argsLen)
+				fmt.Fprintf(os.Stderr, "exec cmd args is expected %v, but %v\n", execDummyArgs[i], args[i])
 				os.Exit(1)
 			}
 		}
