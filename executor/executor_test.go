@@ -2,7 +2,6 @@ package executor
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
+	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
@@ -21,16 +21,17 @@ const (
 )
 
 const (
-	dummyNameSpace   = "foo-dummy"
-	dummyName        = "name-dummy"
-	dummyVersion     = "1.0.1"
-	dummyFileName    = "sd-step"
-	dummyFile        = "/dummy/" + dummyFileName
-	dummyDescription = "dummy description"
-	dummyMode        = "dummy_mode"
-	dummyPackage     = "core/dummy"
-	dummyCommand     = "dummy_get"
-	dummyImage       = "dummy:latest"
+	dummyNameSpace       = "foo-dummy"
+	dummyName            = "name-dummy"
+	dummyVersion         = "1.0.1"
+	dummyFileName        = "sd-step"
+	dummyFile            = "/dummy/" + dummyFileName
+	dummyDescription     = "dummy description"
+	dummyMode            = "dummy_mode"
+	dummyPackage         = "dummy_org/dummy"
+	dummyHabitatArtifact = "dummy.hart"
+	dummyCommand         = "dummy_get"
+	dummyImage           = "dummy:latest"
 )
 
 var (
@@ -75,50 +76,56 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
-type dummySDAPIBinary struct{}
-
-func (d *dummySDAPIBinary) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return dummyAPICommand(binaryFormat), nil
+type dummySDAPI struct {
+	spec *util.CommandSpec
+	err  error
 }
 
-func (d *dummySDAPIBinary) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func (d *dummySDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+	return d.spec, d.err
+}
+
+func (d *dummySDAPI) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, nil
 }
 
-func (d *dummySDAPIBinary) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+func (d *dummySDAPI) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
 	return nil, nil
 }
 
-type dummySDAPIHabitat struct{}
-
-func (d *dummySDAPIHabitat) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return dummyAPICommand(habitatFormat), nil
+func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
+	d := &dummySDAPI{
+		spec: spec,
+		err:  err,
+	}
+	return api.API(d)
 }
 
-func (d *dummySDAPIHabitat) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return nil, nil
+type dummyStore struct {
+	body []byte
+	spec *util.CommandSpec
+	err  error
 }
 
-func (d *dummySDAPIHabitat) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
-	return nil, nil
+func newDummyStore(body string, spec *util.CommandSpec, err error) store.Store {
+	ds := &dummyStore{
+		body: []byte(body),
+		spec: spec,
+		err:  err,
+	}
+	return store.Store(ds)
 }
 
-type dummySDAPIBroken struct{}
-
-func (d *dummySDAPIBroken) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return nil, fmt.Errorf("Something error happen")
+func (d *dummyStore) GetCommand() (*store.Command, error) {
+	storeCmd := &store.Command{
+		Body: d.body,
+		Spec: d.spec,
+	}
+	return storeCmd, d.err
 }
 
-func (d *dummySDAPIBroken) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return nil, fmt.Errorf("Something error happen")
-}
-
-func (d *dummySDAPIBroken) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
-	return nil, nil
-}
-
-func dummyAPICommand(format string) (cmd *util.CommandSpec) {
-	cmd = &util.CommandSpec{
+func dummyCommandSpec(format string) (spec *util.CommandSpec) {
+	spec = &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,
@@ -128,29 +135,29 @@ func dummyAPICommand(format string) (cmd *util.CommandSpec) {
 
 	switch format {
 	case binaryFormat:
-		cmd.Binary = &util.Binary{
+		spec.Binary = &util.Binary{
 			File: dummyFile,
 		}
 	case habitatFormat:
-		cmd.Habitat = &util.Habitat{
+		spec.Habitat = &util.Habitat{
 			Mode:    dummyMode,
 			Package: dummyPackage,
 			Command: dummyCommand,
 		}
 	case dockerFormat:
-		cmd.Docker = &util.Docker{
+		spec.Docker = &util.Docker{
 			Image:   dummyImage,
 			Command: dummyCommand,
 		}
-	default:
-		return nil
 	}
-	return cmd
+	return spec
 }
 
 func TestNew(t *testing.T) {
+	// case binary format
+	spec := dummyCommandSpec(binaryFormat)
+	sdapi := newDummySDAPI(spec, nil)
 	// success
-	sdapi := api.API(new(dummySDAPIBinary))
 	executor, err := New(sdapi, []string{"ns/cmd@ver"})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -159,35 +166,33 @@ func TestNew(t *testing.T) {
 		t.Errorf("New does not fulfill API interface")
 	}
 
-	// success
-	sdapi = api.API(new(dummySDAPIBinary))
-	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-
-	sdapi = api.API(new(dummySDAPIHabitat))
-	_, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-
 	// failure. no command
-	sdapi = api.API(new(dummySDAPIBinary))
 	_, err = New(sdapi, []string{})
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
 
 	// failure. invalid command
-	sdapi = api.API(new(dummySDAPIBinary))
 	_, err = New(sdapi, []string{"sd-cmd", "ns@cmd/ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
 
+	// case habitat format
+	spec = dummyCommandSpec(habitatFormat)
+	sdapi = newDummySDAPI(spec, nil)
+	// success
+	executor, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+	if _, ok := executor.(Executor); !ok {
+		t.Errorf("New does not fulfill API interface")
+	}
+
 	// failure. Screwdriver API error
-	sdapi = api.API(new(dummySDAPIBroken))
+	spec = dummyCommandSpec("Unknown")
+	sdapi = newDummySDAPI(spec, nil)
 	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
 	if err == nil {
 		t.Errorf("err=nil, want error")

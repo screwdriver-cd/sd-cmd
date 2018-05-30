@@ -57,7 +57,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, body)
+		fmt.Fprint(w, body)
 	}))
 	tr := &http.Transport{
 		Proxy: func(req *http.Request) (*url.URL, error) {
@@ -165,7 +165,7 @@ func TestSendHTTPRequest(t *testing.T) {
 	ns, name, ver := "foo", "bar", "1.0"
 	jsonResponse := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
 	var fakeHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, jsonResponse)
+		fmt.Fprint(w, jsonResponse)
 	})
 
 	testServer := httptest.NewServer(fakeHandler)

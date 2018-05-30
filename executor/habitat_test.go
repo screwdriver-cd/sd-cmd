@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
-	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 )
 
 var dummyArgs = []string{"arg1", "arg2"}
@@ -25,32 +24,33 @@ func fakeExecCommand(name string, args ...string) *exec.Cmd {
 }
 
 func TestNewHabitat(t *testing.T) {
-	_, err := NewHabitat(dummyAPICommand(habitatFormat), dummyArgs)
+	_, err := NewHabitat(dummyCommandSpec(habitatFormat), dummyArgs)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
 }
 
 func TestGetPkgDirPath(t *testing.T) {
-	spec := dummyAPICommand(habitatFormat)
+	spec := dummyCommandSpec(habitatFormat)
 	hab, _ := NewHabitat(spec, []string{})
-	hab.Store = store.Store(new(dummyStore))
+	hab.Store = newDummyStore(validShell, spec, nil)
 	// Note: config.BaseCommandPath is customized for test.
 	// see executor/executor_test.go
 	assert.Equal(t, hab.getPkgDirPath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1"))
 }
 
 func TestGetPkgFilePath(t *testing.T) {
-	spec := dummyAPICommand(habitatFormat)
+	spec := dummyCommandSpec(habitatFormat)
+	spec.Habitat.Package = dummyHabitatArtifact
 	hab, _ := NewHabitat(spec, []string{})
-	hab.Store = store.Store(new(dummyStore))
-	assert.Equal(t, hab.getPkgFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy"))
+	hab.Store = newDummyStore(validShell, spec, nil)
+	assert.Equal(t, hab.getPkgFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy.hart"))
 }
 
 func TestIsDownloaded(t *testing.T) {
-	spec := dummyAPICommand(habitatFormat)
+	spec := dummyCommandSpec(habitatFormat)
 	hab, _ := NewHabitat(spec, []string{})
-	hab.Store = store.Store(new(dummyStore))
+	hab.Store = newDummyStore(validShell, spec, nil)
 	// Not exists
 	assert.False(t, hab.isDownloaded())
 
@@ -72,7 +72,7 @@ func TestRunHabitat(t *testing.T) {
 	command = fakeExecCommand
 	defer func() { command = exec.Command }()
 
-	spec := dummyAPICommand(habitatFormat)
+	spec := dummyCommandSpec(habitatFormat)
 	hab, _ := NewHabitat(spec, dummyArgs)
 	err := hab.Run()
 	if err != nil {
@@ -136,7 +136,7 @@ func TestHelperProcess(t *testing.T) {
 		}
 		for i := range installDummyArgs {
 			if args[i] != installDummyArgs[i] {
-				fmt.Fprintf(os.Stderr, "install cmd args is expected %v, but %v\n", dummyLen, argsLen)
+				fmt.Fprintf(os.Stderr, "install cmd args is expected %v, but %v\n", installDummyArgs[i], args[i])
 				os.Exit(1)
 			}
 		}

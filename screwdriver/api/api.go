@@ -218,11 +218,11 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	case "binary":
 		body, contentType, err = writeMultipart(specPath, commandSpec)
 	case "habitat":
-		if commandSpec.Habitat.Mode == "remote" {
+		if commandSpec.Habitat.Mode == "local" {
+			body, contentType, err = writeMultipart(specPath, commandSpec)
+		} else {
 			body, err = specToPayloadBuf(commandSpec)
 			contentType = "application/json"
-		} else {
-			body, contentType, err = writeMultipart(specPath, commandSpec)
 		}
 	case "docker":
 		body, err = specToPayloadBuf(commandSpec)
