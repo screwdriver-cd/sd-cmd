@@ -33,6 +33,7 @@ var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
 // This will works as a part of CommandSpec.
 type Habitat struct {
 	Mode    string `json:"mode,omitempty" yaml:"mode,omitempty"`
+	File    string `json:"path,omitempty" yaml:"path,omitempty"`
 	Package string `json:"package,omitempty" yaml:"package,omitempty"`
 	Command string `json:"command,omitempty" yaml:"command,omitempty"`
 }

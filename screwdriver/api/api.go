@@ -146,7 +146,7 @@ func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) 
 	case "binary":
 		filePath = commandSpec.Binary.File
 	case "habitat":
-		filePath = commandSpec.Habitat.Package
+		filePath = commandSpec.Habitat.File
 	}
 
 	fileContents, err := util.LoadByte(filePath)

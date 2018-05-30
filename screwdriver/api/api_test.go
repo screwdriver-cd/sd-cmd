@@ -40,6 +40,7 @@ const (
 	dummyDockerImage    = "chefdk:1.2.3"
 	dummyDockerCmd      = "knife"
 	dummyHabitatMode    = habitatModeRemote
+	dummyHart           = "dummy/dummy.hart"
 	dummyHabitatPkg     = "core/git/2.14.1"
 	dummyHabitatCmd     = "git"
 )
@@ -95,6 +96,7 @@ func dummySpec(format string) (cmd *util.CommandSpec) {
 		cmd.Habitat = new(util.Habitat)
 		cmd.Habitat.Command = dummyHabitatCmd
 		cmd.Habitat.Mode = dummyHabitatMode
+		cmd.Habitat.File = dummyHart
 		cmd.Habitat.Package = dummyHabitatPkg
 	}
 	return cmd
@@ -233,7 +235,7 @@ func TestPostCommand(t *testing.T) {
 	// case success habitat local
 	spec = dummySpec(habitatFormat)
 	spec.Habitat.Mode = habitatModeLocal
-	spec.Habitat.Package = habitatPackagePath
+	spec.Habitat.File = habitatPackagePath
 	responseMsg = fmt.Sprintf(`{"id":76,"namespace":"%s","name":"%s",
 		"version":"%s","description":"foobar","maintainer":"foo@yahoo-corp.jp",
 		"format":"habitat","habitat":{"mode":"%s", "package":"%s", "command":"%s"},"pipelineId":250271}`,

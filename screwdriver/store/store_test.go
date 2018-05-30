@@ -19,19 +19,19 @@ const (
 )
 
 const (
-	dummyNameSpace       = "foo-dummy"
-	dummyName            = "name-dummy"
-	dummyVersion         = "1.1.1"
-	dummyFormat          = "dummy-format"
-	dummyFile            = "sd-step"
-	dummyDescription     = "dummy description"
-	dummyMode            = "dummy_mode"
-	dummyPackage         = "dummy_org/dummy"
-	dummyHabitatArtifact = "dummy.hart"
-	dummyCommand         = "dummy_get"
-	fakeArtifactsDir     = "http://fake.store/v1/"
-	fakeAPIURL           = "http://fake.com/v4/"
-	fakeSDToken          = "fake-sd-token"
+	dummyNameSpace   = "foo-dummy"
+	dummyName        = "name-dummy"
+	dummyVersion     = "1.1.1"
+	dummyFormat      = "dummy-format"
+	dummyFile        = "sd-step"
+	dummyDescription = "dummy description"
+	dummyMode        = "dummy_mode"
+	dummyPackage     = "dummy_org/dummy"
+	dummyHart        = "dummy.hart"
+	dummyCommand     = "dummy_get"
+	fakeArtifactsDir = "http://fake.store/v1/"
+	fakeAPIURL       = "http://fake.com/v4/"
+	fakeSDToken      = "fake-sd-token"
 )
 
 func setup() {
@@ -76,6 +76,7 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 	case habitatFormat:
 		spec.Habitat = &util.Habitat{
 			Mode:    dummyMode,
+			File:    dummyHart,
 			Package: dummyPackage,
 			Command: dummyCommand,
 		}

@@ -16,5 +16,6 @@ format: habitat
 # if format: habitat
 habitat:
     mode: local
-    package: ./testdata/binary/hello.hart
+    file: ./testdata/binary/hello.hart
+    package: core/git/2.14.1
     command: git

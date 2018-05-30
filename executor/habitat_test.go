@@ -41,7 +41,6 @@ func TestGetPkgDirPath(t *testing.T) {
 
 func TestGetPkgFilePath(t *testing.T) {
 	spec := dummyCommandSpec(habitatFormat)
-	spec.Habitat.Package = dummyHabitatArtifact
 	hab, _ := NewHabitat(spec, []string{})
 	hab.Store = newDummyStore(validShell, spec, nil)
 	assert.Equal(t, hab.getPkgFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy.hart"))

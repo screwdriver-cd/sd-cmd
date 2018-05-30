@@ -21,17 +21,18 @@ const (
 )
 
 const (
-	dummyNameSpace       = "foo-dummy"
-	dummyName            = "name-dummy"
-	dummyVersion         = "1.0.1"
-	dummyFileName        = "sd-step"
-	dummyFile            = "/dummy/" + dummyFileName
-	dummyDescription     = "dummy description"
-	dummyMode            = "dummy_mode"
-	dummyPackage         = "dummy_org/dummy"
-	dummyHabitatArtifact = "dummy.hart"
-	dummyCommand         = "dummy_get"
-	dummyImage           = "dummy:latest"
+	dummyNameSpace   = "foo-dummy"
+	dummyName        = "name-dummy"
+	dummyVersion     = "1.0.1"
+	dummyFileName    = "sd-step"
+	dummyFile        = "/dummy/" + dummyFileName
+	dummyDescription = "dummy description"
+	dummyMode        = "dummy_mode"
+	dummyPackage     = "dummy_org/dummy"
+	dummyHartName    = "dummy.hart"
+	dummyHart        = "/dummy/" + dummyHartName
+	dummyCommand     = "dummy_get"
+	dummyImage       = "dummy:latest"
 )
 
 var (
@@ -141,6 +142,7 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 	case habitatFormat:
 		spec.Habitat = &util.Habitat{
 			Mode:    dummyMode,
+			File:    dummyHart,
 			Package: dummyPackage,
 			Command: dummyCommand,
 		}

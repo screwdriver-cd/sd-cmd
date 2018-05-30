@@ -36,7 +36,7 @@ func (h *Habitat) getPkgDirPath() string {
 }
 
 func (h *Habitat) getPkgFilePath() string {
-	fileName := filepath.Base(h.Spec.Habitat.Package)
+	fileName := filepath.Base(h.Spec.Habitat.File)
 	return filepath.Join(h.getPkgDirPath(), fileName)
 }
 
@@ -61,8 +61,6 @@ func (h *Habitat) download() error {
 	}
 
 	path := h.getPkgFilePath()
-	h.Spec.Habitat.Package = path
-
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("Failed to create command file: %v", err)
@@ -81,22 +79,19 @@ func (h *Habitat) download() error {
 
 // install executes "hab install" with a package name
 func (h *Habitat) install() (err error) {
-	pkgInstallArgs := []string{"pkg", "install", h.Spec.Habitat.Package}
+	var installPkg string
+	if h.Spec.Habitat.Mode == "local" {
+		installPkg = h.Spec.Habitat.File
+	} else {
+		installPkg = h.Spec.Habitat.Package
+	}
+	pkgInstallArgs := []string{"pkg", "install", installPkg}
 
 	return execCommand(habPath, pkgInstallArgs)
 }
 
 // exec executes "hab exec" with a package name, command and args from a CLI
 func (h *Habitat) exec() (err error) {
-	if h.Spec.Habitat.Mode == "local" {
-		cmdstr := fmt.Sprintf("tail -n +6 %v | xzcat | tar -t | head -1 | sed 's/\\hab\\/pkgs\\/\\(.*\\)\\/$/\\1/g'", h.Spec.Habitat.Package)
-		out, err := command("sh", "-c", cmdstr).Output()
-		if err != nil {
-			lgr.Debug.Printf("failed to get package name from .hart file: %v", err)
-			return err
-		}
-		h.Spec.Habitat.Package = string(out)
-	}
 	execArgs := append([]string{"pkg", "exec", h.Spec.Habitat.Package, h.Spec.Habitat.Command}, h.Args...)
 
 	return execCommand(habPath, execArgs)
