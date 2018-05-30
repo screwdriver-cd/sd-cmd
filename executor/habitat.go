@@ -88,6 +88,15 @@ func (h *Habitat) install() (err error) {
 
 // exec executes "hab exec" with a package name, command and args from a CLI
 func (h *Habitat) exec() (err error) {
+	if h.Spec.Habitat.Mode == "local" {
+		cmdstr := fmt.Sprintf("tail -n +6 %v | xzcat | tar -t | head -1 | sed 's/\\hab\\/pkgs\\/\\(.*\\)\\/$/\\1/g'", h.Spec.Habitat.Package)
+		out, err := command("sh", "-c", cmdstr).Output()
+		if err != nil {
+			lgr.Debug.Printf("failed to get package name from .hart file: %v", err)
+			return err
+		}
+		h.Spec.Habitat.Package = string(out)
+	}
 	execArgs := append([]string{"pkg", "exec", h.Spec.Habitat.Package, h.Spec.Habitat.Command}, h.Args...)
 
 	return execCommand(habPath, execArgs)
