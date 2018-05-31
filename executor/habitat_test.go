@@ -72,8 +72,20 @@ func TestRunHabitat(t *testing.T) {
 	defer func() { command = exec.Command }()
 
 	spec := dummyCommandSpec(habitatFormat)
+
+	// case remote mode
 	hab, _ := NewHabitat(spec, dummyArgs)
 	err := hab.Run()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case local mode
+	spec.Habitat.Mode = "local"
+	os.Setenv("HABITAT_MODE", "local")
+	hab, _ = NewHabitat(spec, dummyArgs)
+	hab.Store = newDummyStore(validShell, spec, nil)
+	err = hab.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -126,7 +138,12 @@ func TestHelperProcess(t *testing.T) {
 			}
 		}
 	case "install":
-		installDummyArgs := []string{dummyPackage}
+		var installDummyArgs []string
+		if os.Getenv("HABITAT_MODE") == "local" {
+			installDummyArgs[0] = dummyHart
+		} else {
+			installDummyArgs[0] = dummyPackage
+		}
 		argsLen := len(args)
 		dummyLen := len(installDummyArgs)
 		if argsLen != dummyLen {
