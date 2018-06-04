@@ -2,6 +2,9 @@ package executor
 
 import (
 	"fmt"
+	"golang.org/x/crypto/ssh/terminal"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -63,6 +66,16 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 
 func execCommand(path string, args []string) (err error) {
 	cmd := command(path, args...)
+	if !terminal.IsTerminal(0) {
+		stdin, err := cmd.StdinPipe()
+		if nil != err {
+			lgr.Debug.Printf("failed to open StdinPipe: %v", err)
+		}
+		b, _ := ioutil.ReadAll(os.Stdin)
+		io.WriteString(stdin, string(b))
+		stdin.Close()
+	}
+
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
 
 	cmd.Stdout = os.Stdout
