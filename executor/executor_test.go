@@ -26,6 +26,7 @@ const (
 	dummyVersion     = "1.0.1"
 	dummyFileName    = "sd-step"
 	dummyFile        = "/dummy/" + dummyFileName
+	dummyEmptyFile   = "empty_file_path"
 	dummyDescription = "dummy description"
 	dummyMode        = "dummy_mode"
 	dummyPackage     = "dummy_org/dummy"

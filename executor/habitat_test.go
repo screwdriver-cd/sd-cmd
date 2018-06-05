@@ -89,6 +89,24 @@ func TestRunHabitat(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
+
+	// case hart file is not downloaded
+	spec.Habitat.File = dummyEmptyFile
+	assert.False(t, hab.isDownloaded())
+	err = hab.Run()
+	if err != nil {
+		t.Errorf("err=%q, want nil")
+	}
+	hartPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyEmptyFile)
+	os.Remove(hartPath)
+
+	// store returns error
+	hab.Store = newDummyStore(validShell, spec, fmt.Errorf("store cause error"))
+	err = hab.Run()
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+	os.Remove(hartPath)
 }
 
 func TestHelperProcess(t *testing.T) {
