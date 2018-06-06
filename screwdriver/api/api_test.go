@@ -11,25 +11,20 @@ import (
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/util"
+	"path"
 )
 
 const (
-	fakeAPIURL  = "http://fake.com/v4/"
-	fakeSDToken = "fake-sd-token"
-)
-
-const (
-	binaryFormat  = "binary"
-	dockerFormat  = "docker"
-	habitatFormat = "habitat"
-)
-
-const (
+	binaryFormat      = "binary"
+	dockerFormat      = "docker"
+	habitatFormat     = "habitat"
 	habitatModeRemote = "remote"
 	habitatModeLocal  = "local"
 )
 
 const (
+	fakeAPIURL       = "http://fake.com/v4/"
+	fakeSDToken      = "fake-sd-token"
 	dummyNamespace   = "foo-dummy"
 	dummyName        = "name-dummy"
 	dummyVersion     = "1.0.1"
@@ -40,11 +35,23 @@ const (
 	dummyHart        = "dummy/dummy.hart"
 	dummyHabitatPkg  = "core/git/2.14.1"
 	dummyCmd         = "dummy-command"
+	dummyTag         = "stable"
 )
 
 var (
 	binaryFilePath     = "../../testdata/binary/hello"
 	habitatPackagePath = "../../testdata/binary/hello.hart"
+	errorResponses     = []struct {
+		code    int
+		message string
+	}{
+		{200, `{{"namespace":"invalid","name":"json","version":"1.0","format":"binary","binary":{"file":"./foobar.sh"}}`},
+		{403, `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`},
+		{403, `{"statusCode": 403,"error": "Forbidden","message": {"This error message json is broken"}`},
+		{500, `{"statusCode": 500,"error": "InternalServerError","message": "server error"}`},
+		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
+		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
+	}
 )
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
@@ -133,20 +140,7 @@ func TestGetCommand(t *testing.T) {
 	}
 
 	// case failure. check some api response error
-	response := []struct {
-		code    int
-		message string
-	}{
-		{200, `{{"namespace":"invalid","name":"json","version":"1.0","format":"binary","binary":{"file":"./foobar.sh"}}`},
-		{403, `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`},
-		{403, `{"statusCode": 403,"error": "Forbidden","message": {"This error message json is broken"}`},
-		{500, `{"statusCode": 500,"error": "InternalServerError","message": "server error"}`},
-		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
-		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
-	}
-
-	// request
-	for _, res := range response {
+	for _, res := range errorResponses {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
 		_, err = api.GetCommand(dummySmallSpec())
@@ -256,20 +250,7 @@ func TestPostCommand(t *testing.T) {
 	// case failure. check some api response error
 	spec = dummySpec(binaryFormat)
 	spec.Binary.File = binaryFilePath
-	response := []struct {
-		code    int
-		message string
-	}{
-		{200, `{{"namespace":"invalid","name":"json","version":"1.0","format":"binary","binary":{"file":"./foobar.sh"}}`},
-		{403, `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`},
-		{403, `{"statusCode": 403,"error": "Forbidden","message": {"This error message json is broken"}`},
-		{500, `{"statusCode": 500,"error": "InternalServerError","message": "server error"}`},
-		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
-		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
-	}
-
-	// request
-	for _, res := range response {
+	for _, res := range errorResponses {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
 		_, err = api.PostCommand(spec)
@@ -321,20 +302,7 @@ func TestValidateCommand(t *testing.T) {
 	}
 
 	// case failure. check some api response error
-	response := []struct {
-		code    int
-		message string
-	}{
-		{200, `{{"namespace":"invalid","name":"json","version":"1.0","format":"binary","binary":{"file":"./foobar.sh"}}`},
-		{403, `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`},
-		{403, `{"statusCode": 403,"error": "Forbidden","message": {"This error message json is broken"}`},
-		{500, `{"statusCode": 500,"error": "InternalServerError","message": "server error"}`},
-		{200, `{"statusCode": 200,"error": "JsonBroken",{"message"}: "This json is broken"}`},
-		{600, `{"statusCode": 403,"error": "Unknown","message": "Unknown"}`},
-	}
-
-	// request
-	for _, res := range response {
+	for _, res := range errorResponses {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
 		_, err = api.ValidateCommand("dummy")
@@ -343,6 +311,46 @@ func TestValidateCommand(t *testing.T) {
 		}
 	}
 }
+
+func TestTagCommand(t *testing.T) {
+	// case success
+	c := newClient(fakeAPIURL, fakeSDToken)
+	responseMsg := fmt.Sprintf(`{"errors": [] }`)
+	dummyEndpoint := path.Join("/v4/commands/", dummyNamespace, dummyName, "tags", dummyTag)
+	spec := dummySpec(binaryFormat)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, dummyEndpoint)
+	api := API(c)
+
+	// request
+	err := api.TagCommand(spec, dummyVersion, dummyTag)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case failure. check 4xx error message
+	errMsg := `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`
+	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
+	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
+	api = API(c)
+
+	// request
+	err = api.TagCommand(spec, dummyVersion, dummyTag)
+	if err.Error() != ansMsg {
+		t.Errorf("err=%q, want %q", errMsg, ansMsg)
+	}
+
+	// case failure. check some api response error
+	for _, res := range errorResponses {
+		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
+		api = API(c)
+		err = api.TagCommand(spec, dummyVersion, dummyTag)
+		if err == nil {
+			println(res.code, res.message)
+			t.Errorf("err=nil, want error")
+		}
+	}
+}
+
 func TestMain(m *testing.M) {
 	ret := m.Run()
 	os.Exit(ret)

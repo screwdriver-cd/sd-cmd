@@ -28,6 +28,10 @@ func (d *dummySDAPIValidator) ValidateCommand(yamlString string) (*util.Validate
 	return dummyAPIValidateCommand(), nil
 }
 
+func (d *dummySDAPIValidator) TagCommand(spec *util.CommandSpec, targetVersion, tag string) error {
+	return nil
+}
+
 func TestNew(t *testing.T) {
 	// success
 	testDataPath := "../testdata/yaml/sd-command.yaml"

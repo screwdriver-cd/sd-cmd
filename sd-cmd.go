@@ -67,18 +67,20 @@ func runExecutor(sdAPI api.API, args []string) (err error) {
 	return
 }
 
-func runPublisher(inputCommand []string) error {
-	sdAPI := api.New(config.SDAPIURL, config.SDToken)
-	pub, err := publisher.New(sdAPI, inputCommand)
+func runPublisher(sdAPI api.API, args []string) error {
+	pub, err := publisher.New(sdAPI, args)
 	if err != nil {
 		return fmt.Errorf("Fail to get publisher: %v", err)
 	}
 	return pub.Run()
 }
 
-func runValidator(inputCommand []string) error {
-	sdAPI := api.New(config.SDAPIURL, config.SDToken)
-	val, err := validator.New(sdAPI, inputCommand)
+func runPromoter(sdAPI api.API, args []string) error {
+	return nil
+}
+
+func runValidator(sdAPI api.API, args []string) error {
+	val, err := validator.New(sdAPI, args)
 	if err != nil {
 		return fmt.Errorf("Fail to get validator: %v", err)
 	}
@@ -94,11 +96,11 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "exec":
 		return runExecutor(sdAPI, args)
 	case "publish":
-		return runPublisher(args[2:])
+		return runPublisher(sdAPI, args[2:])
 	case "promote":
 		return fmt.Errorf("promote is not implemented yet")
 	case "validate":
-		return runValidator(args[2:])
+		return runValidator(sdAPI, args[2:])
 	default:
 		return runExecutor(sdAPI, args)
 	}

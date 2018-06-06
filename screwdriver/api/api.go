@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	timeoutSec = 180
+	timeoutSec         = 180
+	defaultContentType = "application/json"
 )
 
 // API is a Screwdriver API endpoint
@@ -24,6 +25,7 @@ type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
 	PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error)
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
+	TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) error
 }
 
 type client struct {
@@ -83,11 +85,10 @@ func (c client) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, erro
 	}
 	uri.Path = path.Join(uri.Path, "commands", smallSpec.Namespace, smallSpec.Name, smallSpec.Version)
 
-	const contentType = "application/json"
 	// No payload
 	payload := new(bytes.Buffer)
 
-	responseSpec, err := c.httpRequest("GET", uri.String(), contentType, payload)
+	responseSpec, err := c.httpRequest("GET", uri.String(), defaultContentType, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +100,10 @@ func writeValidateBody(yamlString string) (bodyBuff *bytes.Buffer, err error) {
 	var payload util.PayloadYaml
 	payload.Yaml = yamlString
 	validateBytes, err := json.Marshal(payload)
-	bodyBuff = bytes.NewBuffer(validateBytes)
 	if err != nil {
 		return nil, err
 	}
+	bodyBuff = bytes.NewBuffer(validateBytes)
 	return
 }
 
@@ -114,10 +115,22 @@ func specToPayloadBuf(commandSpec *util.CommandSpec) (bodyBuff *bytes.Buffer, er
 	var payload util.PayloadYaml
 	payload.Yaml = string(commandSpecBytes)
 	specBytes, err := json.Marshal(payload)
-	bodyBuff = bytes.NewBuffer(specBytes)
 	if err != nil {
 		return nil, err
 	}
+	bodyBuff = bytes.NewBuffer(specBytes)
+	return
+}
+
+func versionToPayLoadBuf(targetVersion string) (bodyBuff *bytes.Buffer, err error) {
+	body := util.TagTargetVersion{
+		Version: targetVersion,
+	}
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyBuff = bytes.NewBuffer(bodyBytes)
 	return
 }
 
@@ -226,7 +239,7 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, e
 		}
 	case "docker":
 		body, err = specToPayloadBuf(commandSpec)
-		contentType = "application/json"
+		contentType = defaultContentType
 	default:
 		return nil, fmt.Errorf(`Unknown "Format" value of command spec: %v`, err)
 	}
@@ -246,7 +259,6 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, e
 }
 
 func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
-	contentType := "application/json"
 	body, err := writeValidateBody(yamlString)
 
 	uri, err := url.Parse(c.baseURL)
@@ -255,7 +267,7 @@ func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, erro
 	}
 	uri.Path = path.Join(uri.Path, "validator/command")
 
-	responseBytes, statusCode, err := c.sendHTTPRequest("POST", uri.String(), contentType, body)
+	responseBytes, statusCode, err := c.sendHTTPRequest("POST", uri.String(), defaultContentType, body)
 	if err != nil {
 		return nil, fmt.Errorf("Post request failed: %v", err)
 	}
@@ -270,6 +282,33 @@ func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, erro
 		return nil, fmt.Errorf("Screwdriver API Response unparseable: status=%d, err=%v", statusCode, err)
 	}
 	return res, nil
+}
+
+func (c client) TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (err error) {
+	body, err := versionToPayLoadBuf(targetVersion)
+	if err != nil {
+		return fmt.Errorf("Failed to create payload: %v", err)
+	}
+
+	uri, err := url.Parse(c.baseURL)
+	if err != nil {
+		return fmt.Errorf("Failed to parse URL: %v", err)
+	}
+	uri.Path = path.Join(uri.Path, "commands", commandSpec.Namespace, commandSpec.Name, "tags", tag)
+
+	responseBytes, statusCode, err := c.sendHTTPRequest("PUT", uri.String(), defaultContentType, body)
+	if err != nil {
+		return
+	}
+
+	responseBytes, err = handleResponse(responseBytes, statusCode)
+	if err != nil {
+		return
+	}
+
+	res := new(util.TagResponse)
+	err = json.Unmarshal(responseBytes, res)
+	return
 }
 
 func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {

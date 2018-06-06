@@ -85,6 +85,20 @@ type ValidateError struct {
 	Message string `json:"message"`
 }
 
+// TagTargetVersion represents a body of a tagging request.
+type TagTargetVersion struct {
+	Version string `json:"version"`
+}
+
+// TagResponse represents a response from API when tags command
+type TagResponse struct {
+	ID        int    `json:"id"`
+	Namespace string `json"namespace"`
+	Name      string `json:"name"`
+	Tag       string `json:"tag"`
+	Version   string `json:"version"`
+}
+
 func checkVersion(ver string) bool {
 	if caretRangesAndPinningRegexp.Match([]byte(ver)) {
 		return true

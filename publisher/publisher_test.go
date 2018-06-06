@@ -48,6 +48,10 @@ func (d *dummySDAPI) ValidateCommand(yamlString string) (*util.ValidateResponse,
 	return nil, nil
 }
 
+func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag string) error {
+	return nil
+}
+
 func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 	d := &dummySDAPI{
 		spec: spec,
