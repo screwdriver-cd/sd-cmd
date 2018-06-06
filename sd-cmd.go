@@ -10,6 +10,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
 	"github.com/screwdriver-cd/sd-cmd/logger"
+	"github.com/screwdriver-cd/sd-cmd/promoter"
 	"github.com/screwdriver-cd/sd-cmd/publisher"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/validator"
@@ -76,7 +77,12 @@ func runPublisher(sdAPI api.API, args []string) error {
 }
 
 func runPromoter(sdAPI api.API, args []string) error {
-	return nil
+	pro, err := promoter.New(sdAPI, args)
+	if err != nil {
+		return fmt.Errorf("Fail to get promoter: %v", err)
+	}
+
+	return pro.Run()
 }
 
 func runValidator(sdAPI api.API, args []string) error {
@@ -98,7 +104,7 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "publish":
 		return runPublisher(sdAPI, args[2:])
 	case "promote":
-		return fmt.Errorf("promote is not implemented yet")
+		return runPromoter(sdAPI, args[2:])
 	case "validate":
 		return runValidator(sdAPI, args[2:])
 	default:

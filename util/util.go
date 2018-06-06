@@ -92,8 +92,7 @@ type TagTargetVersion struct {
 
 // TagResponse represents a response from API when tags command
 type TagResponse struct {
-	ID        int    `json:"id"`
-	Namespace string `json"namespace"`
+	Namespace string `json:"namespace"`
 	Name      string `json:"name"`
 	Tag       string `json:"tag"`
 	Version   string `json:"version"`

@@ -25,7 +25,7 @@ type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
 	PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error)
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
-	TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) error
+	TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error)
 }
 
 type client struct {
@@ -284,15 +284,15 @@ func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, erro
 	return res, nil
 }
 
-func (c client) TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (err error) {
+func (c client) TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (res *util.TagResponse, err error) {
 	body, err := versionToPayLoadBuf(targetVersion)
 	if err != nil {
-		return fmt.Errorf("Failed to create payload: %v", err)
+		return nil, fmt.Errorf("Failed to create payload: %v", err)
 	}
 
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
-		return fmt.Errorf("Failed to parse URL: %v", err)
+		return nil, fmt.Errorf("Failed to parse URL: %v", err)
 	}
 	uri.Path = path.Join(uri.Path, "commands", commandSpec.Namespace, commandSpec.Name, "tags", tag)
 
@@ -306,7 +306,7 @@ func (c client) TagCommand(commandSpec *util.CommandSpec, targetVersion, tag str
 		return
 	}
 
-	res := new(util.TagResponse)
+	res = new(util.TagResponse)
 	err = json.Unmarshal(responseBytes, res)
 	return
 }

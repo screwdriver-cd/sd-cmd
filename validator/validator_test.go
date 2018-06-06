@@ -28,8 +28,8 @@ func (d *dummySDAPIValidator) ValidateCommand(yamlString string) (*util.Validate
 	return dummyAPIValidateCommand(), nil
 }
 
-func (d *dummySDAPIValidator) TagCommand(spec *util.CommandSpec, targetVersion, tag string) error {
-	return nil
+func (d *dummySDAPIValidator) TagCommand(spec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error) {
+	return nil, nil
 }
 
 func TestNew(t *testing.T) {

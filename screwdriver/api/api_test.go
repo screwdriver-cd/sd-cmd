@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/util"
-	"path"
 )
 
 const (
@@ -322,7 +322,7 @@ func TestTagCommand(t *testing.T) {
 	api := API(c)
 
 	// request
-	err := api.TagCommand(spec, dummyVersion, dummyTag)
+	_, err := api.TagCommand(spec, dummyVersion, dummyTag)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -334,7 +334,7 @@ func TestTagCommand(t *testing.T) {
 	api = API(c)
 
 	// request
-	err = api.TagCommand(spec, dummyVersion, dummyTag)
+	_, err = api.TagCommand(spec, dummyVersion, dummyTag)
 	if err.Error() != ansMsg {
 		t.Errorf("err=%q, want %q", errMsg, ansMsg)
 	}
@@ -343,7 +343,7 @@ func TestTagCommand(t *testing.T) {
 	for _, res := range errorResponses {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		err = api.TagCommand(spec, dummyVersion, dummyTag)
+		_, err = api.TagCommand(spec, dummyVersion, dummyTag)
 		if err == nil {
 			println(res.code, res.message)
 			t.Errorf("err=nil, want error")
