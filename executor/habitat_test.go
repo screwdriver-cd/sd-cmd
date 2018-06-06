@@ -95,7 +95,7 @@ func TestRunHabitat(t *testing.T) {
 	assert.False(t, hab.isDownloaded())
 	err = hab.Run()
 	if err != nil {
-		t.Errorf("err=%q, want nil")
+		t.Errorf("err=%q, want nil", err)
 	}
 	hartPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyEmptyFile)
 	os.Remove(hartPath)
