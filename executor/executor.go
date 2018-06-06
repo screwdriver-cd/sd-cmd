@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
@@ -66,13 +67,19 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 
 func execCommand(path string, args []string) (err error) {
 	cmd := command(path, args...)
-	if !terminal.IsTerminal(0) {
+	if !terminal.IsTerminal(syscall.Stdin) {
 		stdin, err := cmd.StdinPipe()
-		if nil != err {
+		if err != nil {
 			lgr.Debug.Printf("failed to open StdinPipe: %v", err)
 		}
-		b, _ := ioutil.ReadAll(os.Stdin)
-		io.WriteString(stdin, string(b))
+		b, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			lgr.Debug.Printf("failed to read Stdin: %v", err)
+		}
+		_, err = io.WriteString(stdin, string(b))
+		if err != nil {
+			lgr.Debug.Printf("failed to write StdinPipe: %v", err)
+		}
 		stdin.Close()
 	}
 
