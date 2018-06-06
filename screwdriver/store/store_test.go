@@ -13,12 +13,22 @@ import (
 )
 
 const (
+	binaryFormat  = "binary"
+	dockerFormat  = "docker"
+	habitatFormat = "habitat"
+)
+
+const (
 	dummyNameSpace   = "foo-dummy"
 	dummyName        = "name-dummy"
 	dummyVersion     = "1.1.1"
-	dummyFormat      = "binary"
+	dummyFormat      = "dummy-format"
 	dummyFile        = "sd-step"
 	dummyDescription = "dummy description"
+	dummyMode        = "dummy_mode"
+	dummyPackage     = "dummy_org/dummy"
+	dummyHart        = "dummy.hart"
+	dummyCommand     = "dummy_get"
 	fakeArtifactsDir = "http://fake.store/v1/"
 	fakeAPIURL       = "http://fake.com/v4/"
 	fakeSDToken      = "fake-sd-token"
@@ -34,7 +44,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 		w.Header().Set("Content-Type", cType)
-		fmt.Fprintf(w, body)
+		fmt.Fprint(w, body)
 	}))
 	tr := &http.Transport{
 		Proxy: func(req *http.Request) (*url.URL, error) {
@@ -49,26 +59,38 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 	return &http.Client{Transport: tr}
 }
 
-func dummySDCommand() (spec *util.CommandSpec) {
+func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 	spec = &util.CommandSpec{
 		Namespace:   dummyNameSpace,
 		Name:        dummyName,
 		Description: dummyDescription,
 		Version:     dummyVersion,
-		Format:      dummyFormat,
+		Format:      format,
 	}
-	spec.Binary = new(util.Binary)
-	spec.Binary.File = dummyFile
+
+	switch format {
+	case binaryFormat:
+		spec.Binary = &util.Binary{
+			File: dummyFile,
+		}
+	case habitatFormat:
+		spec.Habitat = &util.Habitat{
+			Mode:    dummyMode,
+			File:    dummyHart,
+			Package: dummyPackage,
+			Command: dummyCommand,
+		}
+	}
 	return spec
 }
 
 func TestNew(t *testing.T) {
-	var sdCommand *util.CommandSpec
+	var spec *util.CommandSpec
 	var store Store
 
-	// success
-	sdCommand = dummySDCommand()
-	store = New(config.SDStoreURL, sdCommand, config.SDToken)
+	// success new
+	spec = dummyCommandSpec(dummyFormat)
+	store = New(config.SDStoreURL, spec, config.SDToken)
 
 	if _, ok := store.(Store); !ok {
 		t.Errorf("New does not fulfill API interface")
@@ -77,25 +99,25 @@ func TestNew(t *testing.T) {
 
 func TestGetCommand(t *testing.T) {
 	// success
-	sdCommand := dummySDCommand()
-	c := newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	spec := dummyCommandSpec(binaryFormat)
+	c := newClient(config.SDStoreURL, spec, config.SDToken)
 	store := Store(c)
 	dummyURL := fmt.Sprintf("/v1/commands/%s/%s/%s", dummyNameSpace, dummyName, dummyVersion)
 	c.client = makeFakeHTTPClient(t, 200, "Hello World", dummyURL, "text/plain")
-	binary, err := store.GetCommand()
+	cmd, err := store.GetCommand()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	if binary.Type != "text/plain" {
-		t.Errorf("binary.Type=%q, want %q", binary.Type, "text/plain")
+	if cmd.Type != "text/plain" {
+		t.Errorf("cmd.Type=%q, want %q", cmd.Type, "text/plain")
 	}
-	if string(binary.Body) != "Hello World" {
-		t.Errorf("binary.Body=%q, want %q", string(binary.Body), "Hello World")
+	if string(cmd.Body) != "Hello World" {
+		t.Errorf("cmd.Body=%q, want %q", string(cmd.Body), "Hello World")
 	}
 
 	// failure. check 4xx error message
-	sdCommand = dummySDCommand()
-	c = newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	spec = dummyCommandSpec(binaryFormat)
+	c = newClient(config.SDStoreURL, spec, config.SDToken)
 	c.client = makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain")
 	store = Store(c)
 	_, err = store.GetCommand()
@@ -104,8 +126,8 @@ func TestGetCommand(t *testing.T) {
 	}
 
 	// failure. check some api response error
-	sdCommand = dummySDCommand()
-	c = newClient(config.SDStoreURL, sdCommand, config.SDToken)
+	spec = dummyCommandSpec(binaryFormat)
+	c = newClient(config.SDStoreURL, spec, config.SDToken)
 	clients := []*http.Client{
 		makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain"),
 		makeFakeHTTPClient(t, 500, "ERROR", "", "text/plain"),
@@ -122,16 +144,8 @@ func TestGetCommand(t *testing.T) {
 	}
 
 	// failure.
-	sdCommand = dummySDCommand()
-	sdCommand.Format = "docker"
-	c = newClient(config.SDStoreURL, sdCommand, config.SDToken)
-	store = Store(c)
-	_, err = store.GetCommand()
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
-
-	c = newClient(config.SDStoreURL, nil, config.SDToken)
+	spec = dummyCommandSpec(dockerFormat)
+	c = newClient(config.SDStoreURL, spec, config.SDToken)
 	store = Store(c)
 	_, err = store.GetCommand()
 	if err == nil {

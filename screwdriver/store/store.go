@@ -47,7 +47,7 @@ func (e ResponseError) Error() string {
 }
 
 func (c *client) commandURL() (string, error) {
-	if c.spec != nil && c.spec.Format == "binary" {
+	if c.spec != nil && (c.spec.Format == "binary" || c.spec.Format == "habitat") {
 		uri, err := url.Parse(c.baseURL)
 		if err != nil {
 			return "", fmt.Errorf("The base Screwdriver Store API is invalid %q", c.baseURL)
@@ -55,7 +55,7 @@ func (c *client) commandURL() (string, error) {
 		uri.Path = path.Join(uri.Path, "commands", c.spec.Namespace, c.spec.Name, c.spec.Version)
 		return uri.String(), nil
 	}
-	return "", fmt.Errorf("The format is not binary")
+	return "", fmt.Errorf("The format %s is not expected", c.spec.Format)
 }
 
 // New returns Store object

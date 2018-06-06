@@ -22,7 +22,7 @@ const (
 // API is a Screwdriver API endpoint
 type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
-	PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error)
+	PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error)
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 }
 
@@ -121,7 +121,7 @@ func specToPayloadBuf(commandSpec *util.CommandSpec) (bodyBuff *bytes.Buffer, er
 	return
 }
 
-func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *util.CommandSpec) error {
+func writeMultipartYaml(writer *multipart.Writer, commandSpec *util.CommandSpec) error {
 	specBytes, err := json.Marshal(commandSpec)
 	if err != nil {
 		return fmt.Errorf("Failed to convert spec to bytes:%v", err)
@@ -141,20 +141,28 @@ func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *
 }
 
 func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) error {
-	fileContentsBin, err := util.LoadByte(commandSpec.Binary.File)
-	if err != nil {
-		return fmt.Errorf("Failed to load binary file:%v", err)
+	var filePath string
+	switch commandSpec.Format {
+	case "binary":
+		filePath = commandSpec.Binary.File
+	case "habitat":
+		filePath = commandSpec.Habitat.File
 	}
 
-	fileNameBin := filepath.Base(commandSpec.Binary.File)
-	binPart, err := writer.CreateFormFile("binary", fileNameBin)
+	fileContents, err := util.LoadByte(filePath)
 	if err != nil {
-		return fmt.Errorf("Failed to create form of binary:%v", err)
+		return fmt.Errorf("Failed to load file:%v", err)
 	}
 
-	_, err = binPart.Write(fileContentsBin)
+	fileName := filepath.Base(filePath)
+	filePart, err := writer.CreateFormFile(commandSpec.Format, fileName)
 	if err != nil {
-		return fmt.Errorf("Failed to write binary to form:%v", err)
+		return fmt.Errorf("Failed to create form of %s:%v", commandSpec.Format, err)
+	}
+
+	_, err = filePart.Write(fileContents)
+	if err != nil {
+		return fmt.Errorf("Failed to write file contents to form:%v", err)
 	}
 
 	return nil
@@ -180,11 +188,11 @@ func (c client) httpRequest(httpMethod string, uri string, contentType string, b
 	return responseSpec, err
 }
 
-func writeMultipart(specPath string, commandSpec *util.CommandSpec) (*bytes.Buffer, string, error) {
+func writeMultipart(commandSpec *util.CommandSpec) (*bytes.Buffer, string, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	err := writeMultipartYaml(writer, specPath, commandSpec)
+	err := writeMultipartYaml(writer, commandSpec)
 	if err != nil {
 		return nil, "", err
 	}
@@ -200,7 +208,7 @@ func writeMultipart(specPath string, commandSpec *util.CommandSpec) (*bytes.Buff
 	return body, contentType, nil
 }
 
-func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	var (
 		body        *bytes.Buffer
 		contentType string
@@ -208,8 +216,15 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	)
 	switch commandSpec.Format {
 	case "binary":
-		body, contentType, err = writeMultipart(specPath, commandSpec)
-	case "habitat", "docker":
+		body, contentType, err = writeMultipart(commandSpec)
+	case "habitat":
+		if commandSpec.Habitat.Mode == "local" {
+			body, contentType, err = writeMultipart(commandSpec)
+		} else {
+			body, err = specToPayloadBuf(commandSpec)
+			contentType = "application/json"
+		}
+	case "docker":
 		body, err = specToPayloadBuf(commandSpec)
 		contentType = "application/json"
 	default:

@@ -19,7 +19,7 @@ type Publisher struct {
 
 // Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
-	specResponse, err := p.sdAPI.PostCommand(p.specPath, p.commandSpec)
+	specResponse, err := p.sdAPI.PostCommand(p.commandSpec)
 	if err != nil {
 		return fmt.Errorf("Post failed:%v", err)
 	}

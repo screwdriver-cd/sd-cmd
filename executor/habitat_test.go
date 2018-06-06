@@ -4,7 +4,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/screwdriver-cd/sd-cmd/config"
 )
 
 var dummyArgs = []string{"arg1", "arg2"}
@@ -19,10 +24,46 @@ func fakeExecCommand(name string, args ...string) *exec.Cmd {
 }
 
 func TestNewHabitat(t *testing.T) {
-	_, err := NewHabitat(dummyAPICommand(habitatFormat), dummyArgs)
+	_, err := NewHabitat(dummyCommandSpec(habitatFormat), dummyArgs)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
+}
+
+func TestGetPkgDirPath(t *testing.T) {
+	spec := dummyCommandSpec(habitatFormat)
+	hab, _ := NewHabitat(spec, []string{})
+	hab.Store = newDummyStore(validShell, spec, nil)
+	// Note: config.BaseCommandPath is customized for test.
+	// see executor/executor_test.go
+	assert.Equal(t, hab.getPkgDirPath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1"))
+}
+
+func TestGetPkgFilePath(t *testing.T) {
+	spec := dummyCommandSpec(habitatFormat)
+	hab, _ := NewHabitat(spec, []string{})
+	hab.Store = newDummyStore(validShell, spec, nil)
+	assert.Equal(t, hab.getPkgFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy.hart"))
+}
+
+func TestIsDownloaded(t *testing.T) {
+	spec := dummyCommandSpec(habitatFormat)
+	hab, _ := NewHabitat(spec, []string{})
+	hab.Store = newDummyStore(validShell, spec, nil)
+	// Not exists
+	assert.False(t, hab.isDownloaded())
+
+	// 0 size file
+	os.MkdirAll(hab.getPkgDirPath(), 0777)
+	file, _ := os.Create(hab.getPkgFilePath())
+	assert.False(t, hab.isDownloaded())
+
+	// non 0 size file
+	file.Write(([]byte)("dummy script."))
+	assert.True(t, hab.isDownloaded())
+
+	defer file.Close()
+	defer os.RemoveAll(hab.getPkgDirPath())
 }
 
 func TestRunHabitat(t *testing.T) {
@@ -30,12 +71,42 @@ func TestRunHabitat(t *testing.T) {
 	command = fakeExecCommand
 	defer func() { command = exec.Command }()
 
-	spec := dummyAPICommand(habitatFormat)
+	spec := dummyCommandSpec(habitatFormat)
+
+	// case remote mode
 	hab, _ := NewHabitat(spec, dummyArgs)
 	err := hab.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
+
+	// case local mode
+	spec.Habitat.Mode = "local"
+	os.Setenv("HABITAT_MODE", "local")
+	hab, _ = NewHabitat(spec, dummyArgs)
+	hab.Store = newDummyStore(validShell, spec, nil)
+	err = hab.Run()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case hart file is not downloaded
+	spec.Habitat.File = dummyEmptyFile
+	assert.False(t, hab.isDownloaded())
+	err = hab.Run()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+	hartPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, dummyEmptyFile)
+	os.Remove(hartPath)
+
+	// store returns error
+	hab.Store = newDummyStore(validShell, spec, fmt.Errorf("store cause error"))
+	err = hab.Run()
+	if err == nil {
+		t.Errorf("err=nil, want error")
+	}
+	os.Remove(hartPath)
 }
 
 func TestHelperProcess(t *testing.T) {
@@ -80,12 +151,17 @@ func TestHelperProcess(t *testing.T) {
 		}
 		for i := range execDummyArgs {
 			if args[i] != execDummyArgs[i] {
-				fmt.Fprintf(os.Stderr, "exec cmd args is expected %v, but %v\n", dummyLen, argsLen)
+				fmt.Fprintf(os.Stderr, "exec cmd args is expected %v, but %v\n", execDummyArgs[i], args[i])
 				os.Exit(1)
 			}
 		}
 	case "install":
-		installDummyArgs := []string{dummyPackage}
+		var installDummyArgs []string
+		if os.Getenv("HABITAT_MODE") == "local" {
+			installDummyArgs[0] = dummyHart
+		} else {
+			installDummyArgs[0] = dummyPackage
+		}
 		argsLen := len(args)
 		dummyLen := len(installDummyArgs)
 		if argsLen != dummyLen {
@@ -94,7 +170,7 @@ func TestHelperProcess(t *testing.T) {
 		}
 		for i := range installDummyArgs {
 			if args[i] != installDummyArgs[i] {
-				fmt.Fprintf(os.Stderr, "install cmd args is expected %v, but %v\n", dummyLen, argsLen)
+				fmt.Fprintf(os.Stderr, "install cmd args is expected %v, but %v\n", installDummyArgs[i], args[i])
 				os.Exit(1)
 			}
 		}
