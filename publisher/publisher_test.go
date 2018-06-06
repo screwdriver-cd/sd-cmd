@@ -8,8 +8,6 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-type dummySDAPIBinary struct{}
-
 const (
 	binaryFormat  = "binary"
 	dockerFormat  = "docker"
@@ -21,13 +19,11 @@ const (
 	dummyName        = "name-dummy"
 	dummyVersion     = "1.0.1"
 	dummyDescription = "dummy description"
-	dummyFileName    = "sd-step"
-	dummyFile        = "/dummy/" + dummyFileName
+	dummyFile        = "/dummy/sd-step"
 	dummyDockerImage = "chefdk:1.2.3"
-	dummyDockerCmd   = "knife"
 	dummyHabitatMode = "remote"
 	dummyHabitatPkg  = "core/git/2.14.1"
-	dummyHabitatCmd  = "git"
+	dummyCmd         = "dummy-command"
 )
 
 const (
@@ -44,7 +40,7 @@ func (d *dummySDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec,
 	return d.spec, d.err
 }
 
-func (d *dummySDAPI) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func (d *dummySDAPI) PostCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return d.spec, d.err
 }
 
@@ -74,11 +70,11 @@ func dummyCommandSpec(format string) (cmd *util.CommandSpec) {
 		cmd.Binary.File = dummyFile
 	case dockerFormat:
 		cmd.Docker = new(util.Docker)
-		cmd.Docker.Command = dummyDockerCmd
+		cmd.Docker.Command = dummyCmd
 		cmd.Docker.Image = dummyDockerImage
 	case habitatFormat:
 		cmd.Habitat = new(util.Habitat)
-		cmd.Habitat.Command = dummyHabitatCmd
+		cmd.Habitat.Command = dummyCmd
 		cmd.Habitat.Mode = dummyHabitatMode
 		cmd.Habitat.Package = dummyHabitatPkg
 	}

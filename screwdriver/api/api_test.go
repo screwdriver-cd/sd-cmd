@@ -16,7 +16,6 @@ import (
 const (
 	fakeAPIURL  = "http://fake.com/v4/"
 	fakeSDToken = "fake-sd-token"
-	fakeJWT     = "fake-jwt"
 )
 
 const (
@@ -31,27 +30,21 @@ const (
 )
 
 const (
-	dummyNamespace      = "foo-dummy"
-	dummyName           = "name-dummy"
-	dummyVersion        = "1.0.1"
-	dummyDescription    = "dummy description"
-	dummyBinaryFileName = "sd-step"
-	dummyBinaryFile     = "/dummy/" + dummyBinaryFileName
-	dummyDockerImage    = "chefdk:1.2.3"
-	dummyDockerCmd      = "knife"
-	dummyHabitatMode    = habitatModeRemote
-	dummyHart           = "dummy/dummy.hart"
-	dummyHabitatPkg     = "core/git/2.14.1"
-	dummyHabitatCmd     = "git"
+	dummyNamespace   = "foo-dummy"
+	dummyName        = "name-dummy"
+	dummyVersion     = "1.0.1"
+	dummyDescription = "dummy description"
+	dummyBinaryFile  = "/dummy/sd-step"
+	dummyDockerImage = "chefdk:1.2.3"
+	dummyHabitatMode = habitatModeRemote
+	dummyHart        = "dummy/dummy.hart"
+	dummyHabitatPkg  = "core/git/2.14.1"
+	dummyCmd         = "dummy-command"
 )
 
 var (
-	binarySpecYamlPath        = "../testdata/yaml/binary-sd-command.yaml"
-	habitatRemoteSpecYamlPath = "../testdata/yaml/habitat-remote-sd-command.yaml"
-	habitatLocalSpecYamlPath  = "../testdata/yaml/habitat-local-sd-command.yaml"
-	dockerSpecYamlPath        = "../testdata/yaml/docker-sd-command.yaml"
-	binaryFilePath            = "../../testdata/binary/hello"
-	habitatPackagePath        = "../../testdata/binary/hello.hart"
+	binaryFilePath     = "../../testdata/binary/hello"
+	habitatPackagePath = "../../testdata/binary/hello.hart"
 )
 
 func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
@@ -90,11 +83,11 @@ func dummySpec(format string) (cmd *util.CommandSpec) {
 		cmd.Binary.File = dummyBinaryFile
 	case dockerFormat:
 		cmd.Docker = new(util.Docker)
-		cmd.Docker.Command = dummyDockerCmd
+		cmd.Docker.Command = dummyCmd
 		cmd.Docker.Image = dummyDockerImage
 	case habitatFormat:
 		cmd.Habitat = new(util.Habitat)
-		cmd.Habitat.Command = dummyHabitatCmd
+		cmd.Habitat.Command = dummyCmd
 		cmd.Habitat.Mode = dummyHabitatMode
 		cmd.Habitat.File = dummyHart
 		cmd.Habitat.Package = dummyHabitatPkg
@@ -200,7 +193,7 @@ func TestPostCommand(t *testing.T) {
 		spec.Namespace, spec.Name, spec.Version, spec.Binary.File)
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api := API(c)
-	_, err := api.PostCommand(binarySpecYamlPath, spec)
+	_, err := api.PostCommand(spec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -213,7 +206,7 @@ func TestPostCommand(t *testing.T) {
 		spec.Namespace, spec.Name, spec.Version, spec.Docker.Image, spec.Docker.Command)
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api = API(c)
-	_, err = api.PostCommand(dockerSpecYamlPath, spec)
+	_, err = api.PostCommand(spec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -227,7 +220,7 @@ func TestPostCommand(t *testing.T) {
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api = API(c)
 
-	_, err = api.PostCommand(habitatRemoteSpecYamlPath, spec)
+	_, err = api.PostCommand(spec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -243,7 +236,7 @@ func TestPostCommand(t *testing.T) {
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/commands")
 	api = API(c)
 
-	_, err = api.PostCommand(habitatLocalSpecYamlPath, spec)
+	_, err = api.PostCommand(spec)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -255,7 +248,7 @@ func TestPostCommand(t *testing.T) {
 	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
 	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
 	api = API(c)
-	_, err = api.PostCommand(binarySpecYamlPath, spec)
+	_, err = api.PostCommand(spec)
 	if err.Error() != ansMsg {
 		t.Errorf("err=%q, want %q", errMsg, ansMsg)
 	}
@@ -279,7 +272,7 @@ func TestPostCommand(t *testing.T) {
 	for _, res := range response {
 		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
 		api = API(c)
-		_, err = api.PostCommand("dummy", spec)
+		_, err = api.PostCommand(spec)
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
@@ -289,7 +282,7 @@ func TestPostCommand(t *testing.T) {
 	spec = dummySpec("unknown")
 	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
 	api = API(c)
-	_, err = api.PostCommand(binarySpecYamlPath, spec)
+	_, err = api.PostCommand(spec)
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}

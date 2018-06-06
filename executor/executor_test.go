@@ -87,7 +87,7 @@ func (d *dummySDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec,
 	return d.spec, d.err
 }
 
-func (d *dummySDAPI) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func (d *dummySDAPI) PostCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, nil
 }
 

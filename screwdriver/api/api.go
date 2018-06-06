@@ -22,7 +22,7 @@ const (
 // API is a Screwdriver API endpoint
 type API interface {
 	GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error)
-	PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error)
+	PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error)
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 }
 
@@ -121,7 +121,7 @@ func specToPayloadBuf(commandSpec *util.CommandSpec) (bodyBuff *bytes.Buffer, er
 	return
 }
 
-func writeMultipartYaml(writer *multipart.Writer, specPath string, commandSpec *util.CommandSpec) error {
+func writeMultipartYaml(writer *multipart.Writer, commandSpec *util.CommandSpec) error {
 	specBytes, err := json.Marshal(commandSpec)
 	if err != nil {
 		return fmt.Errorf("Failed to convert spec to bytes:%v", err)
@@ -188,11 +188,11 @@ func (c client) httpRequest(httpMethod string, uri string, contentType string, b
 	return responseSpec, err
 }
 
-func writeMultipart(specPath string, commandSpec *util.CommandSpec) (*bytes.Buffer, string, error) {
+func writeMultipart(commandSpec *util.CommandSpec) (*bytes.Buffer, string, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	err := writeMultipartYaml(writer, specPath, commandSpec)
+	err := writeMultipartYaml(writer, commandSpec)
 	if err != nil {
 		return nil, "", err
 	}
@@ -208,7 +208,7 @@ func writeMultipart(specPath string, commandSpec *util.CommandSpec) (*bytes.Buff
 	return body, contentType, nil
 }
 
-func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	var (
 		body        *bytes.Buffer
 		contentType string
@@ -216,10 +216,10 @@ func (c client) PostCommand(specPath string, commandSpec *util.CommandSpec) (*ut
 	)
 	switch commandSpec.Format {
 	case "binary":
-		body, contentType, err = writeMultipart(specPath, commandSpec)
+		body, contentType, err = writeMultipart(commandSpec)
 	case "habitat":
 		if commandSpec.Habitat.Mode == "local" {
-			body, contentType, err = writeMultipart(specPath, commandSpec)
+			body, contentType, err = writeMultipart(commandSpec)
 		} else {
 			body, err = specToPayloadBuf(commandSpec)
 			contentType = "application/json"
