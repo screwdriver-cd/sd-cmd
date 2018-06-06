@@ -43,7 +43,7 @@ func (b *Binary) getBinFilePath() string {
 
 func (b *Binary) isInstalled() bool {
 	fInfo, err := os.Stat(b.getBinFilePath())
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		return false
 	}
 	if fInfo.Size() == 0 {

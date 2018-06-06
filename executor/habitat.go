@@ -42,7 +42,7 @@ func (h *Habitat) getPkgFilePath() string {
 
 func (h *Habitat) isDownloaded() bool {
 	fInfo, err := os.Stat(h.getPkgFilePath())
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		return false
 	}
 	if fInfo.Size() == 0 {
