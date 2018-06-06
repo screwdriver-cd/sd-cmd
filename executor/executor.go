@@ -71,14 +71,17 @@ func execCommand(path string, args []string) (err error) {
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
 			lgr.Debug.Printf("failed to open StdinPipe: %v", err)
+			return err
 		}
 		b, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			lgr.Debug.Printf("failed to read Stdin: %v", err)
+			return err
 		}
 		_, err = io.WriteString(stdin, string(b))
 		if err != nil {
 			lgr.Debug.Printf("failed to write StdinPipe: %v", err)
+			return err
 		}
 		stdin.Close()
 	}
