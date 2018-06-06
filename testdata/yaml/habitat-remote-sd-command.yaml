@@ -11,8 +11,13 @@ maintainer: foo@bar.com
 version: 1.0
 # Format the command is in (see below for examples)
 # Valid options: habitat, docker, binary
-format: binary
-# Binary specific config
-# if format: binary
-binary:
-    file: ./testdata/binary/hello
+format: habitat
+# Habitat specific config
+# if format: habitat
+habitat:
+    mode: remote
+    package: core/git/2.14.1
+    # If local
+    # mode: local
+    # package: ./foobar.hart
+    command: git

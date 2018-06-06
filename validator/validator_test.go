@@ -7,13 +7,13 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-type dummySDAPIValidateCommand struct{}
+type dummySDAPIValidator struct{}
 
-func (d *dummySDAPIValidateCommand) GetCommand(spec *util.CommandSpec) (*util.CommandSpec, error) {
+func (d *dummySDAPIValidator) GetCommand(spec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, nil
 }
 
-func (d *dummySDAPIValidateCommand) PostCommand(specPath string, smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
+func (d *dummySDAPIValidator) PostCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
 	return nil, nil
 }
 
@@ -24,14 +24,14 @@ func dummyAPIValidateCommand() (res *util.ValidateResponse) {
 	return res
 }
 
-func (d *dummySDAPIValidateCommand) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
+func (d *dummySDAPIValidator) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
 	return dummyAPIValidateCommand(), nil
 }
 
 func TestNew(t *testing.T) {
 	// success
 	testDataPath := "../testdata/yaml/sd-command.yaml"
-	sdapi := api.API(new(dummySDAPIValidateCommand))
+	sdapi := api.API(new(dummySDAPIValidator))
 	_, err := New(sdapi, []string{"-f", testDataPath})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -40,7 +40,7 @@ func TestNew(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	testDataPath := "../testdata/yaml/sd-command.yaml"
-	sdapi := api.API(new(dummySDAPIValidateCommand))
+	sdapi := api.API(new(dummySDAPIValidator))
 	pub, err := New(sdapi, []string{"-f", testDataPath})
 	if err != nil {
 		t.Errorf("err=%v, want nil", err)
