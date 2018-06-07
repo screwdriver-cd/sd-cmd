@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
+var (
 	dummyNameSpace      = "foo-dummy"
 	dummyName           = "name-dummy"
 	dummyVersion        = "1.0.0"
@@ -101,7 +101,17 @@ func TestRun(t *testing.T) {
 	err = p.Run()
 	assert.Nil(t, err)
 
+	// success with already tagged version
+	dummyTargetVersion = "1.0.0"
+	p, err = New(sdapi, []string{dummyCmdName, dummyTargetVersion, dummyTag})
+	if err != nil {
+		assert.Fail(t, "err should be nil")
+	}
+	err = p.Run()
+	assert.Nil(t, err)
+
 	// failure with error response from TagCommand
+	dummyTargetVersion = "1.0.1"
 	sdapi = api.API(new(dummyInvalidSDAPI))
 	p, err = New(sdapi, []string{dummyCmdName, dummyTargetVersion, dummyTag})
 	if err != nil {

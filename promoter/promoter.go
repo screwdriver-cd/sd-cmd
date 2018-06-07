@@ -50,6 +50,9 @@ func (p *Promoter) Run() (err error) {
 	spec, err := p.sdAPI.GetCommand(p.smallSpec)
 	if err != nil {
 		fmt.Printf("%v does not exist yet\n", p.tag)
+	} else if spec.Version == p.targetVersion {
+		fmt.Printf("%v has been already tagged with %v\n", spec.Version, p.tag)
+		return
 	} else {
 		fmt.Printf("Removing %v from %v\n", spec.Version, p.tag)
 	}
