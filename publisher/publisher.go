@@ -20,6 +20,16 @@ type Publisher struct {
 	tag         string
 }
 
+func (p *Publisher) tagCommand(specResponse *util.CommandSpec) error {
+	commandFullName := path.Join(specResponse.Namespace, specResponse.Name)
+	promoter, err := promoter.New(p.sdAPI, []string{commandFullName, specResponse.Version, p.tag})
+	if err != nil {
+		return err
+	}
+
+	return promoter.Run()
+}
+
 // Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
 	specResponse, err := p.sdAPI.PostCommand(p.commandSpec)
@@ -27,13 +37,7 @@ func (p *Publisher) Run() error {
 		return fmt.Errorf("Post failed: %v", err)
 	}
 
-	commandFullName := path.Join(specResponse.Namespace, specResponse.Name)
-	promoter, err := promoter.New(p.sdAPI, []string{commandFullName, specResponse.Version, p.tag})
-	if err != nil {
-		return err
-	}
-
-	promoter.Run()
+	err = p.tagCommand(specResponse)
 
 	// Published successfully
 	// Show version number of command published by sd-cmd
