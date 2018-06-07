@@ -95,6 +95,10 @@ func (d *dummySDAPI) ValidateCommand(yamlString string) (*util.ValidateResponse,
 	return nil, nil
 }
 
+func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error) {
+	return nil, nil
+}
+
 func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 	d := &dummySDAPI{
 		spec: spec,
