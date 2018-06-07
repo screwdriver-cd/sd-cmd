@@ -49,12 +49,13 @@ func New(api api.API, args []string) (p *Promoter, err error) {
 func (p *Promoter) Run() (err error) {
 	spec, err := p.sdAPI.GetCommand(p.smallSpec)
 	if err != nil {
-		fmt.Printf("%v does not exist yet.\n", p.tag)
+		fmt.Printf("%v does not exist yet\n", p.tag)
 	} else {
 		fmt.Printf("Removing %v from %v\n", spec.Version, p.tag)
 	}
 	res, err := p.sdAPI.TagCommand(p.smallSpec, p.targetVersion, p.tag)
 	if err != nil {
+		fmt.Println("Promoting is aborted")
 		return
 	}
 
