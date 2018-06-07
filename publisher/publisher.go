@@ -38,6 +38,9 @@ func (p *Publisher) Run() error {
 	}
 
 	err = p.tagCommand(specResponse)
+	if err != nil {
+		return fmt.Errorf("Tag failed: %v", err)
+	}
 
 	// Published successfully
 	// Show version number of command published by sd-cmd
