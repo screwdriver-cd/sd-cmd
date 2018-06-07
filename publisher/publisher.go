@@ -3,7 +3,9 @@ package publisher
 import (
 	"flag"
 	"fmt"
+	"path"
 
+	"github.com/screwdriver-cd/sd-cmd/promoter"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
@@ -15,13 +17,29 @@ type Publisher struct {
 	specPath    string
 	commandSpec *util.CommandSpec
 	sdAPI       api.API
+	tag         string
+}
+
+func (p *Publisher) tagCommand(specResponse *util.CommandSpec) error {
+	commandFullName := path.Join(specResponse.Namespace, specResponse.Name)
+	promoter, err := promoter.New(p.sdAPI, []string{commandFullName, specResponse.Version, p.tag})
+	if err != nil {
+		return err
+	}
+
+	return promoter.Run()
 }
 
 // Run is a method to publish sdapi and sdstore.
 func (p *Publisher) Run() error {
 	specResponse, err := p.sdAPI.PostCommand(p.commandSpec)
 	if err != nil {
-		return fmt.Errorf("Post failed:%v", err)
+		return fmt.Errorf("Post failed: %v", err)
+	}
+
+	err = p.tagCommand(specResponse)
+	if err != nil {
+		return fmt.Errorf("Tag failed: %v", err)
 	}
 
 	// Published successfully
@@ -37,7 +55,7 @@ func New(api api.API, inputCommand []string) (p *Publisher, err error) {
 	p = new(Publisher)
 
 	p.sdAPI = api
-	p.specPath, err = parsePublishCommand(inputCommand)
+	p.specPath, p.tag, err = parsePublishCommand(inputCommand)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse command:%v", err)
 	}
@@ -50,14 +68,15 @@ func New(api api.API, inputCommand []string) (p *Publisher, err error) {
 	return
 }
 
-func parsePublishCommand(inputCommand []string) (string, error) {
+func parsePublishCommand(inputCommand []string) (yamlPath, tag string, err error) {
 	fs := flag.NewFlagSet("publish", flag.ContinueOnError)
-	yamlPath := fs.String("f", "sd-command.yaml", "Path of yaml to publish")
+	yamlPathAddr := fs.String("f", "sd-command.yaml", "Path of yaml to publish")
+	tagAddr := fs.String("t", "latest", "Tag name for your command")
 
-	err := fs.Parse(inputCommand)
+	err = fs.Parse(inputCommand)
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse input args:%v", err)
+		return "", "", fmt.Errorf("Failed to parse input args:%v", err)
 	}
 
-	return *yamlPath, nil
+	return *yamlPathAddr, *tagAddr, err
 }

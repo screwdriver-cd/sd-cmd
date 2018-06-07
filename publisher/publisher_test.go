@@ -24,6 +24,7 @@ const (
 	dummyHabitatMode = "remote"
 	dummyHabitatPkg  = "core/git/2.14.1"
 	dummyCmd         = "dummy-command"
+	dummyTag         = "latest"
 )
 
 const (
@@ -49,7 +50,12 @@ func (d *dummySDAPI) ValidateCommand(yamlString string) (*util.ValidateResponse,
 }
 
 func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error) {
-	return nil, nil
+	return &util.TagResponse{
+		Namespace: dummyNameSpace,
+		Name:      dummyName,
+		Tag:       dummyTag,
+		Version:   dummyVersion,
+	}, nil
 }
 
 func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
