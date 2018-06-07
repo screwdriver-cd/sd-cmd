@@ -26,7 +26,7 @@ var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
 
 // tagRegexp check VERSION of Tags. Tags can only be named with A-Z,a-z,0-9,-
 // ex(latest stable feature-abc)
-var tagRegexp = regexp.MustCompile(`^[a-z][a-z0-9-]+$`)
+var tagRegexp = regexp.MustCompile(`^[a-zA-Z][\w-]+$`)
 
 // A Habitat represents a set of data for Habitat.
 // All value will be omitted if it is not set.
@@ -148,4 +148,12 @@ func SplitCmdWithSearch(cmds []string) (smallSpec *CommandSpec, pos int, err err
 		}
 	}
 	return nil, -1, fmt.Errorf("There is no valid command format")
+}
+
+// ValidateTagName validates tag name
+func ValidateTagName(tag string) bool {
+	if tagRegexp.Match([]byte(tag)) {
+		return true
+	}
+	return false
 }

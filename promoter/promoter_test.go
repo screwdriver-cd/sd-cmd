@@ -17,6 +17,7 @@ var (
 	dummyCmdName        = dummyNameSpace + "/" + dummyName
 	invalidDummyCmdName = "invalid/invalid/invalid"
 	dummyTag            = "stable"
+	invalidDummyTag     = "-invalid-"
 )
 
 type dummySDAPI struct{}
@@ -89,6 +90,10 @@ func TestNew(t *testing.T) {
 	// failure with invalid command name
 	_, err = New(sdapi, []string{invalidDummyCmdName, dummyTargetVersion, dummyTag})
 	assert.EqualError(t, err, invalidDummyCmdName+" is invalid command name")
+
+	// failure with invalid tag name
+	_, err = New(sdapi, []string{dummyCmdName, dummyTargetVersion, invalidDummyTag})
+	assert.EqualError(t, err, invalidDummyTag+" is invalid tag name")
 }
 
 func TestRun(t *testing.T) {

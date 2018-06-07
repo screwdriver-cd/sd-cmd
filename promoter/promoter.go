@@ -29,6 +29,10 @@ func New(api api.API, args []string) (p *Promoter, err error) {
 		return nil, fmt.Errorf("%v is invalid command name", args[0])
 	}
 
+	if !util.ValidateTagName(tag) {
+		return nil, fmt.Errorf("%v is invalid tag name", tag)
+	}
+
 	smallSpec := &util.CommandSpec{
 		Namespace: commandName[0],
 		Name:      commandName[1],
