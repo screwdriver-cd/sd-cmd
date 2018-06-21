@@ -168,7 +168,7 @@ func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) 
 	}
 
 	fileName := filepath.Base(filePath)
-	filePart, err := writer.CreateFormFile("binary", fileName)
+	filePart, err := writer.CreateFormFile("file", fileName)
 	if err != nil {
 		return fmt.Errorf("Failed to create form of %s:%v", commandSpec.Format, err)
 	}
