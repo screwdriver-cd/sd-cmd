@@ -81,7 +81,7 @@ func (h *Habitat) download() error {
 func (h *Habitat) install() (err error) {
 	var installPkg string
 	if h.Spec.Habitat.Mode == "local" {
-		installPkg = h.Spec.Habitat.File
+		installPkg = h.getPkgFilePath()
 	} else {
 		installPkg = h.Spec.Habitat.Package
 	}

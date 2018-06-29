@@ -158,7 +158,7 @@ func TestHelperProcess(t *testing.T) {
 	case "install":
 		var installDummyArgs []string
 		if os.Getenv("HABITAT_MODE") == "local" {
-			installDummyArgs[0] = dummyHart
+			installDummyArgs[0] = filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy.hart")
 		} else {
 			installDummyArgs[0] = dummyPackage
 		}
