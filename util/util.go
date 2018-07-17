@@ -60,6 +60,7 @@ type CommandSpec struct {
 	Namespace   string   `json:"namespace" yaml:"namespace"`
 	Name        string   `json:"name" yaml:"name"`
 	Description string   `json:"description" yaml:"description"`
+	Usage       string   `json:"usage,omitempty" yaml:"usage,omitempty"`
 	Maintainer  string   `json:"maintainer" yaml:"maintainer"`
 	Version     string   `json:"version" yaml:"version"`
 	Format      string   `json:"format" yaml:"format"`
