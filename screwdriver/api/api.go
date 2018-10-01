@@ -153,6 +153,10 @@ func writeMultipartYaml(writer *multipart.Writer, commandSpec *util.CommandSpec)
 	return nil
 }
 
+func getBinPath(specPath string, filePath string) string {
+	return filepath.Join(filepath.Dir(specPath), filePath)
+}
+
 func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) error {
 	var filePath string
 	switch commandSpec.Format {
@@ -162,6 +166,8 @@ func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) 
 		filePath = commandSpec.Habitat.File
 	}
 
+	// normalize the binary file path as a relative path from the spec yaml.
+	filePath = getBinPath(commandSpec.SpecPath, filePath)
 	fileContents, err := util.LoadByte(filePath)
 	if err != nil {
 		return fmt.Errorf("Failed to load file:%v", err)

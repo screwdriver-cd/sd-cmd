@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/util"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -148,6 +149,28 @@ func TestGetCommand(t *testing.T) {
 			t.Errorf("err=nil, want error")
 		}
 	}
+}
+
+func TestGetBinPath(t *testing.T) {
+	specPath := "sd-command.yaml"
+	expectedPath := "hello"
+	filePath := "hello"
+	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
+	filePath = "./hello"
+	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
+	// Note: interpret it as a relative path forcely.
+	filePath = "/hello"
+	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
+
+	specPath = "./sd-command.yaml"
+	expectedPath = "hello"
+	filePath = "hello"
+	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
+
+	specPath = "../../testdata/yaml/sd-command.yaml"
+	expectedPath = "../../testdata/yaml/bin/hello"
+	filePath = "bin/hello"
+	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
 }
 
 func TestSendHTTPRequest(t *testing.T) {

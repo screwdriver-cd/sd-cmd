@@ -6,6 +6,7 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -95,10 +96,11 @@ func TestNew(t *testing.T) {
 	// success
 	spec := dummyCommandSpec(binaryFormat)
 	sdapi := newDummySDAPI(spec, nil)
-	_, err := New(sdapi, []string{"-f", validSpecYamlPath})
+	p, err := New(sdapi, []string{"-f", validSpecYamlPath})
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
+	assert.Equal(t, validSpecYamlPath, p.commandSpec.SpecPath)
 
 	// failure. invalid flag
 	spec = dummyCommandSpec(binaryFormat)

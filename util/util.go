@@ -68,6 +68,7 @@ type CommandSpec struct {
 	Docker      *Docker  `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Binary      *Binary  `json:"binary,omitempty" yaml:"binary,omitempty"`
 	PipelineID  int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
+	SpecPath    string   `json:"-" yaml:"-"`
 }
 
 // PayloadYaml represents a set of data for posting command.
