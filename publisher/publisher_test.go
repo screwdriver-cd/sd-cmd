@@ -100,7 +100,7 @@ func TestNew(t *testing.T) {
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
-	assert.Equal(t, validSpecYamlPath, p.commandSpec.SpecPath)
+	assert.Equal(t, validSpecYamlPath, p.commandSpec.SpecYamlPath)
 
 	// failure. invalid flag
 	spec = dummyCommandSpec(binaryFormat)
