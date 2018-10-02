@@ -56,19 +56,19 @@ type Binary struct {
 // A CommandSpec represents a set of data for commands.
 // Some value will be omitted if it is not set.
 type CommandSpec struct {
-	ID            int      `json:"id,omitempty" yaml:"id,omitempty"`
-	Namespace     string   `json:"namespace" yaml:"namespace"`
-	Name          string   `json:"name" yaml:"name"`
-	Description   string   `json:"description" yaml:"description"`
-	Usage         string   `json:"usage,omitempty" yaml:"usage,omitempty"`
-	Maintainer    string   `json:"maintainer" yaml:"maintainer"`
-	Version       string   `json:"version" yaml:"version"`
-	Format        string   `json:"format" yaml:"format"`
-	Habitat       *Habitat `json:"habitat,omitempty" yaml:"habitat,omitempty"`
-	Docker        *Docker  `json:"docker,omitempty" yaml:"docker,omitempty"`
-	Binary        *Binary  `json:"binary,omitempty" yaml:"binary,omitempty"`
-	PipelineID    int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
-	SpecYamlPath  string   `json:"-" yaml:"-"`
+	ID           int      `json:"id,omitempty" yaml:"id,omitempty"`
+	Namespace    string   `json:"namespace" yaml:"namespace"`
+	Name         string   `json:"name" yaml:"name"`
+	Description  string   `json:"description" yaml:"description"`
+	Usage        string   `json:"usage,omitempty" yaml:"usage,omitempty"`
+	Maintainer   string   `json:"maintainer" yaml:"maintainer"`
+	Version      string   `json:"version" yaml:"version"`
+	Format       string   `json:"format" yaml:"format"`
+	Habitat      *Habitat `json:"habitat,omitempty" yaml:"habitat,omitempty"`
+	Docker       *Docker  `json:"docker,omitempty" yaml:"docker,omitempty"`
+	Binary       *Binary  `json:"binary,omitempty" yaml:"binary,omitempty"`
+	PipelineID   int      `json:"pipelineId,omitempty" yaml:"pipelineId,omitempty"`
+	SpecYamlPath string   `json:"-" yaml:"-"`
 }
 
 // PayloadYaml represents a set of data for posting command.

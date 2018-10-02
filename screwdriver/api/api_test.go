@@ -152,25 +152,22 @@ func TestGetCommand(t *testing.T) {
 }
 
 func TestGetBinPath(t *testing.T) {
-	specPath := "sd-command.yaml"
-	expectedPath := "hello"
-	filePath := "hello"
-	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
-	filePath = "./hello"
-	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
-	// Note: interpret it as a relative path forcely.
-	filePath = "/hello"
-	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
+	testCases := []struct {
+		specPath     string
+		filePath     string
+		expectedPath string
+	}{
+		{"sd-command.yaml", "hello", "hello"},
+		{"sd-command.yaml", "./hello", "hello"},
+		// Note: interpret it as a relative path forcely.
+		{"sd-command.yaml", "/hello", "hello"},
+		{"./sd-command.yaml", "hello", "hello"},
+		{"../../testdata/yaml/sd-command.yaml", "bin/hello", "../../testdata/yaml/bin/hello"},
+	}
 
-	specPath = "./sd-command.yaml"
-	expectedPath = "hello"
-	filePath = "hello"
-	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
-
-	specPath = "../../testdata/yaml/sd-command.yaml"
-	expectedPath = "../../testdata/yaml/bin/hello"
-	filePath = "bin/hello"
-	assert.Equal(t, expectedPath, getBinPath(specPath, filePath))
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expectedPath, getBinPath(tc.specPath, tc.filePath))
+	}
 }
 
 func TestSendHTTPRequest(t *testing.T) {
