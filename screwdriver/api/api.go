@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -154,7 +155,11 @@ func writeMultipartYaml(writer *multipart.Writer, commandSpec *util.CommandSpec)
 }
 
 func getBinPath(specPath string, filePath string) string {
-	return filepath.Join(filepath.Dir(specPath), filePath)
+	if strings.HasPrefix(filePath, "/") {
+		return filePath
+	} else {
+		return filepath.Join(filepath.Dir(specPath), filePath)
+	}
 }
 
 func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) error {

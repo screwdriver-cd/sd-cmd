@@ -159,8 +159,8 @@ func TestGetBinPath(t *testing.T) {
 	}{
 		{"sd-command.yaml", "hello", "hello"},
 		{"sd-command.yaml", "./hello", "hello"},
-		// Note: interpret it as a relative path forcely.
-		{"sd-command.yaml", "/hello", "hello"},
+		// Note: allow an absolute path.
+		{"sd-command.yaml", "/usr/local/bin/hello", "/usr/local/bin/hello"},
 		{"./sd-command.yaml", "hello", "hello"},
 		{"../../testdata/yaml/sd-command.yaml", "bin/hello", "../../testdata/yaml/bin/hello"},
 	}
