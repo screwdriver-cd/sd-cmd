@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/screwdriver-cd/sd-cmd/util"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -147,6 +148,25 @@ func TestGetCommand(t *testing.T) {
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
+	}
+}
+
+func TestGetBinPath(t *testing.T) {
+	testCases := []struct {
+		specPath     string
+		filePath     string
+		expectedPath string
+	}{
+		{"sd-command.yaml", "hello", "hello"},
+		{"sd-command.yaml", "./hello", "hello"},
+		// Note: allow an absolute path.
+		{"sd-command.yaml", "/usr/local/bin/hello", "/usr/local/bin/hello"},
+		{"./sd-command.yaml", "hello", "hello"},
+		{"../../testdata/yaml/sd-command.yaml", "bin/hello", "../../testdata/yaml/bin/hello"},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expectedPath, getBinPath(tc.specPath, tc.filePath))
 	}
 }
 

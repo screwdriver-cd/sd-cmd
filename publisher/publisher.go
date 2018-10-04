@@ -64,6 +64,7 @@ func New(api api.API, inputCommand []string) (p *Publisher, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("Yaml load failed:%v", err)
 	}
+	p.commandSpec.SpecYamlPath = p.specPath
 
 	return
 }
