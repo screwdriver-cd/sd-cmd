@@ -253,6 +253,9 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, e
 	default:
 		return nil, fmt.Errorf(`Unknown "Format" value of command spec: %v`, err)
 	}
+	if err != nil {
+		return nil, err
+	}
 
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
@@ -270,6 +273,9 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, e
 
 func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
 	body, err := writeValidateBody(yamlString)
+	if err != nil {
+		return nil, err
+	}
 
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
