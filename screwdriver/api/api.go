@@ -240,15 +240,27 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, e
 	switch commandSpec.Format {
 	case "binary":
 		body, contentType, err = writeMultipart(commandSpec)
+		if err != nil {
+			return nil, err
+		}
 	case "habitat":
 		if commandSpec.Habitat.Mode == "local" {
 			body, contentType, err = writeMultipart(commandSpec)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			body, err = specToPayloadBuf(commandSpec)
+			if err != nil {
+				return nil, err
+			}
 			contentType = "application/json"
 		}
 	case "docker":
 		body, err = specToPayloadBuf(commandSpec)
+		if err != nil {
+			return nil, err
+		}
 		contentType = defaultContentType
 	default:
 		return nil, fmt.Errorf(`Unknown "Format" value of command spec: %v`, err)
@@ -270,6 +282,9 @@ func (c client) PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, e
 
 func (c client) ValidateCommand(yamlString string) (*util.ValidateResponse, error) {
 	body, err := writeValidateBody(yamlString)
+	if err != nil {
+		return nil, err
+	}
 
 	uri, err := url.Parse(c.baseURL)
 	if err != nil {
