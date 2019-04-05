@@ -10,7 +10,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
-const habPath = "/opt/hab/bin/hab"
+const habPath = "/opt/sd/bin/hab"
 
 // Habitat is the Habitat Executor struct
 type Habitat struct {
