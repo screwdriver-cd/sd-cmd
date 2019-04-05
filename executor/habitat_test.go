@@ -130,8 +130,8 @@ func TestHelperProcess(t *testing.T) {
 
 	cmd, subcmd, subsubcmd, args := args[0], args[1], args[2], args[3:]
 
-	if cmd != "/opt/hab/bin/hab" {
-		fmt.Fprintf(os.Stderr, "expected '/opt/hab/bin/hab', but %v\n", cmd)
+	if cmd != "/opt/sd/bin/hab" {
+		fmt.Fprintf(os.Stderr, "expected '/opt/sd/bin/hab', but %v\n", cmd)
 		os.Exit(1)
 	}
 
