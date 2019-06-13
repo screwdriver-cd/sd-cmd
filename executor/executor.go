@@ -67,6 +67,7 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 
 func execCommand(path string, args []string) (err error) {
 	cmd := command(path, args...)
+	errChan := make(chan error, 1)
 	if !terminal.IsTerminal(syscall.Stdin) {
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
@@ -78,12 +79,19 @@ func execCommand(path string, args []string) (err error) {
 			lgr.Debug.Printf("failed to read Stdin: %v", err)
 			return err
 		}
-		_, err = io.WriteString(stdin, string(b))
-		if err != nil {
-			lgr.Debug.Printf("failed to write StdinPipe: %v", err)
-			return err
-		}
-		stdin.Close()
+		go func() {
+			defer stdin.Close()
+			// Note: we must use goroutine,
+			// because when writing data exceeding pipe capacity this line is blocked until reading it.
+			_, err = io.WriteString(stdin, string(b))
+			errChan <- err
+			if err != nil {
+				lgr.Debug.Printf("failed to write StdinPipe: %v", err)
+			}
+		}()
+	} else {
+		// not used.
+		close(errChan)
 	}
 
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
@@ -96,6 +104,12 @@ func execCommand(path string, args []string) (err error) {
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 	if err != nil {
 		lgr.Debug.Printf("failed to exec command: %v", err)
+		return
+	}
+
+	// Note: closed channel returns nil
+	err = <-errChan
+	if err != nil {
 		return
 	}
 
