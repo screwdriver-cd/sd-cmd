@@ -96,14 +96,14 @@ func execCommand(path string, args []string) (err error) {
 	err = cmd.Run()
 
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
-	if err != nil {
-		lgr.Debug.Printf("failed to exec command: %v", err)
-		return
-	}
 
 	// Note: closed channel returns nil
-	err = <-errChan
+	stdinErr := <-errChan
+	if stdinErr != nil {
+		return stdinErr
+	}
 	if err != nil {
+		lgr.Debug.Printf("failed to exec command: %v", err)
 		return
 	}
 
