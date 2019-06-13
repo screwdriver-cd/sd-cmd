@@ -2,6 +2,7 @@ artifacts/
 .DS_STORE
 .*.swp
 sd-cmd
+.sd/
 
 # Generated while deploying
 

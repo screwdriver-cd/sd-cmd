@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -74,19 +73,14 @@ func execCommand(path string, args []string) (err error) {
 			lgr.Debug.Printf("failed to open StdinPipe: %v", err)
 			return err
 		}
-		b, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			lgr.Debug.Printf("failed to read Stdin: %v", err)
-			return err
-		}
 		go func() {
 			defer stdin.Close()
 			// Note: we must use goroutine,
 			// because when writing data exceeding pipe capacity this line is blocked until reading it.
-			_, err = io.WriteString(stdin, string(b))
+			_, err = io.Copy(stdin, os.Stdin)
 			errChan <- err
 			if err != nil {
-				lgr.Debug.Printf("failed to write StdinPipe: %v", err)
+				lgr.Debug.Printf("failed to copy piped command stdin from os.Stdin: %v", err)
 			}
 		}()
 	} else {
