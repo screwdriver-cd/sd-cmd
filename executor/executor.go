@@ -75,6 +75,7 @@ func execCommand(path string, args []string) (err error) {
 		}
 		go func() {
 			defer stdin.Close()
+			defer close(errChan)
 			// Note: we must use goroutine,
 			// because when writing data exceeding pipe capacity this line is blocked until reading it.
 			_, err = io.Copy(stdin, os.Stdin)
@@ -97,7 +98,7 @@ func execCommand(path string, args []string) (err error) {
 
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 
-	// Note: closed channel returns nil
+	// Note: closed channel returns buffered message or a zero value if it is empty.
 	stdinErr := <-errChan
 	if stdinErr != nil {
 		return stdinErr
