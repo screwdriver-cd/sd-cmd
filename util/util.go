@@ -26,7 +26,7 @@ var caretRangesAndPinningRegexp = regexp.MustCompile(`^(\^)?\d(\.\d){2}$`)
 
 // tagRegexp check VERSION of Tags. Tags can only be named with A-Z,a-z,0-9,-,.
 // ex(latest stable feature-abc v1.0.0)
-var tagRegexp = regexp.MustCompile(`^[a-zA-Z][\w-.]+$`)
+var tagRegexp = regexp.MustCompile(`^[a-zA-Z][\w-\.]+$`)
 
 // A Habitat represents a set of data for Habitat.
 // All value will be omitted if it is not set.
