@@ -62,7 +62,6 @@ func TestSplitCmd(t *testing.T) {
 	fullCommandNames = []string{
 		"foo/bar@1.0.",
 		"foo/bar@*.1.0",
-		"foo/bar@x.1.0",
 		"foo/bar@1.0.",
 		"foo/bar@1.0.1.0",
 		"foo/bar@aaa_bbb",
