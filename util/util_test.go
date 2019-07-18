@@ -26,6 +26,7 @@ func TestSplitCmd(t *testing.T) {
 		{"foo/bar@stable", "foo", "bar", "stable"},
 		{"foo/bar@feature-abc", "foo", "bar", "feature-abc"},
 		{"Foo/Bar@feature-abc", "Foo", "Bar", "feature-abc"},
+		{"foo/bar@v1.0.0", "foo", "bar", "v1.0.0"},
 	}
 
 	for _, c := range fullCommands {
@@ -61,7 +62,6 @@ func TestSplitCmd(t *testing.T) {
 	fullCommandNames = []string{
 		"foo/bar@1.0.",
 		"foo/bar@*.1.0",
-		"foo/bar@x.1.0",
 		"foo/bar@1.0.",
 		"foo/bar@1.0.1.0",
 		"foo/bar@aaa_bbb",
