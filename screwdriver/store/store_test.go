@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	retryhttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
@@ -40,7 +41,7 @@ func setup() {
 	config.SDToken = fakeSDToken
 }
 
-func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *http.Client {
+func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *retryhttp.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 		w.Header().Set("Content-Type", cType)
@@ -56,7 +57,9 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint, cType string) *h
 			return req.URL, nil
 		},
 	}
-	return &http.Client{Transport: tr}
+	client := retryhttp.NewClient()
+	client.HTTPClient.Transport = tr
+	return client
 }
 
 func dummyCommandSpec(format string) (spec *util.CommandSpec) {
@@ -128,7 +131,7 @@ func TestGetCommand(t *testing.T) {
 	// failure. check some api response error
 	spec = dummyCommandSpec(binaryFormat)
 	c = newClient(config.SDStoreURL, spec, config.SDToken)
-	clients := []*http.Client{
+	clients := []*retryhttp.Client{
 		makeFakeHTTPClient(t, 404, "{\"statusCode\": 404, \"error\": \"Not Found\"}", "", "text/plain"),
 		makeFakeHTTPClient(t, 500, "ERROR", "", "text/plain"),
 		makeFakeHTTPClient(t, 600, "ERROR", "", "text/plain"),
