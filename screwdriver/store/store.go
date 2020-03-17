@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	retryhttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
@@ -24,7 +25,7 @@ type Store interface {
 
 type client struct {
 	baseURL string
-	client  *http.Client
+	client  *retryhttp.Client
 	spec    *util.CommandSpec
 	jwt     string
 }
@@ -65,9 +66,11 @@ func New(baseURL string, spec *util.CommandSpec, sdToken string) Store {
 }
 
 func newClient(baseURL string, spec *util.CommandSpec, sdToken string) *client {
+	cli := retryhttp.NewClient()
+	cli.HTTPClient.Timeout = timeoutSec * time.Second
 	return &client{
 		baseURL: baseURL,
-		client:  &http.Client{Timeout: timeoutSec * time.Second},
+		client:  cli,
 		spec:    spec,
 		jwt:     sdToken,
 	}
@@ -116,7 +119,7 @@ func (c client) GetCommand() (*Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	request, err := http.NewRequest("GET", uri, strings.NewReader(""))
+	request, err := retryhttp.NewRequest("GET", uri, strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request about command to Store API: %v", err)
 	}

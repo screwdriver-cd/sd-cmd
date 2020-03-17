@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,6 +13,7 @@ import (
 	"path"
 	"testing"
 
+	retryable "github.com/hashicorp/go-retryablehttp"
 	"github.com/screwdriver-cd/sd-cmd/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -55,7 +58,7 @@ var (
 	}
 )
 
-func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Client {
+func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *retryable.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 		w.Header().Set("Content-Type", "application/json")
@@ -66,7 +69,10 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *http.Cli
 			return url.Parse(server.URL)
 		},
 	}
-	return &http.Client{Transport: tr}
+
+	client := retryable.NewClient()
+	client.HTTPClient.Transport = tr
+	return client
 }
 
 func dummySmallSpec() (cmd *util.CommandSpec) {
@@ -148,6 +154,22 @@ func TestGetCommand(t *testing.T) {
 		if err == nil {
 			t.Errorf("err=nil, want error")
 		}
+	}
+}
+
+// TestRetryCommand - makes three attempts to make a http request
+// the first two will fail and the final one will succeed
+func TestRetryCommand(t *testing.T) {
+	c := newErrorRetryClient(fakeAPIURL, fakeSDToken)
+
+	// case success
+	smallSpec := dummySmallSpec()
+	api := API(c)
+
+	// request
+	_, err := api.GetCommand(smallSpec)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
 	}
 }
 
@@ -368,6 +390,53 @@ func TestTagCommand(t *testing.T) {
 			println(res.code, res.message)
 			t.Errorf("err=nil, want error")
 		}
+	}
+}
+
+// RoundTripFunc .
+type RoundTripTest struct {
+	Attempts int
+}
+
+// RoundTrip - will fail twice and succeed once
+// this exercises the retryable http client
+func (f *RoundTripTest) RoundTrip(req *http.Request) (*http.Response, error) {
+	ns, name, ver := "foo", "bar", "1.0"
+	jsonResponse := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
+	if f.Attempts > 1 {
+		return &http.Response{
+			StatusCode: 200,
+			Header:     make(http.Header),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(jsonResponse))}, nil
+	}
+
+	e := &url.Error{
+		Op:  "Get",
+		URL: req.URL.RawPath,
+		Err: &net.OpError{
+			Op:  "dial",
+			Net: "tcp",
+			Err: fmt.Errorf("%s", "i/o timeout"),
+		},
+	}
+	f.Attempts++
+	return nil, e
+}
+
+func newErrorRetryClient(sdAPI, sdToken string) *client {
+	rt := &RoundTripTest{}
+	tr := rt
+
+	rc := retryable.NewClient()
+	rc.Logger = log.New(os.Stderr, "DEBUG", log.Lshortfile)
+	rc.HTTPClient = &http.Client{
+		Transport: tr,
+	}
+
+	return &client{
+		baseURL: sdAPI,
+		jwt:     sdToken,
+		client:  rc,
 	}
 }
 

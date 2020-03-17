@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
+	retryhttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
@@ -31,7 +32,7 @@ type API interface {
 type client struct {
 	baseURL string
 	jwt     string
-	client  *http.Client
+	client  *retryhttp.Client
 }
 
 // ResponseError is an error response from the Screwdriver API
@@ -55,7 +56,9 @@ func newClient(sdAPI, sdToken string) *client {
 	return &client{
 		baseURL: sdAPI,
 		jwt:     sdToken,
-		client:  &http.Client{Timeout: timeoutSec * time.Second},
+		client: &retryhttp.Client{
+			HTTPClient: &http.Client{Timeout: timeoutSec * time.Second},
+		},
 	}
 }
 
@@ -328,7 +331,7 @@ func (c client) TagCommand(commandSpec *util.CommandSpec, targetVersion, tag str
 }
 
 func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.Buffer) ([]byte, int, error) {
-	req, err := http.NewRequest(method, url, payload)
+	req, err := retryhttp.NewRequest(method, url, payload)
 	if err != nil {
 		return nil, 0, err
 	}
