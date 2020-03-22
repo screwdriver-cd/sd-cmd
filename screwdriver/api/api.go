@@ -53,12 +53,12 @@ func New(sdAPI, sdToken string) API {
 }
 
 func newClient(sdAPI, sdToken string) *client {
+	c := retryhttp.NewClient()
+	c.HTTPClient = &http.Client{Timeout: timeoutSec * time.Second}
 	return &client{
 		baseURL: sdAPI,
 		jwt:     sdToken,
-		client: &retryhttp.Client{
-			HTTPClient: &http.Client{Timeout: timeoutSec * time.Second},
-		},
+		client:  c,
 	}
 }
 
