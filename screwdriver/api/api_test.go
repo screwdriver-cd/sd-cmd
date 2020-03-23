@@ -13,7 +13,7 @@ import (
 	"path"
 	"testing"
 
-	retryable "github.com/hashicorp/go-retryablehttp"
+	retryhttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/screwdriver-cd/sd-cmd/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,7 +58,7 @@ var (
 	}
 )
 
-func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *retryable.Client {
+func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *retryhttp.Client {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 		w.Header().Set("Content-Type", "application/json")
@@ -70,7 +70,7 @@ func makeFakeHTTPClient(t *testing.T, code int, body, endpoint string) *retryabl
 		},
 	}
 
-	client := retryable.NewClient()
+	client := retryhttp.NewClient()
 	client.HTTPClient.Transport = tr
 	return client
 }
@@ -427,7 +427,7 @@ func newErrorRetryClient(sdAPI, sdToken string) *client {
 	rt := &RoundTripTest{}
 	tr := rt
 
-	rc := retryable.NewClient()
+	rc := retryhttp.NewClient()
 	rc.Logger = log.New(os.Stderr, "DEBUG", log.Lshortfile)
 	rc.HTTPClient = &http.Client{
 		Transport: tr,
