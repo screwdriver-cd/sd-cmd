@@ -159,9 +159,8 @@ func writeMultipartYaml(writer *multipart.Writer, commandSpec *util.CommandSpec)
 func getBinPath(specPath string, filePath string) string {
 	if path.IsAbs(filePath) {
 		return filePath
-	} else {
-		return filepath.Join(filepath.Dir(specPath), filePath)
 	}
+	return filepath.Join(filepath.Dir(specPath), filePath)
 }
 
 func writeMultipartBin(writer *multipart.Writer, commandSpec *util.CommandSpec) error {

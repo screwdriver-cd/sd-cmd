@@ -1,4 +1,4 @@
-package util
+  package util
 
 import (
 	"fmt"
@@ -152,10 +152,7 @@ func SplitCmdWithSearch(cmds []string) (smallSpec *CommandSpec, pos int, err err
 	return nil, -1, fmt.Errorf("There is no valid command format")
 }
 
-// ValidateTagName validates tag name
+// ValidateTagName validates tag name.
 func ValidateTagName(tag string) bool {
-	if tagRegexp.Match([]byte(tag)) {
-		return true
-	}
-	return false
+	return tagRegexp.Match([]byte(tag))
 }

@@ -314,7 +314,7 @@ func TestPostCommand(t *testing.T) {
 func TestValidateCommand(t *testing.T) {
 	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
-	responseMsg := fmt.Sprintf(`{"errors": [] }`)
+	responseMsg := `{"errors": [] }`
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, "/v4/validate/command")
 	api := API(c)
 
@@ -357,7 +357,7 @@ func TestValidateCommand(t *testing.T) {
 func TestTagCommand(t *testing.T) {
 	// case success
 	c := newClient(fakeAPIURL, fakeSDToken)
-	responseMsg := fmt.Sprintf(`{"errors": [] }`)
+	responseMsg := `{"errors": [] }`
 	dummyEndpoint := path.Join("/v4/commands/", dummyNamespace, dummyName, "tags", dummyTag)
 	spec := dummySpec(binaryFormat)
 	c.client = makeFakeHTTPClient(t, 200, responseMsg, dummyEndpoint)
