@@ -101,7 +101,7 @@ func (h *Habitat) exec() (err error) {
 func (h *Habitat) Run() (err error) {
 	lgr.Debug.Println("start installing habitat command.")
 
-	if h.Spec.Habitat.Mode == "local" && h.isDownloaded() == false {
+	if h.Spec.Habitat.Mode == "local" && !h.isDownloaded() {
 		lgr.Debug.Println("start downloading local mode habitat package.")
 
 		err = h.download()
