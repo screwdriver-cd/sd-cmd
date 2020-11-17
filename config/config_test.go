@@ -14,7 +14,7 @@ const (
 	dummyToken          = "dummy-token"
 	dummyStoreURL       = "dummy-store/"
 	dummySDArtifactsDir = "dummy/sd/Artifacts/"
-	dummyCustomCmdPath  = "/sd/commands/"
+	dummyCustomCmdPath  = "/opt/sd/commands/"
 )
 
 func setEnv(key, value string) {
@@ -52,8 +52,12 @@ func TestLoadConfig(t *testing.T) {
 	if SDArtifactsDir != dummySDArtifactsDir {
 		t.Errorf("SDArtifactsDir=%q, want %q", SDArtifactsDir, dummySDArtifactsDir)
 	}
-	if BaseCommandPath != "/opt/sd/commands/" {
-		t.Errorf("BaseCommandPath=%q, want /opt/sd/commands/", BaseCommandPath)
+	wantBaseCommandPath := os.Getenv("SD_BASE_COMMAND_PATH")
+	if wantBaseCommandPath == "" {
+		wantBaseCommandPath = dummyCustomCmdPath
+	}
+	if BaseCommandPath != wantBaseCommandPath {
+		t.Errorf("BaseCommandPath=%q, want %s", BaseCommandPath, wantBaseCommandPath)
 	}
 
 	// check unset env
