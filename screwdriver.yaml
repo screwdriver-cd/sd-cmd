@@ -8,10 +8,10 @@ jobs:
     main:
         requires: [~pr, ~commit]
         steps:
-            - get: go get -t ./...
-            - gofmt: "find . -name '*.go' | xargs gofmt -s -w"
-            - test: go test ./...
-            - build: go build -a -o $SD_ARTIFACTS_DIR/sd-cmd
+            - modverify: go mod verify
+            - gofmt: if [[ -n "$(gofmt -l .)" ]]; then echo "gofmt check fails"; gofmt -d .; exit -1; fi
+            - build: GOBIN="$SD_ARTIFACTS_DIR" go install -v ./...
+            - test: go test -v ./...
 
     publish:
         requires: [main]
