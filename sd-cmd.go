@@ -12,6 +12,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/promoter"
 	"github.com/screwdriver-cd/sd-cmd/publisher"
+	"github.com/screwdriver-cd/sd-cmd/removeTag"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/validator"
 )
@@ -93,8 +94,16 @@ func runValidator(sdAPI api.API, args []string) error {
 	return val.Run()
 }
 
+func runRemoveTag(sdAPI api.API, args []string) error {
+	val, err := removeTag.New(sdAPI, args)
+	if err != nil {
+		return fmt.Errorf("Fail to get validator: %v", err)
+	}
+	return val.Run()
+}
+
 func runCommand(sdAPI api.API, args []string) error {
-	if len(os.Args) < minArgLength {
+	if len(args) < minArgLength {
 		return fmt.Errorf("The number of arguments is not enough")
 	}
 
@@ -107,6 +116,8 @@ func runCommand(sdAPI api.API, args []string) error {
 		return runPromoter(sdAPI, args[2:])
 	case "validate":
 		return runValidator(sdAPI, args[2:])
+	case "removeTag":
+		return runRemoveTag(sdAPI, args[2:])
 	default:
 		return runExecutor(sdAPI, args)
 	}

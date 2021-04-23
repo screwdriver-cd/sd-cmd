@@ -393,6 +393,45 @@ func TestTagCommand(t *testing.T) {
 	}
 }
 
+func TestRemoveTagCommand(t *testing.T) {
+	// case success
+	c := newClient(fakeAPIURL, fakeSDToken)
+	responseMsg := `{"errors": [] }`
+	dummyEndpoint := path.Join("/v4/commands/", dummyNamespace, dummyName, "tags", dummyTag)
+	spec := dummySpec(binaryFormat)
+	c.client = makeFakeHTTPClient(t, 200, responseMsg, dummyEndpoint)
+	api := API(c)
+
+	// request
+	_, err := api.RemoveTagCommand(spec, dummyTag)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	// case failure. check 4xx error message
+	errMsg := `{"statusCode": 403,"error": "Forbidden","message": "Access Denied"}`
+	ansMsg := "Screwdriver API 403 Forbidden: Access Denied"
+	c.client = makeFakeHTTPClient(t, 403, errMsg, "")
+	api = API(c)
+
+	// request
+	_, err = api.RemoveTagCommand(spec, dummyTag)
+	if err.Error() != ansMsg {
+		t.Errorf("err=%q, want %q", errMsg, ansMsg)
+	}
+
+	// case failure. check some api response error
+	for _, res := range errorResponses {
+		c.client = makeFakeHTTPClient(t, res.code, res.message, "")
+		api = API(c)
+		_, err = api.RemoveTagCommand(spec, dummyTag)
+		if err == nil {
+			println(res.code, res.message)
+			t.Errorf("err=nil, want error")
+		}
+	}
+}
+
 // RoundTripFunc .
 type RoundTripTest struct {
 	Attempts int
