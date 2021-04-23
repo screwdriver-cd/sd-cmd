@@ -27,6 +27,7 @@ type API interface {
 	PostCommand(commandSpec *util.CommandSpec) (*util.CommandSpec, error)
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 	TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error)
+	RemoveTagCommand(commandSpec *util.CommandSpec, tag string) (*util.TagResponse, error)
 }
 
 type client struct {
@@ -315,6 +316,31 @@ func (c client) TagCommand(commandSpec *util.CommandSpec, targetVersion, tag str
 	uri.Path = path.Join(uri.Path, "commands", commandSpec.Namespace, commandSpec.Name, "tags", tag)
 
 	responseBytes, statusCode, err := c.sendHTTPRequest("PUT", uri.String(), defaultContentType, body)
+	if err != nil {
+		return
+	}
+
+	responseBytes, err = handleResponse(responseBytes, statusCode)
+	if err != nil {
+		return
+	}
+
+	res = new(util.TagResponse)
+	err = json.Unmarshal(responseBytes, res)
+	return
+}
+
+func (c client) RemoveTagCommand(commandSpec *util.CommandSpec, tag string) (res *util.TagResponse, err error) {
+	// No payload
+	payload := new(bytes.Buffer)
+
+	uri, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse URL: %v", err)
+	}
+	uri.Path = path.Join(uri.Path, "commands", commandSpec.Namespace, commandSpec.Name, "tags", tag)
+
+	responseBytes, statusCode, err := c.sendHTTPRequest("DELETE", uri.String(), defaultContentType, payload)
 	if err != nil {
 		return
 	}

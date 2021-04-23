@@ -50,6 +50,10 @@ func (d *dummySDAPI) ValidateCommand(yamlString string) (*util.ValidateResponse,
 	return nil, nil
 }
 
+func (d *dummySDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util.TagResponse, error) {
+	return nil, nil
+}
+
 func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error) {
 	return &util.TagResponse{
 		Namespace: dummyNameSpace,

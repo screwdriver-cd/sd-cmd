@@ -1,4 +1,4 @@
-package promoter
+package removeTag
 
 import (
 	"testing"
@@ -13,19 +13,21 @@ var (
 	dummyNameSpace      = "foo-dummy"
 	dummyName           = "name-dummy"
 	dummyVersion        = "1.0.0"
-	dummyTargetVersion  = "1.0.1"
 	dummyCmdName        = dummyNameSpace + "/" + dummyName
 	invalidDummyCmdName = "invalid/invalid/invalid"
 	dummyTag            = "stable"
+	nonexistentTag      = "dummy"
 	invalidDummyTag     = "-invalid-"
 )
 
 type dummySDAPI struct{}
 
 func (d *dummySDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return &util.CommandSpec{
-		Version: dummyVersion,
-	}, nil
+	if smallSpec.Version == nonexistentTag {
+		return nil, errors.New("error")
+	} else {
+		return &util.CommandSpec{}, nil
+	}
 }
 
 func (d *dummySDAPI) PostCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -41,20 +43,22 @@ func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag strin
 		Namespace: dummyNameSpace,
 		Name:      dummyName,
 		Tag:       dummyTag,
-		Version:   dummyTargetVersion,
 	}, nil
 }
 
 func (d *dummySDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util.TagResponse, error) {
-	return nil, nil
+	return &util.TagResponse{
+		Namespace: dummyNameSpace,
+		Name:      dummyName,
+		Version:   dummyVersion,
+		Tag:       dummyTag,
+	}, nil
 }
 
 type dummyInvalidSDAPI struct{}
 
 func (d *dummyInvalidSDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
-	return &util.CommandSpec{
-		Version: dummyVersion,
-	}, nil
+	return &util.CommandSpec{}, nil
 }
 
 func (d *dummyInvalidSDAPI) PostCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -66,28 +70,27 @@ func (d *dummyInvalidSDAPI) ValidateCommand(yamlString string) (*util.ValidateRe
 }
 
 func (d *dummyInvalidSDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error) {
-	return nil, errors.New("error")
+	return nil, nil
 }
 
 func (d *dummyInvalidSDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util.TagResponse, error) {
-	return nil, nil
+	return nil, errors.New("error")
 }
 
 func TestNew(t *testing.T) {
 	sdapi := api.API(new(dummySDAPI))
 
 	// success
-	expected := &Promoter{
+	expected := &RemoveTag{
 		smallSpec: &util.CommandSpec{
 			Namespace: dummyNameSpace,
 			Name:      dummyName,
 			Version:   dummyTag,
 		},
 		sdAPI:         sdapi,
-		targetVersion: dummyTargetVersion,
 		tag:           dummyTag,
 	}
-	p, err := New(sdapi, []string{dummyCmdName, dummyTargetVersion, dummyTag})
+	p, err := New(sdapi, []string{dummyCmdName, dummyTag})
 	assert.Nil(t, err)
 	assert.Equal(t, p, expected)
 
@@ -96,37 +99,35 @@ func TestNew(t *testing.T) {
 	assert.EqualError(t, err, "parameters are not enough")
 
 	// failure with invalid command name
-	_, err = New(sdapi, []string{invalidDummyCmdName, dummyTargetVersion, dummyTag})
+	_, err = New(sdapi, []string{invalidDummyCmdName, dummyTag})
 	assert.EqualError(t, err, invalidDummyCmdName+" is invalid command name")
 
 	// failure with invalid tag name
-	_, err = New(sdapi, []string{dummyCmdName, dummyTargetVersion, invalidDummyTag})
+	_, err = New(sdapi, []string{dummyCmdName, invalidDummyTag})
 	assert.EqualError(t, err, invalidDummyTag+" is invalid tag name")
 }
 
 func TestRun(t *testing.T) {
 	// success
 	sdapi := api.API(new(dummySDAPI))
-	p, err := New(sdapi, []string{dummyCmdName, dummyTargetVersion, dummyTag})
+	p, err := New(sdapi, []string{dummyCmdName, dummyTag})
 	if err != nil {
 		assert.Fail(t, "err should be nil")
 	}
 	err = p.Run()
 	assert.Nil(t, err)
 
-	// success with already tagged version
-	dummyTargetVersion = "1.0.0"
-	p, err = New(sdapi, []string{dummyCmdName, dummyTargetVersion, dummyTag})
+	// success with nonexistentTag
+	p, err = New(sdapi, []string{dummyCmdName, nonexistentTag})
 	if err != nil {
 		assert.Fail(t, "err should be nil")
 	}
 	err = p.Run()
 	assert.Nil(t, err)
 
-	// failure with error response from TagCommand
-	dummyTargetVersion = "1.0.1"
+	// failure with error response from RemoveTagCommand
 	sdapi = api.API(new(dummyInvalidSDAPI))
-	p, err = New(sdapi, []string{dummyCmdName, dummyTargetVersion, dummyTag})
+	p, err = New(sdapi, []string{dummyCmdName, dummyTag})
 	if err != nil {
 		assert.Fail(t, "err should be nil")
 	}

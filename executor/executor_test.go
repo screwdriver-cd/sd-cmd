@@ -99,6 +99,10 @@ func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag strin
 	return nil, nil
 }
 
+func (d *dummySDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util.TagResponse, error) {
+	return nil, nil
+}
+
 func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 	d := &dummySDAPI{
 		spec: spec,

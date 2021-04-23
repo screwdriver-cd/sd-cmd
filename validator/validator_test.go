@@ -32,6 +32,10 @@ func (d *dummySDAPIValidator) TagCommand(spec *util.CommandSpec, targetVersion, 
 	return nil, nil
 }
 
+func (d *dummySDAPIValidator) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util.TagResponse, error) {
+	return nil, nil
+}
+
 func TestNew(t *testing.T) {
 	// success
 	testDataPath := "../testdata/yaml/sd-command.yaml"
