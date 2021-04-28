@@ -97,7 +97,7 @@ func runValidator(sdAPI api.API, args []string) error {
 func runRemoveTag(sdAPI api.API, args []string) error {
 	val, err := removeTag.New(sdAPI, args)
 	if err != nil {
-		return fmt.Errorf("Fail to get validator: %v", err)
+		return fmt.Errorf("Fail to get removeTag: %v", err)
 	}
 	return val.Run()
 }
