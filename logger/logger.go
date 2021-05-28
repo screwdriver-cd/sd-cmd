@@ -10,24 +10,56 @@ import (
 	"time"
 )
 
+type LogOption func(l *Logger) error
+
 var loggingFiles []io.WriteCloser
 
 // Logger has information for logging
 type Logger struct {
-	File  io.WriteCloser
-	Debug *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
-	Error *log.Logger // Error is always debug file and stderr with LstdFlags flag.
+	debugFlag        int
+	isOutputDebugLog bool
+	File             io.WriteCloser
+	Debug            *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
+	Error            *log.Logger // Error is always debug file and stderr with LstdFlags flag.
+}
+
+func OutputToFileWithCreate(dir, filename string) LogOption {
+	return func(l *Logger) error {
+		file, err := CreateLogFile(dir, filename)
+		if err != nil {
+			return err
+		}
+		l.File = file
+		return nil
+	}
+}
+
+func DebugFlag(flag int) LogOption {
+	return func(l *Logger) error {
+		l.debugFlag = flag
+		return nil
+	}
+}
+
+func OutputDebugLog() LogOption {
+	return func(l *Logger) error {
+		l.isOutputDebugLog = true
+		return nil
+	}
 }
 
 // New returns logger object
-func New(dirPath, filename string, flag int, debug bool) (*Logger, error) {
+func New(options ...LogOption) (*Logger, error) {
 	lgr := new(Logger)
 
-	file, err := CreateLogFile(dirPath, filename)
-	if err != nil {
-		return nil, err
+	for _, o := range options {
+		err := o(lgr)
+		if err != nil {
+			return nil, err
+		}
 	}
-	lgr.SetInfos(file, flag, debug)
+
+	lgr.SetInfos(lgr.File, lgr.debugFlag, lgr.isOutputDebugLog)
 	return lgr, nil
 }
 

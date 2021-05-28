@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
+	"github.com/stretchr/testify/assert"
 )
 
 var tempDir string
@@ -33,15 +34,18 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
+// TODO be able to set log option with functional option pattern
+// TODO Logger.File to be private
+// TODO CreateLogFile,SetInfo should be private
+// TODO executor_test should use New
 func TestNew(t *testing.T) {
 	// success
 	dir := filepath.Join(tempDir, "CreateLogFile")
 	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
-	_, err := New(dir, filename, log.Ldate, false)
+
+	_, err := New(OutputToFileWithCreate(dir, filename), DebugFlag(log.Ldate), OutputDebugLog())
 	defer os.Remove(filepath.Join(dir, filename))
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
+	assert.Nil(t, err)
 }
 
 func TestCreateLogFile(t *testing.T) {
