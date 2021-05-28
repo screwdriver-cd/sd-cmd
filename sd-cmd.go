@@ -109,7 +109,7 @@ func runCommand(sdAPI api.API, args []string) error {
 
 	switch args[1] {
 	case "exec":
-		return runExecutor(sdAPI, args)
+		return runExecutor(sdAPI, args[2:])
 	case "publish":
 		return runPublisher(sdAPI, args[2:])
 	case "promote":
