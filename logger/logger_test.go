@@ -34,7 +34,6 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
-// TODO be able to set log option with functional option pattern
 // TODO Logger.File to be private
 // TODO CreateLogFile,SetInfo should be private
 // TODO executor_test should use New
@@ -44,17 +43,10 @@ func TestNew(t *testing.T) {
 	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
 
 	_, err := New(OutputToFileWithCreate(dir, filename), DebugFlag(log.Ldate), OutputDebugLog())
-	defer os.Remove(filepath.Join(dir, filename))
-	assert.Nil(t, err)
-}
-
-func TestCreateLogFile(t *testing.T) {
-	dir := filepath.Join(tempDir, "CreateLogFile")
-	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
 	defer os.RemoveAll(dir)
-	CreateLogFile(dir, filename)
+	assert.Nil(t, err)
 
-	_, err := os.Stat(dir)
+	_, err = os.Stat(dir)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
