@@ -34,6 +34,13 @@ func OutputToFileWithCreate(dir, filename string) LogOption {
 	}
 }
 
+func OutputToFile(file io.WriteCloser) LogOption {
+	return func(l *Logger) error {
+		l.file = file
+		return nil
+	}
+}
+
 func DebugFlag(flag int) LogOption {
 	return func(l *Logger) error {
 		l.debugFlag = flag
@@ -41,9 +48,9 @@ func DebugFlag(flag int) LogOption {
 	}
 }
 
-func OutputDebugLog() LogOption {
+func OutputDebugLog(output bool) LogOption {
 	return func(l *Logger) error {
-		l.isOutputDebugLog = true
+		l.isOutputDebugLog = output
 		return nil
 	}
 }

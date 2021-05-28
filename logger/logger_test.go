@@ -37,38 +37,54 @@ func teardown() {
 // TODO CreateLogFile,SetInfo should be private
 // TODO executor_test should use New
 func TestNew(t *testing.T) {
-	// success
-	dir := filepath.Join(tempDir, "CreateLogFile")
-	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
-
-	_, err := New(OutputToFileWithCreate(dir, filename), DebugFlag(log.Ldate), OutputDebugLog())
-	defer os.RemoveAll(dir)
-	assert.Nil(t, err)
-
-	_, err = os.Stat(dir)
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
+	cases := []struct {
+		name             string
+		debugFlag        int
+		isOutputDebugLog bool
+	}{
+		{
+			name:             "debugFlag: log.Ldate, isOutputDebugLog: true",
+			debugFlag:        log.Ldate,
+			isOutputDebugLog: true,
+		},
+		{
+			name:             "debugFlag: 0, isOutputDebugLog: false",
+			debugFlag:        0,
+			isOutputDebugLog: false,
+		},
 	}
 
-	// check there is a file
-	fileInfos, _ := ioutil.ReadDir(dir)
-	if len(fileInfos) > 0 && fileInfos[0].Name() != filename {
-		t.Errorf("file name is %q want %q", fileInfos[0].Name(), filename)
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			buffer := bytes.NewBuffer([]byte{})
+			d := &dummyLogFile{buffer: buffer}
+			lgr, err := New(OutputToFile(d), DebugFlag(tt.debugFlag), OutputDebugLog(tt.isOutputDebugLog))
+
+			assert.Nil(t, err)
+			assert.Equal(t, tt.debugFlag, lgr.debugFlag)
+			assert.Equal(t, tt.debugFlag, lgr.Debug.Flags())
+			assert.Equal(t, tt.isOutputDebugLog, lgr.isOutputDebugLog)
+			assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
+		})
 	}
 }
 
-func TestSetInfos(t *testing.T) {
-	lgr := new(Logger)
-	buffer := bytes.NewBuffer([]byte{})
-	d := &dummyLogFile{buffer: buffer}
-	lgr.setInfos(d, log.Ldate, false)
+func TestOutputToFileWithCreate(t *testing.T) {
+	dir := filepath.Join(tempDir, "CreateLogFile")
+	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
 
-	if lgr.Debug.Flags() != log.Ldate {
-		t.Errorf("lgr.Debug.Flags=%q, want %q", lgr.Debug.Flags(), log.Ldate)
-	}
-	if lgr.Error.Flags() != log.LstdFlags {
-		t.Errorf("lgr.Error.Flags=%q, want %q", lgr.Debug.Flags(), log.LstdFlags)
-	}
+	lgr, err := New(OutputToFileWithCreate(dir, filename), DebugFlag(log.Ldate))
+	defer os.RemoveAll(dir)
+	assert.Nil(t, err)
+	assert.Equal(t, log.Ldate, lgr.debugFlag)
+	assert.Equal(t, false, lgr.isOutputDebugLog)
+
+	_, err = os.Stat(dir)
+	assert.Nil(t, err)
+
+	// check there is a file
+	fileInfos, _ := ioutil.ReadDir(dir)
+	assert.Equal(t, fileInfos[0].Name(), filename)
 }
 
 func TestCanLogFile(t *testing.T) {
