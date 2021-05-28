@@ -4,6 +4,7 @@ package logger
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +18,7 @@ var loggingFiles []io.WriteCloser
 // Logger has information for logging
 type Logger struct {
 	debugFlag        int
+	errorFlag        int
 	isOutputDebugLog bool
 	file             io.WriteCloser
 	Debug            *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
@@ -48,6 +50,13 @@ func DebugFlag(flag int) LogOption {
 	}
 }
 
+func ErrorFlag(flag int) LogOption {
+	return func(l *Logger) error {
+		l.errorFlag = flag
+		return nil
+	}
+}
+
 func OutputDebugLog(output bool) LogOption {
 	return func(l *Logger) error {
 		l.isOutputDebugLog = output
@@ -58,6 +67,7 @@ func OutputDebugLog(output bool) LogOption {
 // New returns logger object
 func New(options ...LogOption) (*Logger, error) {
 	lgr := new(Logger)
+	lgr.errorFlag = log.LstdFlags
 
 	for _, o := range options {
 		err := o(lgr)
@@ -66,7 +76,7 @@ func New(options ...LogOption) (*Logger, error) {
 		}
 	}
 
-	lgr.setInfos(lgr.file, lgr.debugFlag, lgr.isOutputDebugLog)
+	lgr.buildLoggers()
 	return lgr, nil
 }
 
@@ -88,14 +98,29 @@ func createLogFile(dirPath, filename string) (io.WriteCloser, error) {
 	return file, nil
 }
 
-func (l *Logger) setInfos(file io.WriteCloser, flag int, debug bool) {
-	l.file = file
-	if debug {
-		l.Debug = log.New(io.MultiWriter(os.Stderr, file), "", flag)
-	} else {
-		l.Debug = log.New(file, "", flag)
+func (l *Logger) buildDebugLogger() {
+	if l.isOutputDebugLog {
+		if l.file != nil {
+			l.Debug = log.New(io.MultiWriter(os.Stderr, l.file), "", l.debugFlag)
+			return
+		}
+		l.Debug = log.New(os.Stderr, "", l.debugFlag)
+		return
 	}
-	l.Error = log.New(io.MultiWriter(os.Stderr, file), "", log.LstdFlags)
+	l.Debug = log.New(ioutil.Discard, "", l.debugFlag)
+}
+
+func (l *Logger) buildErrorLogger() {
+	if l.file != nil {
+		l.Error = log.New(io.MultiWriter(os.Stderr, l.file), "", l.errorFlag)
+		return
+	}
+	l.Error = log.New(os.Stderr, "", l.errorFlag)
+}
+
+func (l *Logger) buildLoggers() {
+	l.buildDebugLogger()
+	l.buildErrorLogger()
 }
 
 // Close finish log file safely
