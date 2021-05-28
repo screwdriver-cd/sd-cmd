@@ -25,7 +25,7 @@ type Logger struct {
 
 func OutputToFileWithCreate(dir, filename string) LogOption {
 	return func(l *Logger) error {
-		file, err := CreateLogFile(dir, filename)
+		file, err := createLogFile(dir, filename)
 		if err != nil {
 			return err
 		}
@@ -63,8 +63,7 @@ func New(options ...LogOption) (*Logger, error) {
 	return lgr, nil
 }
 
-// CreateLogFile create log file
-func CreateLogFile(dirPath, filename string) (io.WriteCloser, error) {
+func createLogFile(dirPath, filename string) (io.WriteCloser, error) {
 	if filename == "" {
 		filename = fmt.Sprintf("%v.log", time.Now().Unix())
 	}
@@ -82,7 +81,6 @@ func CreateLogFile(dirPath, filename string) (io.WriteCloser, error) {
 	return file, nil
 }
 
-// SetInfos set logger information from arguments
 func (l *Logger) setInfos(file io.WriteCloser, flag int, debug bool) {
 	l.file = file
 	if debug {
