@@ -34,7 +34,6 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
-// TODO Logger.File to be private
 // TODO CreateLogFile,SetInfo should be private
 // TODO executor_test should use New
 func TestNew(t *testing.T) {
@@ -62,7 +61,7 @@ func TestSetInfos(t *testing.T) {
 	lgr := new(Logger)
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lgr.SetInfos(d, log.Ldate, false)
+	lgr.setInfos(d, log.Ldate, false)
 
 	if lgr.Debug.Flags() != log.Ldate {
 		t.Errorf("lgr.Debug.Flags=%q, want %q", lgr.Debug.Flags(), log.Ldate)
@@ -78,7 +77,7 @@ func TestCanLogFile(t *testing.T) {
 	d := &dummyLogFile{buffer: buffer}
 
 	// check Error debug = false
-	lgr.SetInfos(d, 0, false)
+	lgr.setInfos(d, 0, false)
 	contents := "Hello this is Error debug false"
 	lgr.Error.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
@@ -87,7 +86,7 @@ func TestCanLogFile(t *testing.T) {
 	d.buffer.Reset()
 
 	// check Error debug = true
-	lgr.SetInfos(d, 0, true)
+	lgr.setInfos(d, 0, true)
 	contents = "Hello this is Error debug true"
 	lgr.Error.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
@@ -96,7 +95,7 @@ func TestCanLogFile(t *testing.T) {
 	d.buffer.Reset()
 
 	// check Debug debug = false
-	lgr.SetInfos(d, 0, false)
+	lgr.setInfos(d, 0, false)
 	contents = "Hello this is Debug debug false"
 	lgr.Debug.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
@@ -105,7 +104,7 @@ func TestCanLogFile(t *testing.T) {
 	d.buffer.Reset()
 
 	// check Debug debug = true
-	lgr.SetInfos(d, 0, true)
+	lgr.setInfos(d, 0, true)
 	contents = "Hello this is Debug debug true"
 	lgr.Debug.Println(contents)
 	if !strings.Contains(d.buffer.String(), contents) {
@@ -123,14 +122,14 @@ func Example_logStderr() {
 	lgr := new(Logger)
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lgr.SetInfos(d, 0, false)
+	lgr.setInfos(d, 0, false)
 
 	// check Debug debug = false
 	contents := "Hello this is Debug debug false"
 	lgr.Debug.Print(contents)
 
 	// check Debug debug = true
-	lgr.SetInfos(d, 0, true)
+	lgr.setInfos(d, 0, true)
 	contents = "Hello this is Debug debug true"
 	lgr.Debug.Print(contents)
 

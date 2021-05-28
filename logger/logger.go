@@ -59,7 +59,7 @@ func New(options ...LogOption) (*Logger, error) {
 		}
 	}
 
-	lgr.SetInfos(lgr.file, lgr.debugFlag, lgr.isOutputDebugLog)
+	lgr.setInfos(lgr.file, lgr.debugFlag, lgr.isOutputDebugLog)
 	return lgr, nil
 }
 
@@ -83,7 +83,7 @@ func CreateLogFile(dirPath, filename string) (io.WriteCloser, error) {
 }
 
 // SetInfos set logger information from arguments
-func (l *Logger) SetInfos(file io.WriteCloser, flag int, debug bool) {
+func (l *Logger) setInfos(file io.WriteCloser, flag int, debug bool) {
 	l.file = file
 	if debug {
 		l.Debug = log.New(io.MultiWriter(os.Stderr, file), "", flag)
