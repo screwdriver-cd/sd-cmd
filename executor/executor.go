@@ -2,7 +2,6 @@ package executor
 
 import (
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"log"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/pkg/errors"
 	"github.com/screwdriver-cd/sd-cmd/config"
@@ -31,7 +32,7 @@ type Executor interface {
 func prepareLog(smallSpec *util.CommandSpec) (err error) {
 	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 	filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
-	lgr, err = logger.New(dirPath, filename, log.LstdFlags, false)
+	lgr, err = logger.New(logger.OutputToFileWithCreate(dirPath, filename), logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false))
 	return
 }
 

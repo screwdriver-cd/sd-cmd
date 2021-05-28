@@ -66,10 +66,9 @@ func setup() {
 	invalidShell = string(b)
 
 	// setting lgr for logging
-	l := new(logger.Logger)
 	logBuffer = bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: logBuffer}
-	l.SetInfos(d, 0, true)
+	l, _ := logger.New(logger.OutputToFile(d), logger.DebugFlag(0), logger.OutputDebugLog(true))
 	lgr = l
 }
 
