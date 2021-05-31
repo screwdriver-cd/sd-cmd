@@ -1,15 +1,20 @@
 package executor
 
 import (
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"syscall"
+	"time"
 
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/pkg/errors"
+	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -18,6 +23,8 @@ import (
 var (
 	command = exec.Command
 	lgr     *logger.Logger
+
+	outputLogFile = false
 )
 
 // Executor is a Executor endpoint
@@ -25,22 +32,40 @@ type Executor interface {
 	Run() error
 }
 
-func prepareLog(smallSpec *util.CommandSpec) (err error) {
-	// dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
-	// filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
-	// lgr, err = logger.New(logger.OutputToFileWithCreate(dirPath, filename), logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false))
-	lgr, err = logger.New(logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false))
+func prepareLog(smallSpec *util.CommandSpec, outputLogFile bool) (err error) {
+	options := []logger.LogOption{logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false)}
+	if outputLogFile {
+		dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
+		filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
+		options = append(options, logger.OutputToFileWithCreate(dirPath, filename))
+	}
+	lgr, err = logger.New(options...)
 	return
+}
+
+func parseExecSubCommands(args []string) ([]string, error) {
+	f := flag.NewFlagSet("exec", flag.ContinueOnError)
+	f.BoolVar(&outputLogFile, "log-file", false, "output log to file")
+	err := f.Parse(args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse exec args: %w", err)
+	}
+	return f.Args(), nil
 }
 
 // New returns each format type of Executor
 func New(sdAPI api.API, args []string) (Executor, error) {
+	args, err := parseExecSubCommands(args)
+	if err != nil {
+		return nil, err
+	}
+
 	smallSpec, pos, err := util.SplitCmdWithSearch(args)
 	if err != nil {
 		return nil, err
 	}
 
-	err = prepareLog(smallSpec)
+	err = prepareLog(smallSpec, outputLogFile)
 	if err != nil {
 		return nil, err
 	}

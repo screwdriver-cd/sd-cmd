@@ -185,6 +185,18 @@ func TestNew(t *testing.T) {
 			args:      []string{"exec", "ns/cmd@ver"},
 			isLogFile: false,
 		},
+		{
+			name:      "should output log file",
+			spec:      dummyCommandSpec(binaryFormat),
+			args:      []string{"--log-file", "ns/cmd@ver"},
+			isLogFile: true,
+		},
+		{
+			name:      "should not output log file",
+			spec:      dummyCommandSpec(binaryFormat),
+			args:      []string{"ns/cmd@ver", "--log-file"},
+			isLogFile: false,
+		},
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
@@ -197,9 +209,12 @@ func TestNew(t *testing.T) {
 			assert.Nil(t, err)
 			_, ok := executor.(Executor)
 			assert.True(t, ok)
-			if !tt.isLogFile {
+			if tt.isLogFile {
+				assert.NotNil(t, lgr.File())
+			} else {
 				assert.Nil(t, lgr.File())
 			}
+
 		})
 	}
 
