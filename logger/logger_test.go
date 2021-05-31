@@ -40,22 +40,22 @@ func TestNew(t *testing.T) {
 	dummyFile := &dummyLogFile{buffer: buffer}
 
 	cases := []struct {
-		name             string
-		debugFlag        int
-		isOutputDebugLog bool
-		file             io.WriteCloser
+		name              string
+		debugFlag         int
+		hasOutputDebugLog bool
+		file              io.WriteCloser
 	}{
 		{
-			name:             "debugFlag: log.Ldate, isOutputDebugLog: true",
-			debugFlag:        log.Ldate,
-			isOutputDebugLog: true,
-			file:             dummyFile,
+			name:              "debugFlag: log.Ldate, isOutputDebugLog: true",
+			debugFlag:         log.Ldate,
+			hasOutputDebugLog: true,
+			file:              dummyFile,
 		},
 		{
-			name:             "debugFlag: 0, isOutputDebugLog: false",
-			debugFlag:        0,
-			isOutputDebugLog: false,
-			file:             dummyFile,
+			name:              "debugFlag: 0, isOutputDebugLog: false",
+			debugFlag:         0,
+			hasOutputDebugLog: false,
+			file:              dummyFile,
 		},
 		{
 			name: "file is nil",
@@ -65,12 +65,12 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			lgr, err := New(OutputToFile(tt.file), DebugFlag(tt.debugFlag), OutputDebugLog(tt.isOutputDebugLog))
+			lgr, err := New(OutputToFile(tt.file), DebugFlag(tt.debugFlag), OutputDebugLog(tt.hasOutputDebugLog))
 
 			assert.Nil(t, err)
 			assert.Equal(t, tt.debugFlag, lgr.debugFlag)
 			assert.Equal(t, tt.debugFlag, lgr.Debug.Flags())
-			assert.Equal(t, tt.isOutputDebugLog, lgr.isOutputDebugLog)
+			assert.Equal(t, tt.hasOutputDebugLog, lgr.hasOutputDebugLog)
 			assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
 			assert.Equal(t, tt.file, lgr.file)
 		})
@@ -85,7 +85,7 @@ func TestOutputToFileWithCreate(t *testing.T) {
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	assert.Equal(t, log.Ldate, lgr.debugFlag)
-	assert.Equal(t, false, lgr.isOutputDebugLog)
+	assert.Equal(t, false, lgr.hasOutputDebugLog)
 
 	_, err = os.Stat(dir)
 	assert.Nil(t, err)

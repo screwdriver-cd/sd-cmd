@@ -17,12 +17,12 @@ var loggingFiles []io.WriteCloser
 
 // Logger has information for logging
 type Logger struct {
-	debugFlag        int
-	errorFlag        int
-	isOutputDebugLog bool
-	file             io.WriteCloser
-	Debug            *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
-	Error            *log.Logger // Error is always debug file and stderr with LstdFlags flag.
+	debugFlag         int
+	errorFlag         int
+	hasOutputDebugLog bool
+	file              io.WriteCloser
+	Debug             *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
+	Error             *log.Logger // Error is always debug file and stderr with LstdFlags flag.
 }
 
 func (l *Logger) DebugFlag() int {
@@ -71,7 +71,7 @@ func ErrorFlag(flag int) LogOption {
 
 func OutputDebugLog(output bool) LogOption {
 	return func(l *Logger) error {
-		l.isOutputDebugLog = output
+		l.hasOutputDebugLog = output
 		return nil
 	}
 }
@@ -111,7 +111,7 @@ func createLogFile(dirPath, filename string) (io.WriteCloser, error) {
 }
 
 func (l *Logger) buildDebugLogger() {
-	if l.isOutputDebugLog {
+	if l.hasOutputDebugLog {
 		if l.file != nil {
 			l.Debug = log.New(io.MultiWriter(os.Stderr, l.file), "", l.debugFlag)
 			return
