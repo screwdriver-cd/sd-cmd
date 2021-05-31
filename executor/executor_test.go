@@ -167,7 +167,7 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 // TODO should not output log file without --log-file flag
 // TODO should be output log file with --log-file flag(sd-cmd exec --log-file aa@stable)
 func TestNew(t *testing.T) {
-	cases := []struct {
+	successCases := []struct {
 		name      string
 		spec      *util.CommandSpec
 		args      []string
@@ -198,7 +198,7 @@ func TestNew(t *testing.T) {
 			isLogFile: false,
 		},
 	}
-	for _, tt := range cases {
+	for _, tt := range successCases {
 		t.Run(tt.name, func(t *testing.T) {
 			l := lgr
 			defer func() {
@@ -217,31 +217,34 @@ func TestNew(t *testing.T) {
 		})
 	}
 
-	spec := dummyCommandSpec(binaryFormat)
-	sdapi := newDummySDAPI(spec, nil)
-
-	// failure. no command
-	_, err := New(sdapi, []string{})
-	if err == nil {
-		t.Errorf("err=nil, want error")
+	failureCases := []struct {
+		name string
+		spec *util.CommandSpec
+		args []string
+	}{
+		{
+			name: "failure with no command",
+			spec: dummyCommandSpec(binaryFormat),
+			args: []string{},
+		},
+		{
+			name: "failure with invalid command",
+			spec: dummyCommandSpec(binaryFormat),
+			args: []string{"sd-cmd", "ns@cmd/ver"},
+		},
+		{
+			name: "failure with screwdriver API error",
+			spec: dummyCommandSpec("Unknown"),
+			args: []string{"sd-cmd", "ns/cmd@ver"},
+		},
 	}
 
-	// failure. invalid command
-	_, err = New(sdapi, []string{"sd-cmd", "ns@cmd/ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
-
-	// case habitat format
-	spec = dummyCommandSpec(habitatFormat)
-	sdapi = newDummySDAPI(spec, nil)
-
-	// failure. Screwdriver API error
-	spec = dummyCommandSpec("Unknown")
-	sdapi = newDummySDAPI(spec, nil)
-	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
+	for _, tt := range failureCases {
+		t.Run(tt.name, func(t *testing.T) {
+			sdapi := newDummySDAPI(tt.spec, nil)
+			_, err := New(sdapi, tt.args)
+			assert.NotNil(t, err)
+		})
 	}
 }
 
