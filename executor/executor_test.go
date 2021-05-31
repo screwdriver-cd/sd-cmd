@@ -164,8 +164,6 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 	return spec
 }
 
-// TODO should not output log file without --log-file flag
-// TODO should be output log file with --log-file flag(sd-cmd exec --log-file aa@stable)
 func TestNew(t *testing.T) {
 	successCases := []struct {
 		name      string
