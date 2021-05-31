@@ -1,19 +1,15 @@
 package executor
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"syscall"
-	"time"
 
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/pkg/errors"
-	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/util"
@@ -30,9 +26,10 @@ type Executor interface {
 }
 
 func prepareLog(smallSpec *util.CommandSpec) (err error) {
-	dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
-	filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
-	lgr, err = logger.New(logger.OutputToFileWithCreate(dirPath, filename), logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false))
+	// dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
+	// filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
+	// lgr, err = logger.New(logger.OutputToFileWithCreate(dirPath, filename), logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false))
+	lgr, err = logger.New(logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false))
 	return
 }
 

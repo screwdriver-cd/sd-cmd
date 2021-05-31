@@ -12,6 +12,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 	"github.com/screwdriver-cd/sd-cmd/util"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -163,21 +164,50 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 	return spec
 }
 
+// TODO should not output log file without --log-file flag
+// TODO should be output log file with --log-file flag(sd-cmd exec --log-file aa@stable)
 func TestNew(t *testing.T) {
-	// case binary format
-	spec := dummyCommandSpec(binaryFormat)
-	sdapi := newDummySDAPI(spec, nil)
-	// success
-	executor, err := New(sdapi, []string{"ns/cmd@ver"})
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
+	cases := []struct {
+		name      string
+		spec      *util.CommandSpec
+		args      []string
+		isLogFile bool
+	}{
+		{
+			name:      "binary format succes with no logging with file",
+			spec:      dummyCommandSpec(binaryFormat),
+			args:      []string{"ns/cmd@ver"},
+			isLogFile: false,
+		},
+		{
+			name:      "binary format success with no logging with file",
+			spec:      dummyCommandSpec(habitatFormat),
+			args:      []string{"exec", "ns/cmd@ver"},
+			isLogFile: false,
+		},
 	}
-	if _, ok := executor.(Executor); !ok {
-		t.Errorf("New does not fulfill API interface")
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lgr
+			defer func() {
+				lgr = l
+			}()
+			sdapi := newDummySDAPI(tt.spec, nil)
+			executor, err := New(sdapi, tt.args)
+			assert.Nil(t, err)
+			_, ok := executor.(Executor)
+			assert.True(t, ok)
+			if !tt.isLogFile {
+				assert.Nil(t, lgr.File())
+			}
+		})
 	}
 
+	spec := dummyCommandSpec(binaryFormat)
+	sdapi := newDummySDAPI(spec, nil)
+
 	// failure. no command
-	_, err = New(sdapi, []string{})
+	_, err := New(sdapi, []string{})
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
@@ -191,14 +221,6 @@ func TestNew(t *testing.T) {
 	// case habitat format
 	spec = dummyCommandSpec(habitatFormat)
 	sdapi = newDummySDAPI(spec, nil)
-	// success
-	executor, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-	if _, ok := executor.(Executor); !ok {
-		t.Errorf("New does not fulfill API interface")
-	}
 
 	// failure. Screwdriver API error
 	spec = dummyCommandSpec("Unknown")
