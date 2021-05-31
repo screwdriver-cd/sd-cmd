@@ -23,7 +23,10 @@ import (
 var (
 	command = exec.Command
 	lgr     *logger.Logger
+)
 
+// exec subcommand flags
+var (
 	hasOutputLogFile = false
 )
 
