@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// LogOption enable to customize Logger
 type LogOption func(l *Logger) error
 
 var loggingFiles []io.WriteCloser
@@ -25,18 +26,22 @@ type Logger struct {
 	Error             *log.Logger // Error is always debug file and stderr with LstdFlags flag.
 }
 
+// DebugFlag return current log debugFlag status
 func (l *Logger) DebugFlag() int {
 	return l.debugFlag
 }
 
-func (l *Logger) ErrorFLag() int {
+// ErrorFlag return current log errorFlag status
+func (l *Logger) ErrorFlag() int {
 	return l.errorFlag
 }
 
+// File return current log output file. If the file = nil, logger does not output log to file
 func (l *Logger) File() io.WriteCloser {
 	return l.file
 }
 
+// OutputToFileWithCreate create file for output log
 func OutputToFileWithCreate(dir, filename string) LogOption {
 	return func(l *Logger) error {
 		file, err := createLogFile(dir, filename)
@@ -48,6 +53,7 @@ func OutputToFileWithCreate(dir, filename string) LogOption {
 	}
 }
 
+// OutputToFile output log to the file
 func OutputToFile(file io.WriteCloser) LogOption {
 	return func(l *Logger) error {
 		l.file = file
@@ -55,6 +61,7 @@ func OutputToFile(file io.WriteCloser) LogOption {
 	}
 }
 
+// DebugFlag set Logger.Debug flag
 func DebugFlag(flag int) LogOption {
 	return func(l *Logger) error {
 		l.debugFlag = flag
@@ -62,6 +69,7 @@ func DebugFlag(flag int) LogOption {
 	}
 }
 
+// ErrorFlag set Logger.Error flag
 func ErrorFlag(flag int) LogOption {
 	return func(l *Logger) error {
 		l.errorFlag = flag
@@ -69,6 +77,7 @@ func ErrorFlag(flag int) LogOption {
 	}
 }
 
+// OutputDebugLog output debug log
 func OutputDebugLog(output bool) LogOption {
 	return func(l *Logger) error {
 		l.hasOutputDebugLog = output
