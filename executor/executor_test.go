@@ -214,7 +214,6 @@ func TestNew(t *testing.T) {
 			} else {
 				assert.Nil(t, lgr.File())
 			}
-
 		})
 	}
 
