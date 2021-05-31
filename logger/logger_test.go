@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -100,40 +99,85 @@ func TestCanLogFile(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
 
-	lgr, _ := New(OutputToFile(d), DebugFlag(0), OutputDebugLog(false))
-	// check Error debug = false
-
-	contents := "Hello this is Error debug false"
-	lgr.Error.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
+	errorCases := []struct {
+		name       string
+		options    []LogOption
+		logMessage string
+		expect     string
+	}{
+		{
+			name:       "OutputToFile: true, OutputDebugLog: false",
+			options:    []LogOption{OutputToFile(d), OutputDebugLog(false), ErrorFlag(0)},
+			logMessage: "Hello",
+			expect:     "Hello\n",
+		},
+		{
+			name:       "OutputToFile: true, OutputDebugLog: true",
+			options:    []LogOption{OutputToFile(d), OutputDebugLog(true), ErrorFlag(0)},
+			logMessage: "Hello",
+			expect:     "Hello\n",
+		},
+		{
+			name:       "OutputToFile: false, OutputDebugLog: false",
+			options:    []LogOption{OutputDebugLog(true), ErrorFlag(0)},
+			logMessage: "Hello",
+			expect:     "",
+		},
+		{
+			name:       "OutputToFile: false, OutputDebugLog: true",
+			options:    []LogOption{OutputDebugLog(true), ErrorFlag(0)},
+			logMessage: "Hello",
+			expect:     "",
+		},
 	}
-	d.buffer.Reset()
-
-	// check Error debug = true
-	lgr, _ = New(OutputToFile(d), DebugFlag(0), OutputDebugLog(true))
-	contents = "Hello this is Error debug true"
-	lgr.Error.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
+	for _, tt := range errorCases {
+		t.Run(tt.name, func(t *testing.T) {
+			defer d.buffer.Reset()
+			l, _ := New(tt.options...)
+			l.Error.Println(tt.logMessage)
+			assert.Equal(t, tt.expect, d.buffer.String())
+		})
 	}
-	d.buffer.Reset()
 
-	// check Debug debug = false
-	lgr, _ = New(OutputToFile(d), DebugFlag(0), OutputDebugLog(false))
-	contents = ""
-	lgr.Debug.Println(contents)
-	assert.Equal(t, contents, d.buffer.String())
-	d.buffer.Reset()
-
-	// check Debug debug = true
-	lgr, _ = New(OutputToFile(d), DebugFlag(0), OutputDebugLog(true))
-	contents = "Hello this is Debug debug true"
-	lgr.Debug.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
+	debugCases := []struct {
+		name       string
+		options    []LogOption
+		logMessage string
+		expect     string
+	}{
+		{
+			name:       "OutputToFile: true, OutputDebugLog: false",
+			options:    []LogOption{OutputToFile(d), OutputDebugLog(false), DebugFlag(0)},
+			logMessage: "Hello",
+			expect:     "",
+		},
+		{
+			name:       "OutputToFile: true, OutputDebugLog: true",
+			options:    []LogOption{OutputToFile(d), OutputDebugLog(true), DebugFlag(0)},
+			logMessage: "Hello",
+			expect:     "Hello\n",
+		},
+		{
+			name:       "OutputToFile: false, OutputDebugLog: false",
+			options:    []LogOption{OutputDebugLog(true), DebugFlag(0)},
+			logMessage: "Hello",
+			expect:     "",
+		},
+		{
+			name:       "OutputToFile: false, OutputDebugLog: true",
+			options:    []LogOption{OutputDebugLog(true), DebugFlag(0)},
+			logMessage: "Hello",
+			expect:     "",
+		},
 	}
-	d.buffer.Reset()
+	for _, tt := range debugCases {
+		t.Run(tt.name, func(t *testing.T) {
+			defer d.buffer.Reset()
+			l, _ := New(tt.options...)
+			l.Debug.Println(tt.logMessage)
+			assert.Equal(t, tt.expect, d.buffer.String())
+		})
+	}
 }
 
 func Example_logStderr() {
@@ -141,12 +185,11 @@ func Example_logStderr() {
 	cacheFile := os.Stderr
 	os.Stderr = os.Stdout
 	defer func() { os.Stderr = cacheFile }()
-
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lgr, _ := New(OutputToFile(d), DebugFlag(0), OutputDebugLog(false))
 
 	// check Debug debug = false
+	lgr, _ := New(OutputToFile(d), DebugFlag(0), OutputDebugLog(false))
 	contents := "Hello this is Debug debug false"
 	lgr.Debug.Println(contents)
 
@@ -167,15 +210,20 @@ func Example_logStderr() {
 	contents = "Hello this is Error with file"
 	lgr.Error.Println(contents)
 
-	lgr, _ = New(OutputToFile(d), OutputDebugLog(true), ErrorFlag(0))
-	contents = "Hello this is Error with no true"
+	lgr, _ = New(OutputToFile(d), OutputDebugLog(false), ErrorFlag(0))
+	contents = "Hello this is Error with debug false"
+	lgr.Error.Println(contents)
+
+	lgr, _ = New(ErrorFlag(0))
+	contents = "Hello this is Error with no file"
 	lgr.Error.Println(contents)
 
 	// Output:
 	// Hello this is Debug debug true
 	// Hello this is Debug debug falase with file
 	// Hello this is Error with file
-	// Hello this is Error with no true
+	// Hello this is Error with debug false
+	// Hello this is Error with no file
 }
 func TestMain(m *testing.M) {
 	setup()

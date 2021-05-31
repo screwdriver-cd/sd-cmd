@@ -25,6 +25,18 @@ type Logger struct {
 	Error            *log.Logger // Error is always debug file and stderr with LstdFlags flag.
 }
 
+func (l *Logger) DebugFlag() int {
+	return l.debugFlag
+}
+
+func (l *Logger) ErrorFLag() int {
+	return l.errorFlag
+}
+
+func (l *Logger) File() io.WriteCloser {
+	return l.file
+}
+
 func OutputToFileWithCreate(dir, filename string) LogOption {
 	return func(l *Logger) error {
 		file, err := createLogFile(dir, filename)
