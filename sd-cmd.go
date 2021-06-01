@@ -119,7 +119,7 @@ func runCommand(sdAPI api.API, args []string) error {
 	case "removeTag":
 		return runRemoveTag(sdAPI, args[2:])
 	default:
-		return runExecutor(sdAPI, args)
+		return runExecutor(sdAPI, args[1:])
 	}
 }
 
