@@ -70,10 +70,18 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, tt.debugFlag, lgr.debugFlag)
 			assert.Equal(t, tt.debugFlag, lgr.Debug.Flags())
 			assert.Equal(t, tt.hasOutputDebugLog, lgr.hasOutputDebugLog)
-			assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
 			assert.Equal(t, tt.file, lgr.file)
 		})
 	}
+
+	t.Run("default value", func(t *testing.T) {
+		lgr, err := New()
+		assert.Nil(t, err)
+		assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
+		assert.Equal(t, log.LstdFlags, lgr.Debug.Flags())
+		assert.Nil(t, lgr.File())
+		assert.False(t, lgr.hasOutputDebugLog)
+	})
 }
 
 func TestOutputToFileWithCreate(t *testing.T) {

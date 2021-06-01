@@ -89,6 +89,7 @@ func OptOutputDebugLog(output bool) LogOption {
 func New(options ...LogOption) (*Logger, error) {
 	lgr := new(Logger)
 	lgr.errorFlag = log.LstdFlags
+	lgr.debugFlag = log.LstdFlags
 
 	for _, o := range options {
 		err := o(lgr)

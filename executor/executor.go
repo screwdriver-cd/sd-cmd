@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +35,7 @@ type Executor interface {
 }
 
 func prepareLog(smallSpec *util.CommandSpec, hasOutputLogFile bool) (err error) {
-	options := []logger.LogOption{logger.OptDebugFlag(log.LstdFlags), logger.OptOutputDebugLog(false)}
+	options := []logger.LogOption{logger.OptOutputDebugLog(false)}
 	if hasOutputLogFile {
 		dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 		filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
