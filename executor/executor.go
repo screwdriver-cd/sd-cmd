@@ -26,7 +26,7 @@ var (
 
 // exec subcommand flags
 var (
-	hasOutputLogFile = false
+	isDebug = false
 )
 
 // Executor is a Executor endpoint
@@ -34,12 +34,12 @@ type Executor interface {
 	Run() error
 }
 
-func prepareLog(smallSpec *util.CommandSpec, hasOutputLogFile bool) (err error) {
-	options := []logger.LogOption{logger.OptOutputDebugLog(false)}
-	if hasOutputLogFile {
+func prepareLog(smallSpec *util.CommandSpec, isDebug bool) (err error) {
+	options := []logger.LogOption{}
+	if isDebug {
 		dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 		filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
-		options = append(options, logger.OptOutputToFileWithCreate(dirPath, filename))
+		options = append(options, logger.OptDebugWithCreate(dirPath, filename))
 	}
 	lgr, err = logger.New(options...)
 	return
@@ -47,7 +47,7 @@ func prepareLog(smallSpec *util.CommandSpec, hasOutputLogFile bool) (err error) 
 
 func parseExecSubCommands(args []string) ([]string, error) {
 	f := flag.NewFlagSet("exec", flag.ContinueOnError)
-	f.BoolVar(&hasOutputLogFile, "log-file", false, "output log to file")
+	f.BoolVar(&isDebug, "debug", false, "output log to file")
 	err := f.Parse(args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse exec args: %w", err)
@@ -67,7 +67,7 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 		return nil, err
 	}
 
-	err = prepareLog(smallSpec, hasOutputLogFile)
+	err = prepareLog(smallSpec, isDebug)
 	if err != nil {
 		return nil, err
 	}

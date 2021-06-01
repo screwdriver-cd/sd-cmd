@@ -3,7 +3,6 @@ package logger
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -39,38 +38,37 @@ func TestNew(t *testing.T) {
 	dummyFile := &dummyLogFile{buffer: buffer}
 
 	cases := []struct {
-		name              string
-		debugFlag         int
-		hasOutputDebugLog bool
-		file              io.WriteCloser
+		name      string
+		debugFlag int
+		isDebug   bool
 	}{
 		{
-			name:              "debugFlag: log.Ldate, isOutputDebugLog: true",
-			debugFlag:         log.Ldate,
-			hasOutputDebugLog: true,
-			file:              dummyFile,
+			name:      "debugFlag: log.Ldate, isOutputDebugLog: true",
+			debugFlag: log.Ldate,
+			isDebug:   true,
 		},
 		{
-			name:              "debugFlag: 0, isOutputDebugLog: false",
-			debugFlag:         0,
-			hasOutputDebugLog: false,
-			file:              dummyFile,
+			name:      "debugFlag: 0, isOutputDebugLog: false",
+			debugFlag: 0,
+			isDebug:   false,
 		},
 		{
 			name: "file is nil",
-			file: nil,
 		},
 	}
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			lgr, err := New(OptOutputToFile(tt.file), OptDebugFlag(tt.debugFlag), OptOutputDebugLog(tt.hasOutputDebugLog))
+			lgr, err := New(OptDebugFlag(tt.debugFlag))
+			if tt.isDebug {
+				lgr, err = New(OptDebug(dummyFile), OptDebugFlag(tt.debugFlag))
+				assert.Equal(t, dummyFile, lgr.file)
+			}
 
 			assert.Nil(t, err)
 			assert.Equal(t, tt.debugFlag, lgr.debugFlag)
 			assert.Equal(t, tt.debugFlag, lgr.Debug.Flags())
-			assert.Equal(t, tt.hasOutputDebugLog, lgr.hasOutputDebugLog)
-			assert.Equal(t, tt.file, lgr.file)
+			assert.Equal(t, tt.isDebug, lgr.isDebug)
 		})
 	}
 
@@ -80,7 +78,7 @@ func TestNew(t *testing.T) {
 		assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
 		assert.Equal(t, log.LstdFlags, lgr.Debug.Flags())
 		assert.Nil(t, lgr.File())
-		assert.False(t, lgr.hasOutputDebugLog)
+		assert.False(t, lgr.isDebug)
 	})
 }
 
@@ -88,11 +86,11 @@ func TestOutputToFileWithCreate(t *testing.T) {
 	dir := filepath.Join(tempDir, "CreateLogFile")
 	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
 
-	lgr, err := New(OptOutputToFileWithCreate(dir, filename), OptDebugFlag(log.Ldate))
+	lgr, err := New(OptDebugWithCreate(dir, filename), OptDebugFlag(log.Ldate))
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	assert.Equal(t, log.Ldate, lgr.debugFlag)
-	assert.Equal(t, false, lgr.hasOutputDebugLog)
+	assert.Equal(t, false, lgr.isDebug)
 
 	_, err = os.Stat(dir)
 	assert.Nil(t, err)
@@ -114,25 +112,25 @@ func TestCanLogFile(t *testing.T) {
 	}{
 		{
 			name:       "OutputToFile: true, OutputDebugLog: false",
-			options:    []LogOption{OptOutputToFile(d), OptOutputDebugLog(false), OptErrorFlag(0)},
+			options:    []LogOption{OptDebug(d), OptErrorFlag(0)},
 			logMessage: "Hello",
 			expect:     "Hello\n",
 		},
 		{
 			name:       "OutputToFile: true, OutputDebugLog: true",
-			options:    []LogOption{OptOutputToFile(d), OptOutputDebugLog(true), OptErrorFlag(0)},
+			options:    []LogOption{OptDebug(d), OptErrorFlag(0)},
 			logMessage: "Hello",
 			expect:     "Hello\n",
 		},
 		{
 			name:       "OutputToFile: false, OutputDebugLog: false",
-			options:    []LogOption{OptOutputDebugLog(true), OptErrorFlag(0)},
+			options:    []LogOption{OptErrorFlag(0)},
 			logMessage: "Hello",
 			expect:     "",
 		},
 		{
 			name:       "OutputToFile: false, OutputDebugLog: true",
-			options:    []LogOption{OptOutputDebugLog(true), OptErrorFlag(0)},
+			options:    []LogOption{OptErrorFlag(0)},
 			logMessage: "Hello",
 			expect:     "",
 		},
@@ -153,26 +151,14 @@ func TestCanLogFile(t *testing.T) {
 		expect     string
 	}{
 		{
-			name:       "OutputToFile: true, OutputDebugLog: false",
-			options:    []LogOption{OptOutputToFile(d), OptOutputDebugLog(false), OptDebugFlag(0)},
-			logMessage: "Hello",
-			expect:     "",
-		},
-		{
-			name:       "OutputToFile: true, OutputDebugLog: true",
-			options:    []LogOption{OptOutputToFile(d), OptOutputDebugLog(true), OptDebugFlag(0)},
+			name:       "OptDebug: true",
+			options:    []LogOption{OptDebug(d), OptDebugFlag(0)},
 			logMessage: "Hello",
 			expect:     "Hello\n",
 		},
 		{
-			name:       "OutputToFile: false, OutputDebugLog: false",
-			options:    []LogOption{OptOutputDebugLog(true), OptDebugFlag(0)},
-			logMessage: "Hello",
-			expect:     "",
-		},
-		{
-			name:       "OutputToFile: false, OutputDebugLog: true",
-			options:    []LogOption{OptOutputDebugLog(true), OptDebugFlag(0)},
+			name:       "OptDebug: false",
+			options:    []LogOption{OptDebugFlag(0)},
 			logMessage: "Hello",
 			expect:     "",
 		},
@@ -196,28 +182,28 @@ func Example_logStderr() {
 	d := &dummyLogFile{buffer: buffer}
 
 	// check Debug debug = false
-	lgr, _ := New(OptOutputToFile(d), OptDebugFlag(0), OptOutputDebugLog(false))
+	lgr, _ := New(OptDebug(d), OptDebugFlag(0))
 	contents := "Hello this is Debug debug false"
 	lgr.Debug.Println(contents)
 
 	// check Debug debug = true
-	lgr, _ = New(OptOutputToFile(d), OptDebugFlag(0), OptOutputDebugLog(true))
+	lgr, _ = New(OptDebug(d), OptDebugFlag(0))
 	contents = "Hello this is Debug debug true"
 	lgr.Debug.Println(contents)
 
-	lgr, _ = New(OptDebugFlag(0), OptOutputDebugLog(false))
+	lgr, _ = New(OptDebugFlag(0))
 	contents = "Hello this is Debug debug falase with no file"
 	lgr.Debug.Println(contents)
 
-	lgr, _ = New(OptDebugFlag(0), OptOutputDebugLog(true))
+	lgr, _ = New(OptDebugFlag(0))
 	contents = "Hello this is Debug debug falase with file"
 	lgr.Debug.Println(contents)
 
-	lgr, _ = New(OptOutputToFile(d), OptOutputDebugLog(true), OptErrorFlag(0))
+	lgr, _ = New(OptDebug(d), OptErrorFlag(0))
 	contents = "Hello this is Error with file"
 	lgr.Error.Println(contents)
 
-	lgr, _ = New(OptOutputToFile(d), OptOutputDebugLog(false), OptErrorFlag(0))
+	lgr, _ = New(OptDebug(d), OptErrorFlag(0))
 	contents = "Hello this is Error with debug false"
 	lgr.Error.Println(contents)
 
@@ -226,8 +212,6 @@ func Example_logStderr() {
 	lgr.Error.Println(contents)
 
 	// Output:
-	// Hello this is Debug debug true
-	// Hello this is Debug debug falase with file
 	// Hello this is Error with file
 	// Hello this is Error with debug false
 	// Hello this is Error with no file

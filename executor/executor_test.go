@@ -69,7 +69,7 @@ func setup() {
 	// setting lgr for logging
 	logBuffer = bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: logBuffer}
-	l, _ := logger.New(logger.OptOutputToFile(d), logger.OptDebugFlag(0), logger.OptOutputDebugLog(true))
+	l, _ := logger.New(logger.OptDebug(d), logger.OptDebugFlag(0))
 	lgr = l
 }
 
@@ -186,13 +186,13 @@ func TestNew(t *testing.T) {
 		{
 			name:      "should output log file",
 			spec:      dummyCommandSpec(binaryFormat),
-			args:      []string{"--log-file", "ns/cmd@ver"},
+			args:      []string{"--debug", "ns/cmd@ver"},
 			isLogFile: true,
 		},
 		{
 			name:      "should not output log file",
 			spec:      dummyCommandSpec(binaryFormat),
-			args:      []string{"ns/cmd@ver", "--log-file"},
+			args:      []string{"ns/cmd@ver", "--debug"},
 			isLogFile: false,
 		},
 	}

@@ -18,12 +18,12 @@ var loggingFiles []io.WriteCloser
 
 // Logger has information for logging
 type Logger struct {
-	debugFlag         int
-	errorFlag         int
-	hasOutputDebugLog bool
-	file              io.WriteCloser
-	Debug             *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
-	Error             *log.Logger // Error is always debug file and stderr with LstdFlags flag.
+	debugFlag int
+	errorFlag int
+	isDebug   bool
+	file      io.WriteCloser
+	Debug     *log.Logger // Debug is for debug log. You can set log flag. Also you can choose log stderr or not
+	Error     *log.Logger // Error is always debug file and stderr with LstdFlags flag.
 }
 
 // DebugFlag return current log debugFlag status
@@ -39,26 +39,6 @@ func (l *Logger) ErrorFlag() int {
 // File return current log output file. If the file = nil, logger does not output log to file
 func (l *Logger) File() io.WriteCloser {
 	return l.file
-}
-
-// OptOutputToFileWithCreate create file for output log
-func OptOutputToFileWithCreate(dir, filename string) LogOption {
-	return func(l *Logger) error {
-		file, err := createLogFile(dir, filename)
-		if err != nil {
-			return err
-		}
-		l.file = file
-		return nil
-	}
-}
-
-// OptOutputToFile output log to the file
-func OptOutputToFile(file io.WriteCloser) LogOption {
-	return func(l *Logger) error {
-		l.file = file
-		return nil
-	}
 }
 
 // OptDebugFlag set Logger.Debug flag
@@ -77,10 +57,23 @@ func OptErrorFlag(flag int) LogOption {
 	}
 }
 
-// OptOutputDebugLog output debug log
-func OptOutputDebugLog(output bool) LogOption {
+// OptDebug output debug log
+func OptDebug(file io.WriteCloser) LogOption {
 	return func(l *Logger) error {
-		l.hasOutputDebugLog = output
+		l.isDebug = true
+		l.file = file
+		return nil
+	}
+}
+
+// OptDebugWithCreate create file for output log
+func OptDebugWithCreate(dir, filename string) LogOption {
+	return func(l *Logger) error {
+		file, err := createLogFile(dir, filename)
+		if err != nil {
+			return err
+		}
+		l.file = file
 		return nil
 	}
 }
@@ -121,19 +114,15 @@ func createLogFile(dirPath, filename string) (io.WriteCloser, error) {
 }
 
 func (l *Logger) buildDebugLogger() {
-	if l.hasOutputDebugLog {
-		if l.file != nil {
-			l.Debug = log.New(io.MultiWriter(os.Stderr, l.file), "", l.debugFlag)
-			return
-		}
-		l.Debug = log.New(os.Stderr, "", l.debugFlag)
+	if l.isDebug && l.file != nil {
+		l.Debug = log.New(l.file, "", l.debugFlag)
 		return
 	}
 	l.Debug = log.New(ioutil.Discard, "", l.debugFlag)
 }
 
 func (l *Logger) buildErrorLogger() {
-	if l.file != nil {
+	if l.isDebug && l.file != nil {
 		l.Error = log.New(io.MultiWriter(os.Stderr, l.file), "", l.errorFlag)
 		return
 	}
