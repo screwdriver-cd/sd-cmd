@@ -68,7 +68,6 @@ func TestNew(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, tt.debugFlag, lgr.debugFlag)
 			assert.Equal(t, tt.debugFlag, lgr.Debug.Flags())
-			assert.Equal(t, tt.isDebug, lgr.isDebug)
 		})
 	}
 
@@ -78,7 +77,6 @@ func TestNew(t *testing.T) {
 		assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
 		assert.Equal(t, log.LstdFlags, lgr.Debug.Flags())
 		assert.Nil(t, lgr.File())
-		assert.False(t, lgr.isDebug)
 	})
 }
 
@@ -90,7 +88,7 @@ func TestOutputToFileWithCreate(t *testing.T) {
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	assert.Equal(t, log.Ldate, lgr.debugFlag)
-	assert.Equal(t, false, lgr.isDebug)
+	assert.NotNil(t, lgr.File())
 
 	_, err = os.Stat(dir)
 	assert.Nil(t, err)
