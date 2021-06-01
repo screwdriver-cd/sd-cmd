@@ -36,11 +36,11 @@ type Executor interface {
 }
 
 func prepareLog(smallSpec *util.CommandSpec, hasOutputLogFile bool) (err error) {
-	options := []logger.LogOption{logger.DebugFlag(log.LstdFlags), logger.OutputDebugLog(false)}
+	options := []logger.LogOption{logger.OptDebugFlag(log.LstdFlags), logger.OptOutputDebugLog(false)}
 	if hasOutputLogFile {
 		dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 		filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
-		options = append(options, logger.OutputToFileWithCreate(dirPath, filename))
+		options = append(options, logger.OptOutputToFileWithCreate(dirPath, filename))
 	}
 	lgr, err = logger.New(options...)
 	return

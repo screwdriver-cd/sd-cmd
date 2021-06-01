@@ -41,8 +41,8 @@ func (l *Logger) File() io.WriteCloser {
 	return l.file
 }
 
-// OutputToFileWithCreate create file for output log
-func OutputToFileWithCreate(dir, filename string) LogOption {
+// OptOutputToFileWithCreate create file for output log
+func OptOutputToFileWithCreate(dir, filename string) LogOption {
 	return func(l *Logger) error {
 		file, err := createLogFile(dir, filename)
 		if err != nil {
@@ -53,32 +53,32 @@ func OutputToFileWithCreate(dir, filename string) LogOption {
 	}
 }
 
-// OutputToFile output log to the file
-func OutputToFile(file io.WriteCloser) LogOption {
+// OptOutputToFile output log to the file
+func OptOutputToFile(file io.WriteCloser) LogOption {
 	return func(l *Logger) error {
 		l.file = file
 		return nil
 	}
 }
 
-// DebugFlag set Logger.Debug flag
-func DebugFlag(flag int) LogOption {
+// OptDebugFlag set Logger.Debug flag
+func OptDebugFlag(flag int) LogOption {
 	return func(l *Logger) error {
 		l.debugFlag = flag
 		return nil
 	}
 }
 
-// ErrorFlag set Logger.Error flag
-func ErrorFlag(flag int) LogOption {
+// OptErrorFlag set Logger.Error flag
+func OptErrorFlag(flag int) LogOption {
 	return func(l *Logger) error {
 		l.errorFlag = flag
 		return nil
 	}
 }
 
-// OutputDebugLog output debug log
-func OutputDebugLog(output bool) LogOption {
+// OptOutputDebugLog output debug log
+func OptOutputDebugLog(output bool) LogOption {
 	return func(l *Logger) error {
 		l.hasOutputDebugLog = output
 		return nil
