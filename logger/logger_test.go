@@ -41,105 +41,50 @@ func newLogger(file io.WriteCloser) (lgr Logger) {
 }
 
 func TestNew(t *testing.T) {
-	buffer := bytes.NewBuffer([]byte{})
-	dummyFile := &dummyLogFile{buffer: buffer}
-
-	cases := []struct {
-		name    string
-		isDebug bool
-	}{
-		{
-			name:    "debugFlag: log.Ldate, isOutputDebugLog: true",
-			isDebug: true,
-		},
-		{
-			name:    "debugFlag: 0, isOutputDebugLog: false",
-			isDebug: false,
-		},
-	}
-	for _, tt := range cases {
-		t.Run(tt.name, func(t *testing.T) {
-			lgr, err := New()
-			if tt.isDebug {
-				lgr, err = New(OptDebug(dummyFile))
-				assert.Equal(t, dummyFile, lgr.file)
-			}
-			assert.Nil(t, err)
-		})
-	}
-
-	t.Run("default value", func(t *testing.T) {
+	t.Run("default", func(t *testing.T) {
 		lgr, err := New()
-		assert.Nil(t, err)
+		assert.Nil(t, lgr.File())
 		assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
 		assert.Equal(t, log.LstdFlags, lgr.Debug.Flags())
-		assert.Nil(t, lgr.File())
+		assert.Nil(t, err)
+	})
+
+	t.Run("OutputToFileWithCreate", func(t *testing.T) {
+		dir := filepath.Join(tempDir, "CreateLogFile")
+		filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
+
+		lgr, err := New(OptDebugWithCreate(dir, filename))
+		defer os.RemoveAll(dir)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, lgr.File())
+		_, err = os.Stat(dir)
+		assert.Nil(t, err)
+		fileInfos, _ := ioutil.ReadDir(dir)
+		assert.Equal(t, fileInfos[0].Name(), filename)
+	})
+
+	t.Run("OutputToFile", func(t *testing.T) {
+		buffer := bytes.NewBuffer([]byte{})
+		d := &dummyLogFile{buffer: buffer}
+
+		lgr, err := New(OptDebug(d))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, lgr.File())
 	})
 }
 
-// TODO should check able to write file
-func TestOutputToFileWithCreate(t *testing.T) {
-	dir := filepath.Join(tempDir, "CreateLogFile")
-	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
-
-	lgr, err := New(OptDebugWithCreate(dir, filename))
-	defer os.RemoveAll(dir)
-	assert.Nil(t, err)
-	assert.NotNil(t, lgr.File())
-
-	_, err = os.Stat(dir)
-	assert.Nil(t, err)
-
-	// check there is a file
-	fileInfos, _ := ioutil.ReadDir(dir)
-	assert.Equal(t, fileInfos[0].Name(), filename)
-}
-
-func TestCanLogFile(t *testing.T) {
+func TestLoggingFile(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
+	expect := "Hello Error\nHello Debug\n"
 
-	errorCases := []struct {
-		name       string
-		lgr        Logger
-		logMessage string
-		expect     string
-	}{
-		{
-			name:       "debug: true",
-			lgr:        newLogger(d),
-			logMessage: "Hello",
-			expect:     "Hello\n",
-		},
-	}
-	for _, tt := range errorCases {
-		t.Run(tt.name, func(t *testing.T) {
-			defer d.buffer.Reset()
-			tt.lgr.Error.Println(tt.logMessage)
-			assert.Equal(t, tt.expect, d.buffer.String())
-		})
-	}
+	lgr := newLogger(d)
+	lgr.Error.Println("Hello Error")
+	lgr.Debug.Println("Hello Debug")
 
-	debugCases := []struct {
-		name       string
-		lgr        Logger
-		logMessage string
-		expect     string
-	}{
-		{
-			name:       "debug true",
-			lgr:        newLogger(d),
-			logMessage: "Hello",
-			expect:     "Hello\n",
-		},
-	}
-	for _, tt := range debugCases {
-		t.Run(tt.name, func(t *testing.T) {
-			defer d.buffer.Reset()
-			tt.lgr.Debug.Println(tt.logMessage)
-			assert.Equal(t, tt.expect, d.buffer.String())
-		})
-	}
+	assert.Equal(t, expect, d.buffer.String())
 }
 
 func Example_logStderr() {
