@@ -25,35 +25,9 @@ type Logger struct {
 	Error     *log.Logger // Error is always debug file and stderr with LstdFlags flag.
 }
 
-// DebugFlag return current log debugFlag status
-func (l *Logger) DebugFlag() int {
-	return l.debugFlag
-}
-
-// ErrorFlag return current log errorFlag status
-func (l *Logger) ErrorFlag() int {
-	return l.errorFlag
-}
-
 // File return current log output file. If the file = nil, logger does not output log to file
 func (l *Logger) File() io.WriteCloser {
 	return l.file
-}
-
-// OptDebugFlag set Logger.Debug flag
-func OptDebugFlag(flag int) LogOption {
-	return func(l *Logger) error {
-		l.debugFlag = flag
-		return nil
-	}
-}
-
-// OptErrorFlag set Logger.Error flag
-func OptErrorFlag(flag int) LogOption {
-	return func(l *Logger) error {
-		l.errorFlag = flag
-		return nil
-	}
 }
 
 // OptDebug output debug log

@@ -3,6 +3,7 @@ package logger
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -33,41 +34,37 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
+func newLogger(file io.WriteCloser) (lgr Logger) {
+	lgr = Logger{file: file, debugFlag: 0, errorFlag: 0}
+	lgr.buildLoggers()
+	return
+}
+
 func TestNew(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
 	dummyFile := &dummyLogFile{buffer: buffer}
 
 	cases := []struct {
-		name      string
-		debugFlag int
-		isDebug   bool
+		name    string
+		isDebug bool
 	}{
 		{
-			name:      "debugFlag: log.Ldate, isOutputDebugLog: true",
-			debugFlag: log.Ldate,
-			isDebug:   true,
+			name:    "debugFlag: log.Ldate, isOutputDebugLog: true",
+			isDebug: true,
 		},
 		{
-			name:      "debugFlag: 0, isOutputDebugLog: false",
-			debugFlag: 0,
-			isDebug:   false,
-		},
-		{
-			name: "file is nil",
+			name:    "debugFlag: 0, isOutputDebugLog: false",
+			isDebug: false,
 		},
 	}
-
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			lgr, err := New(OptDebugFlag(tt.debugFlag))
+			lgr, err := New()
 			if tt.isDebug {
-				lgr, err = New(OptDebug(dummyFile), OptDebugFlag(tt.debugFlag))
+				lgr, err = New(OptDebug(dummyFile))
 				assert.Equal(t, dummyFile, lgr.file)
 			}
-
 			assert.Nil(t, err)
-			assert.Equal(t, tt.debugFlag, lgr.debugFlag)
-			assert.Equal(t, tt.debugFlag, lgr.Debug.Flags())
 		})
 	}
 
@@ -80,14 +77,14 @@ func TestNew(t *testing.T) {
 	})
 }
 
+// TODO should check able to write file
 func TestOutputToFileWithCreate(t *testing.T) {
 	dir := filepath.Join(tempDir, "CreateLogFile")
 	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
 
-	lgr, err := New(OptDebugWithCreate(dir, filename), OptDebugFlag(log.Ldate))
+	lgr, err := New(OptDebugWithCreate(dir, filename))
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
-	assert.Equal(t, log.Ldate, lgr.debugFlag)
 	assert.NotNil(t, lgr.File())
 
 	_, err = os.Stat(dir)
@@ -104,68 +101,42 @@ func TestCanLogFile(t *testing.T) {
 
 	errorCases := []struct {
 		name       string
-		options    []LogOption
+		lgr        Logger
 		logMessage string
 		expect     string
 	}{
 		{
-			name:       "OutputToFile: true, OutputDebugLog: false",
-			options:    []LogOption{OptDebug(d), OptErrorFlag(0)},
+			name:       "debug: true",
+			lgr:        newLogger(d),
 			logMessage: "Hello",
 			expect:     "Hello\n",
-		},
-		{
-			name:       "OutputToFile: true, OutputDebugLog: true",
-			options:    []LogOption{OptDebug(d), OptErrorFlag(0)},
-			logMessage: "Hello",
-			expect:     "Hello\n",
-		},
-		{
-			name:       "OutputToFile: false, OutputDebugLog: false",
-			options:    []LogOption{OptErrorFlag(0)},
-			logMessage: "Hello",
-			expect:     "",
-		},
-		{
-			name:       "OutputToFile: false, OutputDebugLog: true",
-			options:    []LogOption{OptErrorFlag(0)},
-			logMessage: "Hello",
-			expect:     "",
 		},
 	}
 	for _, tt := range errorCases {
 		t.Run(tt.name, func(t *testing.T) {
 			defer d.buffer.Reset()
-			l, _ := New(tt.options...)
-			l.Error.Println(tt.logMessage)
+			tt.lgr.Error.Println(tt.logMessage)
 			assert.Equal(t, tt.expect, d.buffer.String())
 		})
 	}
 
 	debugCases := []struct {
 		name       string
-		options    []LogOption
+		lgr        Logger
 		logMessage string
 		expect     string
 	}{
 		{
-			name:       "OptDebug: true",
-			options:    []LogOption{OptDebug(d), OptDebugFlag(0)},
+			name:       "debug true",
+			lgr:        newLogger(d),
 			logMessage: "Hello",
 			expect:     "Hello\n",
-		},
-		{
-			name:       "OptDebug: false",
-			options:    []LogOption{OptDebugFlag(0)},
-			logMessage: "Hello",
-			expect:     "",
 		},
 	}
 	for _, tt := range debugCases {
 		t.Run(tt.name, func(t *testing.T) {
 			defer d.buffer.Reset()
-			l, _ := New(tt.options...)
-			l.Debug.Println(tt.logMessage)
+			tt.lgr.Debug.Println(tt.logMessage)
 			assert.Equal(t, tt.expect, d.buffer.String())
 		})
 	}
@@ -180,38 +151,20 @@ func Example_logStderr() {
 	d := &dummyLogFile{buffer: buffer}
 
 	// check Debug debug = false
-	lgr, _ := New(OptDebug(d), OptDebugFlag(0))
+	lgr := newLogger(d)
 	contents := "Hello this is Debug debug false"
 	lgr.Debug.Println(contents)
-
-	// check Debug debug = true
-	lgr, _ = New(OptDebug(d), OptDebugFlag(0))
-	contents = "Hello this is Debug debug true"
-	lgr.Debug.Println(contents)
-
-	lgr, _ = New(OptDebugFlag(0))
-	contents = "Hello this is Debug debug falase with no file"
-	lgr.Debug.Println(contents)
-
-	lgr, _ = New(OptDebugFlag(0))
-	contents = "Hello this is Debug debug falase with file"
-	lgr.Debug.Println(contents)
-
-	lgr, _ = New(OptDebug(d), OptErrorFlag(0))
 	contents = "Hello this is Error with file"
 	lgr.Error.Println(contents)
 
-	lgr, _ = New(OptDebug(d), OptErrorFlag(0))
-	contents = "Hello this is Error with debug false"
-	lgr.Error.Println(contents)
-
-	lgr, _ = New(OptErrorFlag(0))
+	lgr = newLogger(nil)
+	contents = "Hello this is Debug debug falase with no file"
+	lgr.Debug.Println(contents)
 	contents = "Hello this is Error with no file"
 	lgr.Error.Println(contents)
 
 	// Output:
 	// Hello this is Error with file
-	// Hello this is Error with debug false
 	// Hello this is Error with no file
 }
 func TestMain(m *testing.M) {
