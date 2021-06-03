@@ -48,10 +48,15 @@ var (
 )
 
 type dummyLogFile struct {
-	buffer *bytes.Buffer
+	buffer   *bytes.Buffer
+	isClosed bool
 }
 
-func (d *dummyLogFile) Close() error { return nil }
+func (d *dummyLogFile) Close() error {
+	d.isClosed = true
+	return nil
+}
+
 func (d *dummyLogFile) Write(p []byte) (n int, err error) {
 	return d.buffer.Write(p)
 }
@@ -244,6 +249,18 @@ func TestNew(t *testing.T) {
 			assert.NotNil(t, err)
 		})
 	}
+}
+
+func TestCleanUp(t *testing.T) {
+	l := lgr
+	defer func() {
+		lgr = l
+	}()
+
+	file := &dummyLogFile{buffer: bytes.NewBuffer([]byte{})}
+	lgr, _ = logger.New(file)
+	CleanUp()
+	assert.Equal(t, true, file.isClosed)
 }
 
 func TestMain(m *testing.M) {
