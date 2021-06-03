@@ -171,42 +171,64 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 
 func TestNew(t *testing.T) {
 	successCases := []struct {
-		name      string
-		spec      *util.CommandSpec
-		args      []string
-		isLogFile bool
+		name         string
+		spec         *util.CommandSpec
+		args         []string
+		debugFromEnv bool
+		isLogFile    bool
 	}{
 		{
-			name:      "binary format succes with no logging with file",
-			spec:      dummyCommandSpec(binaryFormat),
-			args:      []string{"ns/cmd@ver"},
-			isLogFile: false,
+			name:         "binary format succes with no logging with file",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"ns/cmd@ver"},
+			debugFromEnv: false,
+			isLogFile:    false,
 		},
 		{
-			name:      "binary format success with no logging with file",
-			spec:      dummyCommandSpec(habitatFormat),
-			args:      []string{"exec", "ns/cmd@ver"},
-			isLogFile: false,
+			name:         "binary format success with no logging with file",
+			spec:         dummyCommandSpec(habitatFormat),
+			args:         []string{"exec", "ns/cmd@ver"},
+			debugFromEnv: false,
+			isLogFile:    false,
 		},
 		{
-			name:      "should output log file",
-			spec:      dummyCommandSpec(binaryFormat),
-			args:      []string{"--debug", "ns/cmd@ver"},
-			isLogFile: true,
+			name:         "should output log file by option",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"--debug", "ns/cmd@ver"},
+			debugFromEnv: false,
+			isLogFile:    true,
 		},
 		{
-			name:      "should not output log file",
-			spec:      dummyCommandSpec(binaryFormat),
-			args:      []string{"ns/cmd@ver", "--debug"},
-			isLogFile: false,
+			name:         "should output log file by env",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"ns/cmd@ver"},
+			debugFromEnv: true,
+			isLogFile:    true,
+		},
+		{
+			name:         "should output log file by option and env",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"--debug", "ns/cmd@ver"},
+			debugFromEnv: true,
+			isLogFile:    true,
+		},
+		{
+			name:         "should not output log file",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"ns/cmd@ver", "--debug"},
+			debugFromEnv: false,
+			isLogFile:    false,
 		},
 	}
 	for _, tt := range successCases {
 		t.Run(tt.name, func(t *testing.T) {
 			l := lgr
+			d := config.DEBUG
 			defer func() {
 				lgr = l
+				config.DEBUG = d
 			}()
+			config.DEBUG = tt.debugFromEnv
 			sdapi := newDummySDAPI(tt.spec, nil)
 			executor, err := New(sdapi, tt.args)
 			assert.Nil(t, err)

@@ -22,6 +22,13 @@ func (l *Logger) File() io.WriteCloser {
 	return l.file
 }
 
+// Close finish log file safely
+func (l *Logger) Close() {
+	if l.file != nil {
+		l.file.Close()
+	}
+}
+
 // New returns logger object
 func New(file io.WriteCloser) (*Logger, error) {
 	lgr := new(Logger)

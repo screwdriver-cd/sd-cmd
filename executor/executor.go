@@ -161,7 +161,5 @@ func execCommand(path string, args []string) (err error) {
 
 // CleanUp close file you use.
 func CleanUp() {
-	if lgr.File() != nil {
-		lgr.File().Close()
-	}
+	lgr.Close()
 }
