@@ -37,7 +37,7 @@ type Executor interface {
 func prepareLog(smallSpec *util.CommandSpec, isDebug bool) (err error) {
 	var file io.WriteCloser
 
-	if isDebug {
+	if isDebug || config.DEBUG {
 		dirPath := filepath.Join(config.SDArtifactsDir, ".sd", "commands")
 		filename := fmt.Sprintf("%v-%v-%v.log", time.Now().Unix(), smallSpec.Namespace, smallSpec.Name)
 		file, err = createLogFile(dirPath, filename)
