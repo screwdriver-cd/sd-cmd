@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 )
 
 var (
@@ -17,6 +18,8 @@ var (
 	SDArtifactsDir string
 	// BaseCommandPath is path of installing binary command
 	BaseCommandPath = "/opt/sd/commands/"
+	// DEBUG is flag of debug option
+	DEBUG bool
 )
 
 // LoadConfig sets config data
@@ -31,4 +34,5 @@ func LoadConfig() {
 	if len(os.Getenv("SD_BASE_COMMAND_PATH")) != 0 {
 		BaseCommandPath = os.Getenv("SD_BASE_COMMAND_PATH")
 	}
+	DEBUG, _ = strconv.ParseBool(os.Getenv("SD_CMD_DEBUG_LOG"))
 }
