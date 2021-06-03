@@ -2,19 +2,11 @@
 package logger
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
-	"time"
 )
-
-// LogOption enable to customize Logger
-type LogOption func(l *Logger) error
-
-var loggingFiles []io.WriteCloser
 
 // Logger has information for logging
 type Logger struct {
@@ -30,59 +22,15 @@ func (l *Logger) File() io.WriteCloser {
 	return l.file
 }
 
-// OptDebug output debug log
-func OptDebug(file io.WriteCloser) LogOption {
-	return func(l *Logger) error {
-		l.file = file
-		return nil
-	}
-}
-
-// OptDebugWithCreate create file for output log
-func OptDebugWithCreate(dir, filename string) LogOption {
-	return func(l *Logger) error {
-		file, err := createLogFile(dir, filename)
-		if err != nil {
-			return err
-		}
-		l.file = file
-		return nil
-	}
-}
-
 // New returns logger object
-func New(options ...LogOption) (*Logger, error) {
+func New(file io.WriteCloser) (*Logger, error) {
 	lgr := new(Logger)
+	lgr.file = file
 	lgr.errorFlag = log.LstdFlags
 	lgr.debugFlag = log.LstdFlags
 
-	for _, o := range options {
-		err := o(lgr)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	lgr.buildLoggers()
 	return lgr, nil
-}
-
-func createLogFile(dirPath, filename string) (io.WriteCloser, error) {
-	if filename == "" {
-		filename = fmt.Sprintf("%v.log", time.Now().Unix())
-	}
-	err := os.MkdirAll(dirPath, 0777)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create logging directory: %v", err)
-	}
-
-	filePath := filepath.Join(dirPath, filename)
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create logging file: %v", err)
-	}
-	loggingFiles = append(loggingFiles, file)
-	return file, nil
 }
 
 func (l *Logger) buildDebugLogger() {
@@ -104,20 +52,4 @@ func (l *Logger) buildErrorLogger() {
 func (l *Logger) buildLoggers() {
 	l.buildDebugLogger()
 	l.buildErrorLogger()
-}
-
-// Close finish log file safely
-func (l *Logger) Close() {
-	if l.file != nil {
-		l.file.Close()
-	}
-}
-
-// CloseAll close every file you use.
-func CloseAll() {
-	for _, f := range loggingFiles {
-		if f != nil {
-			f.Close()
-		}
-	}
 }

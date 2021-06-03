@@ -9,7 +9,6 @@ import (
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/executor"
-	"github.com/screwdriver-cd/sd-cmd/logger"
 	"github.com/screwdriver-cd/sd-cmd/promoter"
 	"github.com/screwdriver-cd/sd-cmd/publisher"
 	"github.com/screwdriver-cd/sd-cmd/removeTag"
@@ -22,18 +21,12 @@ const (
 	defaultFailureExitCode = 1
 )
 
-func cleanExit() {
-	logger.CloseAll()
-}
-
 func successExit() {
-	cleanExit()
 	os.Exit(0)
 }
 
 // failureExit exits process with 1
 func failureExit(err error) {
-	cleanExit()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 		if exitError, ok := err.(*exec.ExitError); ok {
@@ -65,6 +58,7 @@ func runExecutor(sdAPI api.API, args []string) (err error) {
 	if err != nil {
 		return
 	}
+	defer executor.CleanUp()
 	err = exec.Run()
 	return
 }

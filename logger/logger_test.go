@@ -2,14 +2,11 @@ package logger
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/stretchr/testify/assert"
@@ -42,33 +39,18 @@ func newLogger(file io.WriteCloser) (lgr Logger) {
 
 func TestNew(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		lgr, err := New()
+		lgr, err := New(nil)
 		assert.Nil(t, lgr.File())
 		assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
 		assert.Equal(t, log.LstdFlags, lgr.Debug.Flags())
 		assert.Nil(t, err)
 	})
 
-	t.Run("OutputToFileWithCreate", func(t *testing.T) {
-		dir := filepath.Join(tempDir, "CreateLogFile")
-		filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
-
-		lgr, err := New(OptDebugWithCreate(dir, filename))
-		defer os.RemoveAll(dir)
-
-		assert.Nil(t, err)
-		assert.NotNil(t, lgr.File())
-		_, err = os.Stat(dir)
-		assert.Nil(t, err)
-		fileInfos, _ := ioutil.ReadDir(dir)
-		assert.Equal(t, fileInfos[0].Name(), filename)
-	})
-
 	t.Run("OutputToFile", func(t *testing.T) {
 		buffer := bytes.NewBuffer([]byte{})
 		d := &dummyLogFile{buffer: buffer}
 
-		lgr, err := New(OptDebug(d))
+		lgr, err := New(d)
 
 		assert.Nil(t, err)
 		assert.NotNil(t, lgr.File())
@@ -112,6 +94,7 @@ func Example_logStderr() {
 	// Hello this is Error with file
 	// Hello this is Error with no file
 }
+
 func TestMain(m *testing.M) {
 	setup()
 	ret := m.Run()

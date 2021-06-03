@@ -69,7 +69,7 @@ func setup() {
 	// setting lgr for logging
 	logBuffer = bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: logBuffer}
-	l, _ := logger.New(logger.OptDebug(d))
+	l, _ := logger.New(d)
 	lgr = l
 }
 
