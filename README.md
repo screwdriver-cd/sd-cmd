@@ -14,7 +14,7 @@ $ go build -a -o sd-cmd
 
 ### Execute
 ```bash
-$ sd-cmd [flags] exec namespace/name@version [arguments]
+$ sd-cmd exec [flags] namespace/name@version [arguments]
 
 # usage
 # Flags:
