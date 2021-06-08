@@ -2,16 +2,14 @@ package logger
 
 import (
 	"bytes"
-	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
+	"github.com/stretchr/testify/assert"
 )
 
 var tempDir string
@@ -33,89 +31,42 @@ func teardown() {
 	os.RemoveAll(config.SDArtifactsDir)
 }
 
+func newLogger(file io.WriteCloser) (lgr Logger) {
+	lgr = Logger{file: file, debugFlag: 0, errorFlag: 0}
+	lgr.buildLoggers()
+	return
+}
+
 func TestNew(t *testing.T) {
-	// success
-	dir := filepath.Join(tempDir, "CreateLogFile")
-	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
-	_, err := New(dir, filename, log.Ldate, false)
-	defer os.Remove(filepath.Join(dir, filename))
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
+	t.Run("default", func(t *testing.T) {
+		lgr, err := New(nil)
+		assert.Nil(t, lgr.File())
+		assert.Equal(t, log.LstdFlags, lgr.Error.Flags())
+		assert.Equal(t, log.LstdFlags, lgr.Debug.Flags())
+		assert.Nil(t, err)
+	})
+
+	t.Run("OutputToFile", func(t *testing.T) {
+		buffer := bytes.NewBuffer([]byte{})
+		d := &dummyLogFile{buffer: buffer}
+
+		lgr, err := New(d)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, lgr.File())
+	})
 }
 
-func TestCreateLogFile(t *testing.T) {
-	dir := filepath.Join(tempDir, "CreateLogFile")
-	filename := fmt.Sprintf("logger_test_%v", time.Now().Unix())
-	defer os.RemoveAll(dir)
-	CreateLogFile(dir, filename)
-
-	_, err := os.Stat(dir)
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-
-	// check there is a file
-	fileInfos, _ := ioutil.ReadDir(dir)
-	if len(fileInfos) > 0 && fileInfos[0].Name() != filename {
-		t.Errorf("file name is %q want %q", fileInfos[0].Name(), filename)
-	}
-}
-
-func TestSetInfos(t *testing.T) {
-	lgr := new(Logger)
+func TestLoggingFile(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lgr.SetInfos(d, log.Ldate, false)
+	expect := "Hello Error\nHello Debug\n"
 
-	if lgr.Debug.Flags() != log.Ldate {
-		t.Errorf("lgr.Debug.Flags=%q, want %q", lgr.Debug.Flags(), log.Ldate)
-	}
-	if lgr.Error.Flags() != log.LstdFlags {
-		t.Errorf("lgr.Error.Flags=%q, want %q", lgr.Debug.Flags(), log.LstdFlags)
-	}
-}
+	lgr := newLogger(d)
+	lgr.Error.Println("Hello Error")
+	lgr.Debug.Println("Hello Debug")
 
-func TestCanLogFile(t *testing.T) {
-	lgr := new(Logger)
-	buffer := bytes.NewBuffer([]byte{})
-	d := &dummyLogFile{buffer: buffer}
-
-	// check Error debug = false
-	lgr.SetInfos(d, 0, false)
-	contents := "Hello this is Error debug false"
-	lgr.Error.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
-	}
-	d.buffer.Reset()
-
-	// check Error debug = true
-	lgr.SetInfos(d, 0, true)
-	contents = "Hello this is Error debug true"
-	lgr.Error.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
-	}
-	d.buffer.Reset()
-
-	// check Debug debug = false
-	lgr.SetInfos(d, 0, false)
-	contents = "Hello this is Debug debug false"
-	lgr.Debug.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
-	}
-	d.buffer.Reset()
-
-	// check Debug debug = true
-	lgr.SetInfos(d, 0, true)
-	contents = "Hello this is Debug debug true"
-	lgr.Debug.Println(contents)
-	if !strings.Contains(d.buffer.String(), contents) {
-		t.Errorf("error log=%q want=\"<somedate> %v\"", d.buffer.String(), contents)
-	}
-	d.buffer.Reset()
+	assert.Equal(t, expect, d.buffer.String())
 }
 
 func Example_logStderr() {
@@ -123,24 +74,27 @@ func Example_logStderr() {
 	cacheFile := os.Stderr
 	os.Stderr = os.Stdout
 	defer func() { os.Stderr = cacheFile }()
-
-	lgr := new(Logger)
 	buffer := bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: buffer}
-	lgr.SetInfos(d, 0, false)
 
 	// check Debug debug = false
+	lgr := newLogger(d)
 	contents := "Hello this is Debug debug false"
-	lgr.Debug.Print(contents)
+	lgr.Debug.Println(contents)
+	contents = "Hello this is Error with file"
+	lgr.Error.Println(contents)
 
-	// check Debug debug = true
-	lgr.SetInfos(d, 0, true)
-	contents = "Hello this is Debug debug true"
-	lgr.Debug.Print(contents)
+	lgr = newLogger(nil)
+	contents = "Hello this is Debug debug falase with no file"
+	lgr.Debug.Println(contents)
+	contents = "Hello this is Error with no file"
+	lgr.Error.Println(contents)
 
 	// Output:
-	// Hello this is Debug debug true
+	// Hello this is Error with file
+	// Hello this is Error with no file
 }
+
 func TestMain(m *testing.M) {
 	setup()
 	ret := m.Run()

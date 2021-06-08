@@ -87,8 +87,8 @@ func TestNew(t *testing.T) {
 			Name:      dummyName,
 			Version:   dummyTag,
 		},
-		sdAPI:         sdapi,
-		tag:           dummyTag,
+		sdAPI: sdapi,
+		tag:   dummyTag,
 	}
 	p, err := New(sdapi, []string{dummyCmdName, dummyTag})
 	assert.Nil(t, err)

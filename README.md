@@ -14,8 +14,18 @@ $ go build -a -o sd-cmd
 
 ### Execute
 ```bash
-$ sd-cmd exec namespace/name@version [arguments]
+$ sd-cmd exec [flags] namespace/name@version [arguments]
+
+# usage
+# Flags:
+#   -debug, --debug    output debug logs to a file
 ```
+
+#### Debug mode
+In debug mode, the debug log can be output to a file.  
+It can be used in one of the following ways.
+- Use `-debug` of `--debug` option
+- Set `SD_CMD_DEBUG_LOG` environment variable to `true`
 
 ## Testing
 ```bash

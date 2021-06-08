@@ -10,9 +10,9 @@ import (
 
 // RemoveTag is a type to remove tags from commands
 type RemoveTag struct {
-	smallSpec     *util.CommandSpec
-	sdAPI         api.API
-	tag           string
+	smallSpec *util.CommandSpec
+	sdAPI     api.API
+	tag       string
 }
 
 // New generates new removeTag.
@@ -39,9 +39,9 @@ func New(api api.API, args []string) (p *RemoveTag, err error) {
 	}
 
 	p = &RemoveTag{
-		smallSpec:     smallSpec,
-		sdAPI:         api,
-		tag:           tag,
+		smallSpec: smallSpec,
+		sdAPI:     api,
+		tag:       tag,
 	}
 
 	return

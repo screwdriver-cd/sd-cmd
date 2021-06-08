@@ -12,6 +12,7 @@ import (
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/api"
 	"github.com/screwdriver-cd/sd-cmd/screwdriver/store"
 	"github.com/screwdriver-cd/sd-cmd/util"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -47,10 +48,15 @@ var (
 )
 
 type dummyLogFile struct {
-	buffer *bytes.Buffer
+	buffer   *bytes.Buffer
+	isClosed bool
 }
 
-func (d *dummyLogFile) Close() error { return nil }
+func (d *dummyLogFile) Close() error {
+	d.isClosed = true
+	return nil
+}
+
 func (d *dummyLogFile) Write(p []byte) (n int, err error) {
 	return d.buffer.Write(p)
 }
@@ -66,10 +72,9 @@ func setup() {
 	invalidShell = string(b)
 
 	// setting lgr for logging
-	l := new(logger.Logger)
 	logBuffer = bytes.NewBuffer([]byte{})
 	d := &dummyLogFile{buffer: logBuffer}
-	l.SetInfos(d, 0, true)
+	l, _ := logger.New(d)
 	lgr = l
 }
 
@@ -165,49 +170,119 @@ func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 }
 
 func TestNew(t *testing.T) {
-	// case binary format
-	spec := dummyCommandSpec(binaryFormat)
-	sdapi := newDummySDAPI(spec, nil)
-	// success
-	executor, err := New(sdapi, []string{"ns/cmd@ver"})
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
+	successCases := []struct {
+		name         string
+		spec         *util.CommandSpec
+		args         []string
+		debugFromEnv bool
+		isLogFile    bool
+	}{
+		{
+			name:         "binary format succes with no logging with file",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"ns/cmd@ver"},
+			debugFromEnv: false,
+			isLogFile:    false,
+		},
+		{
+			name:         "binary format success with no logging with file",
+			spec:         dummyCommandSpec(habitatFormat),
+			args:         []string{"exec", "ns/cmd@ver"},
+			debugFromEnv: false,
+			isLogFile:    false,
+		},
+		{
+			name:         "should output log file by option",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"--debug", "ns/cmd@ver"},
+			debugFromEnv: false,
+			isLogFile:    true,
+		},
+		{
+			name:         "should output log file by env",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"ns/cmd@ver"},
+			debugFromEnv: true,
+			isLogFile:    true,
+		},
+		{
+			name:         "should output log file by option and env",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"--debug", "ns/cmd@ver"},
+			debugFromEnv: true,
+			isLogFile:    true,
+		},
+		{
+			name:         "should not output log file",
+			spec:         dummyCommandSpec(binaryFormat),
+			args:         []string{"ns/cmd@ver", "--debug"},
+			debugFromEnv: false,
+			isLogFile:    false,
+		},
 	}
-	if _, ok := executor.(Executor); !ok {
-		t.Errorf("New does not fulfill API interface")
+	for _, tt := range successCases {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lgr
+			d := config.DEBUG
+			defer func() {
+				lgr = l
+				config.DEBUG = d
+			}()
+			config.DEBUG = tt.debugFromEnv
+			sdapi := newDummySDAPI(tt.spec, nil)
+			executor, err := New(sdapi, tt.args)
+			assert.Nil(t, err)
+			_, ok := executor.(Executor)
+			assert.True(t, ok)
+			if tt.isLogFile {
+				assert.NotNil(t, lgr.File())
+			} else {
+				assert.Nil(t, lgr.File())
+			}
+		})
 	}
 
-	// failure. no command
-	_, err = New(sdapi, []string{})
-	if err == nil {
-		t.Errorf("err=nil, want error")
+	failureCases := []struct {
+		name string
+		spec *util.CommandSpec
+		args []string
+	}{
+		{
+			name: "failure with no command",
+			spec: dummyCommandSpec(binaryFormat),
+			args: []string{},
+		},
+		{
+			name: "failure with invalid command",
+			spec: dummyCommandSpec(binaryFormat),
+			args: []string{"sd-cmd", "ns@cmd/ver"},
+		},
+		{
+			name: "failure with screwdriver API error",
+			spec: dummyCommandSpec("Unknown"),
+			args: []string{"sd-cmd", "ns/cmd@ver"},
+		},
 	}
 
-	// failure. invalid command
-	_, err = New(sdapi, []string{"sd-cmd", "ns@cmd/ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
+	for _, tt := range failureCases {
+		t.Run(tt.name, func(t *testing.T) {
+			sdapi := newDummySDAPI(tt.spec, nil)
+			_, err := New(sdapi, tt.args)
+			assert.NotNil(t, err)
+		})
 	}
+}
 
-	// case habitat format
-	spec = dummyCommandSpec(habitatFormat)
-	sdapi = newDummySDAPI(spec, nil)
-	// success
-	executor, err = New(sdapi, []string{"exec", "ns/cmd@ver"})
-	if err != nil {
-		t.Errorf("err=%q, want nil", err)
-	}
-	if _, ok := executor.(Executor); !ok {
-		t.Errorf("New does not fulfill API interface")
-	}
+func TestCleanUp(t *testing.T) {
+	l := lgr
+	defer func() {
+		lgr = l
+	}()
 
-	// failure. Screwdriver API error
-	spec = dummyCommandSpec("Unknown")
-	sdapi = newDummySDAPI(spec, nil)
-	_, err = New(sdapi, []string{"sd-cmd", "ns/cmd@ver"})
-	if err == nil {
-		t.Errorf("err=nil, want error")
-	}
+	file := &dummyLogFile{buffer: bytes.NewBuffer([]byte{})}
+	lgr, _ = logger.New(file)
+	CleanUp()
+	assert.Equal(t, true, file.isClosed)
 }
 
 func TestMain(m *testing.M) {

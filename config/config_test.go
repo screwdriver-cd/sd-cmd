@@ -2,7 +2,10 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -15,6 +18,7 @@ const (
 	dummyStoreURL       = "dummy-store/"
 	dummySDArtifactsDir = "dummy/sd/Artifacts/"
 	dummyCustomCmdPath  = "/opt/sd/commands/"
+	dummyDebug          = "true"
 )
 
 func setEnv(key, value string) {
@@ -30,6 +34,8 @@ func setup() {
 	setEnv("SD_TOKEN", dummyToken)
 	setEnv("SD_STORE_URL", dummyStoreURL)
 	setEnv("SD_ARTIFACTS_DIR", dummySDArtifactsDir)
+	setEnv("SD_BASE_COMMAND_PATH", dummyCustomCmdPath)
+	setEnv("SD_CMD_DEBUG_LOG", dummyDebug)
 }
 
 func teardown() {
@@ -40,39 +46,20 @@ func teardown() {
 
 func TestLoadConfig(t *testing.T) {
 	LoadConfig()
-	if SDAPIURL != dummyAPIURL {
-		t.Errorf("SDAPIURL=%q, want %q", SDAPIURL, dummyAPIURL)
-	}
-	if SDToken != dummyToken {
-		t.Errorf("SDToken=%q, want %q", SDToken, dummyToken)
-	}
-	if SDStoreURL != dummyStoreURL {
-		t.Errorf("SDStoreURL=%q, want %q", SDStoreURL, dummyStoreURL)
-	}
-	if SDArtifactsDir != dummySDArtifactsDir {
-		t.Errorf("SDArtifactsDir=%q, want %q", SDArtifactsDir, dummySDArtifactsDir)
-	}
-	wantBaseCommandPath := os.Getenv("SD_BASE_COMMAND_PATH")
-	if wantBaseCommandPath == "" {
-		wantBaseCommandPath = dummyCustomCmdPath
-	}
-	if BaseCommandPath != wantBaseCommandPath {
-		t.Errorf("BaseCommandPath=%q, want %s", BaseCommandPath, wantBaseCommandPath)
-	}
+	assert.Equal(t, dummyAPIURL, SDAPIURL)
+	assert.Equal(t, dummyToken, SDToken)
+	assert.Equal(t, dummyStoreURL, SDStoreURL)
+	assert.Equal(t, dummySDArtifactsDir, SDArtifactsDir)
+	assert.Equal(t, dummyCustomCmdPath, BaseCommandPath)
+	wantDebug, _ := strconv.ParseBool(dummyDebug)
+	assert.Equal(t, wantDebug, DEBUG)
 
 	// check unset env
 	os.Unsetenv("SD_API_URL")
+	os.Unsetenv("SD_CMD_DEBUG_LOG")
 	LoadConfig()
-	if SDAPIURL != "" {
-		t.Errorf("SDAPIURL=%q, want blank", SDAPIURL)
-	}
-
-	// set SD_BASE_COMMAND_PATH
-	setEnv("SD_BASE_COMMAND_PATH", dummyCustomCmdPath)
-	LoadConfig()
-	if BaseCommandPath != dummyCustomCmdPath {
-		t.Errorf("BaseCommandPath=%q, want %q", BaseCommandPath, dummyCustomCmdPath)
-	}
+	assert.Equal(t, "", SDAPIURL)
+	assert.Equal(t, false, DEBUG)
 }
 
 func TestMain(m *testing.M) {
