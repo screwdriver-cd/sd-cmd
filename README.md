@@ -13,7 +13,7 @@ $ go build -a -o sd-cmd
 ```
 
 ### Execute
-We execute a command. The command arguments can be specified by the following `arguments`.
+Executing a published command. The arguments for published command can be specified by the following `arguments`.
 ```bash
 USAGE:
    sd-cmd exec [command options] namespace/name@version [arguments...]
