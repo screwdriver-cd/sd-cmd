@@ -70,7 +70,7 @@ EXAMPLE:
 ```
 
 ### Remove tag
-We remove the tag specified by `tag` from the version which `tag` is assigned to.
+Removing a `tag` from a version of published command.
 ```bash
 USAGE:
    sd-cmd removeTag namespace/name tag
