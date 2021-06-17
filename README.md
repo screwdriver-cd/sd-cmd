@@ -59,7 +59,7 @@ EXAMPLE:
 ```
 
 ### Promote
-We give the tag specified by `tag` to the version specified by `targetVersion`. The tag will be removed from the version which `tag` is originally assigned to. `targetVersion` can be set exact version or tag (e.g. 1.0.1, latest).
+Giving a `tag` to a `targetVersion` of command. If a `tag` is already set to another version, that tag will be moved to `targetVersion`. `targetVersion` can be set exact version or tag (e.g. 1.0.1, latest).
 ```bash
 USAGE:
    sd-cmd promote namespace/name targetVersion tag
