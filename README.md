@@ -31,6 +31,19 @@ It can be used in one of the following ways.
 - Use `-debug` of `--debug` option
 - Set `SD_CMD_DEBUG_LOG` environment variable to `true`
 
+### Validate
+Validating if yaml is correct as sd-cmd format.
+```bash
+USAGE:
+   sd-cmd validate [command options]
+
+OPTIONS:
+   -f, --f    Specify the path of yaml to validate (default: sd-command.yaml)
+
+EXAMPLE:
+   sd-cmd validate -f ./sd-command.yaml
+```
+
 ### Publish
 Publishing a command specified by a yaml.
 ```bash
@@ -43,19 +56,6 @@ OPTIONS:
 
 EXAMPLE:
    sd-cmd publish -f ./sd-command.yaml -t latest
-```
-
-### Validate
-Validating if yaml is correct as sd-cmd format.
-```bash
-USAGE:
-   sd-cmd validate [command options]
-
-OPTIONS:
-   -f, --f    Specify the path of yaml to validate (default: sd-command.yaml)
-
-EXAMPLE:
-   sd-cmd validate -f ./sd-command.yaml
 ```
 
 ### Promote
