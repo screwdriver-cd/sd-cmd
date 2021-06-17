@@ -40,7 +40,7 @@ $ sd-cmd publish [flags]
 ```
 
 ### Validate
-We validate a yaml is in the correct format for the command.
+We validate that a yaml is in the correct format for the command.
 ```bash
 $ sd-cmd validate [flags]
 
