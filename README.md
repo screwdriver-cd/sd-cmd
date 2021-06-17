@@ -32,7 +32,7 @@ It can be used in one of the following ways.
 - Set `SD_CMD_DEBUG_LOG` environment variable to `true`
 
 ### Publish
-We publish the command specified by a yaml.
+Publishing a command specified by a yaml.
 ```bash
 USAGE:
    sd-cmd publish [command options]
