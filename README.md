@@ -46,7 +46,7 @@ EXAMPLE:
 ```
 
 ### Validate
-We validate that a yaml is in the correct format for the command.
+Validating if yaml is correct as sd-cmd format.
 ```bash
 USAGE:
    sd-cmd validate [command options]
