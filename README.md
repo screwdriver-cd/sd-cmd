@@ -15,11 +15,14 @@ $ go build -a -o sd-cmd
 ### Execute
 We execute a command. The command arguments can be specified by the following `arguments`.
 ```bash
-$ sd-cmd exec [flags] namespace/name@version [arguments]
+USAGE:
+   sd-cmd exec [command options] namespace/name@version [arguments...]
 
-# usage
-# Flags:
-#   -debug, --debug    Output debug logs to a file
+OPTIONS:
+   -debug, --debug    Output debug logs to a file
+
+EXAMPLE:
+   sd-cmd exec foo/bar@stable arg1 arg2
 ```
 
 #### Debug mode
@@ -31,34 +34,49 @@ It can be used in one of the following ways.
 ### Publish
 We publish the command specified by a yaml.
 ```bash
-$ sd-cmd publish [flags]
+USAGE:
+   sd-cmd publish [command options]
 
-# usage
-# Flags:
-#   -f, --f    Specify the path of yaml to publish (default: sd-command.yaml)
-#   -t, --t    Specify the tag given to the command (default: sd-command.yaml)
+OPTIONS:
+   -f, --f    Specify the path of yaml to publish (default: sd-command.yaml)
+   -t, --t    Specify the tag given to the command (default: sd-command.yaml)
+
+EXAMPLE:
+   sd-cmd publish -f ./sd-command.yaml -t latest
 ```
 
 ### Validate
 We validate that a yaml is in the correct format for the command.
 ```bash
-$ sd-cmd validate [flags]
+USAGE:
+   sd-cmd validate [command options]
 
-# usage
-# Flags:
-#   -f, --f    Specify the path of yaml to validate (default: sd-command.yaml)
+OPTIONS:
+   -f, --f    Specify the path of yaml to validate (default: sd-command.yaml)
+
+EXAMPLE:
+   sd-cmd validate -f ./sd-command.yaml
 ```
 
 ### Promote
-We give the tag specified by `tag` to the version specified by `targetVersion`. The tag will be removed from the version which `tag` is originally assigned to.
+We give the tag specified by `tag` to the version specified by `targetVersion`. The tag will be removed from the version which `tag` is originally assigned to. `targetVersion` can be set exact version or tag (e.g. 1.0.1, latest).
 ```bash
-$ sd-cmd promote namespace/name targetVersion tag
+USAGE:
+   sd-cmd promote namespace/name targetVersion tag
+
+EXAMPLE:
+   sd-cmd promote foo/bar latest stable
+   sd-cmd promote foo/bar 1.0.1 stable
 ```
 
 ### Remove tag
 We remove the tag specified by `tag` from the version which `tag` is assigned to.
 ```bash
-$ sd-cmd removeTag namespace/name tag
+USAGE:
+   sd-cmd removeTag namespace/name tag
+
+EXAMPLE:
+   sd-cmd removeTag foo/bar stable
 ```
 
 ## Testing
