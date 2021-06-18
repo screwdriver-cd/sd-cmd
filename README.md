@@ -16,7 +16,7 @@ $ go build -a -o sd-cmd
 Executing a published command. The arguments for published command can be specified by the following `arguments`.
 ```bash
 USAGE:
-   sd-cmd exec [command options] namespace/name@version [arguments...]
+   sd-cmd exec [options] namespace/name@version [arguments...]
 
 OPTIONS:
    -debug, --debug    Output debug logs to a file
