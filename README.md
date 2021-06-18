@@ -62,7 +62,7 @@ EXAMPLE:
 Giving a `tag` to a `targetVersion` of command. If a `tag` is already set to another version, that tag will be moved to `targetVersion`. `targetVersion` can be set exact version or tag (e.g. 1.0.1, latest).
 ```bash
 USAGE:
-   sd-cmd promote namespace/name targetVersion tag
+   sd-cmd promote namespace/name [targetVersion] [tag]
 
 EXAMPLE:
    sd-cmd promote foo/bar latest stable
