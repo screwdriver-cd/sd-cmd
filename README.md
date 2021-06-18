@@ -73,7 +73,7 @@ EXAMPLE:
 Removing a `tag` from a version of published command.
 ```bash
 USAGE:
-   sd-cmd removeTag [namespace/name] tag
+   sd-cmd removeTag [namespace/name] [tag]
 
 EXAMPLE:
    sd-cmd removeTag foo/bar stable
