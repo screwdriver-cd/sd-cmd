@@ -38,7 +38,7 @@ USAGE:
    sd-cmd validate [command options]
 
 OPTIONS:
-   -f, --f    Specify the path of yaml to validate (default: sd-command.yaml)
+   -f, --f string    Specify the path of yaml to validate (default: sd-command.yaml)
 
 EXAMPLE:
    sd-cmd validate -f ./sd-command.yaml
