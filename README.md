@@ -16,7 +16,7 @@ $ go build -a -o sd-cmd
 Executing a published command. The arguments for published command can be specified by the following `arguments`.
 ```bash
 USAGE:
-   sd-cmd exec [options] namespace/name@version [arguments...]
+   sd-cmd exec [options] [namespace/name@version] [arguments...]
 
 OPTIONS:
    -debug, --debug    Output debug logs to a file
@@ -35,7 +35,7 @@ It can be used in one of the following ways.
 Validating if yaml is correct as sd-cmd format.
 ```bash
 USAGE:
-   sd-cmd validate [command options]
+   sd-cmd validate [options]
 
 OPTIONS:
    -f, --f string    Specify the path of yaml to validate (default: sd-command.yaml)
@@ -48,11 +48,11 @@ EXAMPLE:
 Publishing a command specified by a yaml.
 ```bash
 USAGE:
-   sd-cmd publish [command options]
+   sd-cmd publish [options]
 
 OPTIONS:
-   -f, --f    Specify the path of yaml to publish (default: sd-command.yaml)
-   -t, --t    Specify the tag given to the command (default: latest)
+   -f, --f string    Specify the path of yaml to publish (default: sd-command.yaml)
+   -t, --t string    Specify the tag given to the command (default: latest)
 
 EXAMPLE:
    sd-cmd publish -f ./sd-command.yaml -t latest
@@ -62,7 +62,7 @@ EXAMPLE:
 Giving a `tag` to a `targetVersion` of command. If a `tag` is already set to another version, that tag will be moved to `targetVersion`. `targetVersion` can be set exact version or tag (e.g. 1.0.1, latest).
 ```bash
 USAGE:
-   sd-cmd promote namespace/name [targetVersion] [tag]
+   sd-cmd promote [namespace/name] [targetVersion] [tag]
 
 EXAMPLE:
    sd-cmd promote foo/bar latest stable
@@ -73,7 +73,7 @@ EXAMPLE:
 Removing a `tag` from a version of published command.
 ```bash
 USAGE:
-   sd-cmd removeTag namespace/name tag
+   sd-cmd removeTag [namespace/name] tag
 
 EXAMPLE:
    sd-cmd removeTag foo/bar stable
