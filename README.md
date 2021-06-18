@@ -52,7 +52,7 @@ USAGE:
 
 OPTIONS:
    -f, --f    Specify the path of yaml to publish (default: sd-command.yaml)
-   -t, --t    Specify the tag given to the command (default: sd-command.yaml)
+   -t, --t    Specify the tag given to the command (default: latest)
 
 EXAMPLE:
    sd-cmd publish -f ./sd-command.yaml -t latest
