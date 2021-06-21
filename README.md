@@ -13,12 +13,16 @@ $ go build -a -o sd-cmd
 ```
 
 ### Execute
+Executing a published command. The arguments for published command can be specified by the following `arguments`.
 ```bash
-$ sd-cmd exec [flags] namespace/name@version [arguments]
+USAGE:
+   sd-cmd exec [options] [namespace/name@version] [arguments...]
 
-# usage
-# Flags:
-#   -debug, --debug    output debug logs to a file
+OPTIONS:
+   -debug, --debug    Output debug logs to a file
+
+EXAMPLE:
+   sd-cmd exec foo/bar@stable arg1 arg2
 ```
 
 #### Debug mode
@@ -26,6 +30,54 @@ In debug mode, the debug log can be output to a file.
 It can be used in one of the following ways.
 - Use `-debug` of `--debug` option
 - Set `SD_CMD_DEBUG_LOG` environment variable to `true`
+
+### Validate
+Validating if yaml is correct as sd-cmd format.
+```bash
+USAGE:
+   sd-cmd validate [options]
+
+OPTIONS:
+   -f, --f string    Specify the path of yaml to validate (default: sd-command.yaml)
+
+EXAMPLE:
+   sd-cmd validate -f ./sd-command.yaml
+```
+
+### Publish
+Publishing a command specified by a yaml.
+```bash
+USAGE:
+   sd-cmd publish [options]
+
+OPTIONS:
+   -f, --f string    Specify the path of yaml to publish (default: sd-command.yaml)
+   -t, --t string    Specify the tag given to the command (default: latest)
+
+EXAMPLE:
+   sd-cmd publish -f ./sd-command.yaml -t latest
+```
+
+### Promote
+Giving a `tag` to a `targetVersion` of command. If a `tag` is already set to another version, that tag will be moved to `targetVersion`. `targetVersion` can be set exact version or tag (e.g. 1.0.1, latest).
+```bash
+USAGE:
+   sd-cmd promote [namespace/name] [targetVersion] [tag]
+
+EXAMPLE:
+   sd-cmd promote foo/bar latest stable
+   sd-cmd promote foo/bar 1.0.1 stable
+```
+
+### Remove tag
+Removing a `tag` from a version of published command.
+```bash
+USAGE:
+   sd-cmd removeTag [namespace/name] [tag]
+
+EXAMPLE:
+   sd-cmd removeTag foo/bar stable
+```
 
 ## Testing
 ```bash
