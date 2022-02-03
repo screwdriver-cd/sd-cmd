@@ -63,6 +63,8 @@ func (d *dummySDAPI) TagCommand(spec *util.CommandSpec, targetVersion, tag strin
 	}, nil
 }
 
+func (d *dummySDAPI) SetVerbose(isVerbose bool) {}
+
 func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 	d := &dummySDAPI{
 		spec: spec,

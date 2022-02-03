@@ -108,6 +108,8 @@ func (d *dummySDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util
 	return nil, nil
 }
 
+func (d *dummySDAPI) SetVerbose(isVerbose bool) {}
+
 func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 	d := &dummySDAPI{
 		spec: spec,
