@@ -28,12 +28,14 @@ type API interface {
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 	TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error)
 	RemoveTagCommand(commandSpec *util.CommandSpec, tag string) (*util.TagResponse, error)
+	SetVerbose(isVerbose bool)
 }
 
 type client struct {
-	baseURL string
-	jwt     string
-	client  *retryhttp.Client
+	baseURL   string
+	jwt       string
+	client    *retryhttp.Client
+	isVerbose bool
 }
 
 // ResponseError is an error response from the Screwdriver API
@@ -57,9 +59,10 @@ func newClient(sdAPI, sdToken string) *client {
 	c := retryhttp.NewClient()
 	c.HTTPClient = &http.Client{Timeout: timeoutSec * time.Second}
 	return &client{
-		baseURL: sdAPI,
-		jwt:     sdToken,
-		client:  c,
+		baseURL:   sdAPI,
+		jwt:       sdToken,
+		client:    c,
+		isVerbose: false,
 	}
 }
 
@@ -364,6 +367,11 @@ func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
 
+	if !c.isVerbose {
+		// Disable http debug output on non verbose mode
+		c.client.Logger = nil
+	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to get http response: %v", err)
@@ -379,4 +387,8 @@ func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.
 	defer resp.Body.Close()
 
 	return body, statusCode, err
+}
+
+func (c *client) SetVerbose(isVerbose bool) {
+	c.isVerbose = isVerbose
 }
