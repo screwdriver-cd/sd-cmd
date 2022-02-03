@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	retryhttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -214,6 +215,80 @@ func TestSendHTTPRequest(t *testing.T) {
 	_, _, err := c.sendHTTPRequest(method, testServer.URL, contentType, payload)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
+	}
+}
+
+func TestSendHTTPRequestOnDebug(t *testing.T) {
+	ns, name, ver := "foo", "bar", "1.0"
+	jsonResponse := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
+	var fakeHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, jsonResponse)
+	})
+
+	testServer := httptest.NewServer(fakeHandler)
+	defer testServer.Close()
+
+	c := newClient(fakeAPIURL, fakeSDToken)
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	// GET
+	method := "GET"
+	contentType := "application/json"
+	// No payload
+	payload := bytes.NewBuffer([]byte(""))
+
+	// Default flag off config off
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	_, _, err := c.sendHTTPRequest(method, testServer.URL, contentType, payload)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	if c.client.Logger != nil {
+		t.Errorf("Logger=%q, want nil", c.client.Logger)
+	}
+
+	// flag on config off
+	c.isDebug = true
+	config.DEBUG = false
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	_, _, err = c.sendHTTPRequest(method, testServer.URL, contentType, payload)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	if c.client.Logger == nil {
+		t.Errorf("Logger=%q, want not nil", c.client.Logger)
+	}
+
+	// flag on config on
+	c.isDebug = true
+	config.DEBUG = true
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	_, _, err = c.sendHTTPRequest(method, testServer.URL, contentType, payload)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	if c.client.Logger == nil {
+		t.Errorf("Logger=%q, want not nil", c.client.Logger)
+	}
+
+	// flag off config on
+	c.isDebug = false
+	config.DEBUG = true
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	_, _, err = c.sendHTTPRequest(method, testServer.URL, contentType, payload)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	if c.client.Logger == nil {
+		t.Errorf("Logger=%q, want not nil", c.client.Logger)
 	}
 }
 

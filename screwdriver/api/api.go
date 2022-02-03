@@ -13,6 +13,7 @@ import (
 	"time"
 
 	retryhttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/util"
 )
 
@@ -28,12 +29,14 @@ type API interface {
 	ValidateCommand(yamlString string) (*util.ValidateResponse, error)
 	TagCommand(commandSpec *util.CommandSpec, targetVersion, tag string) (*util.TagResponse, error)
 	RemoveTagCommand(commandSpec *util.CommandSpec, tag string) (*util.TagResponse, error)
+	SetDebug(isDebug bool)
 }
 
 type client struct {
 	baseURL string
 	jwt     string
 	client  *retryhttp.Client
+	isDebug bool
 }
 
 // ResponseError is an error response from the Screwdriver API
@@ -60,6 +63,7 @@ func newClient(sdAPI, sdToken string) *client {
 		baseURL: sdAPI,
 		jwt:     sdToken,
 		client:  c,
+		isDebug: false,
 	}
 }
 
@@ -364,6 +368,10 @@ func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
 
+	if !(c.isDebug || config.DEBUG) {
+		// Disable http debug output
+		c.client.Logger = nil
+	}
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to get http response: %v", err)
@@ -379,4 +387,8 @@ func (c client) sendHTTPRequest(method, url, contentType string, payload *bytes.
 	defer resp.Body.Close()
 
 	return body, statusCode, err
+}
+
+func (c *client) SetDebug(isDebug bool) {
+	c.isDebug = isDebug
 }

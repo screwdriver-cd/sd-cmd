@@ -93,6 +93,8 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 		return nil, err
 	}
 
+	sdAPI.SetDebug(isDebug)
+
 	spec, err := sdAPI.GetCommand(smallSpec)
 	if err != nil {
 		return nil, err

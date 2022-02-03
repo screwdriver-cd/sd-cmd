@@ -55,6 +55,8 @@ func (d *dummySDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util
 	}, nil
 }
 
+func (d *dummySDAPI) SetDebug(isDebug bool) {}
+
 type dummyInvalidSDAPI struct{}
 
 func (d *dummyInvalidSDAPI) GetCommand(smallSpec *util.CommandSpec) (*util.CommandSpec, error) {
@@ -76,6 +78,8 @@ func (d *dummyInvalidSDAPI) TagCommand(spec *util.CommandSpec, targetVersion, ta
 func (d *dummyInvalidSDAPI) RemoveTagCommand(spec *util.CommandSpec, tag string) (*util.TagResponse, error) {
 	return nil, errors.New("error")
 }
+
+func (d *dummyInvalidSDAPI) SetDebug(isDebug bool) {}
 
 func TestNew(t *testing.T) {
 	sdapi := api.API(new(dummySDAPI))

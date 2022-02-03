@@ -10,6 +10,7 @@ jobs:
             SD_SONAR_OPTS:  "-Dsonar.sources=./ -Dsonar.exclusions=**/*_test.go,**/vendor/** -Dsonar.tests=./ -Dsonar.test.inclusions=**/*_test.go -Dsonar.test.exclusions=**/vendor/** -Dsonar.go.coverage.reportPaths=${SD_ARTIFACTS_DIR}/coverage.out -Dsonar.go.tests.reportPaths=${SD_ARTIFACTS_DIR}/report.json"
         requires: [~commit, ~pr]
         steps:
+            - gover: go version
             - modverify: go mod verify
             - gofmt: /bin/bash -c 'if [[ -n "$(gofmt -l .)" ]]; then echo "gofmt check fails"; gofmt -d .; exit -1; fi'
             - build: GOBIN="$SD_ARTIFACTS_DIR" go install -v ./...
