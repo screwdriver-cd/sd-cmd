@@ -20,6 +20,7 @@ USAGE:
 
 OPTIONS:
    -debug, --debug    Output debug logs to a file
+   -v, --v            Output verbose log to console
 
 EXAMPLE:
    sd-cmd exec foo/bar@stable arg1 arg2

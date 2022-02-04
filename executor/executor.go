@@ -26,7 +26,8 @@ var (
 
 // exec subcommand flags
 var (
-	isDebug = false
+	isDebug   = false
+	isVerbose = false
 )
 
 // Executor is a Executor endpoint
@@ -52,6 +53,7 @@ func prepareLog(smallSpec *util.CommandSpec, isDebug bool) (err error) {
 func parseExecSubCommands(args []string) ([]string, error) {
 	f := flag.NewFlagSet("exec", flag.ContinueOnError)
 	f.BoolVar(&isDebug, "debug", false, "output log to file")
+	f.BoolVar(&isVerbose, "v", false, "output verbose log to console")
 	err := f.Parse(args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse exec args: %w", err)
@@ -92,6 +94,8 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	sdAPI.SetVerbose(isVerbose)
 
 	spec, err := sdAPI.GetCommand(smallSpec)
 	if err != nil {

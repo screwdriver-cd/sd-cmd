@@ -217,6 +217,51 @@ func TestSendHTTPRequest(t *testing.T) {
 	}
 }
 
+func TestSendHTTPRequestOnVerbose(t *testing.T) {
+	ns, name, ver := "foo", "bar", "1.0"
+	jsonResponse := fmt.Sprintf(`{"namespace":"%s","name":"%s","version":"%s","format":"binary","binary":{"file":"./foobar.sh"}}`, ns, name, ver)
+	var fakeHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, jsonResponse)
+	})
+
+	testServer := httptest.NewServer(fakeHandler)
+	defer testServer.Close()
+
+	c := newClient(fakeAPIURL, fakeSDToken)
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	// GET
+	method := "GET"
+	contentType := "application/json"
+	// No payload
+	payload := bytes.NewBuffer([]byte(""))
+
+	// Default flag off
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	_, _, err := c.sendHTTPRequest(method, testServer.URL, contentType, payload)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	if c.client.Logger != nil {
+		t.Errorf("Logger=%q, want nil", c.client.Logger)
+	}
+
+	// flag on
+	c.isVerbose = true
+	c.client = makeFakeHTTPClient(t, 403, "foo", "")
+
+	_, _, err = c.sendHTTPRequest(method, testServer.URL, contentType, payload)
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+
+	if c.client.Logger == nil {
+		t.Errorf("Logger=%q, want not nil", c.client.Logger)
+	}
+}
+
 func TestPostCommand(t *testing.T) {
 	c := newClient(fakeAPIURL, fakeSDToken)
 
