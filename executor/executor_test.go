@@ -141,6 +141,8 @@ func (d *dummyStore) GetCommand() (*store.Command, error) {
 	return storeCmd, d.err
 }
 
+func (d *dummyStore) SetVerbose(isVerbose bool) {}
+
 func dummyCommandSpec(format string) (spec *util.CommandSpec) {
 	spec = &util.CommandSpec{
 		Namespace:   dummyNameSpace,

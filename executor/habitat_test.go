@@ -24,7 +24,7 @@ func fakeExecCommand(name string, args ...string) *exec.Cmd {
 }
 
 func TestNewHabitat(t *testing.T) {
-	_, err := NewHabitat(dummyCommandSpec(habitatFormat), dummyArgs)
+	_, err := NewHabitat(dummyCommandSpec(habitatFormat), dummyArgs, false)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -32,7 +32,7 @@ func TestNewHabitat(t *testing.T) {
 
 func TestGetPkgDirPath(t *testing.T) {
 	spec := dummyCommandSpec(habitatFormat)
-	hab, _ := NewHabitat(spec, []string{})
+	hab, _ := NewHabitat(spec, []string{}, false)
 	hab.Store = newDummyStore(validShell, spec, nil)
 	// Note: config.BaseCommandPath is customized for test.
 	// see executor/executor_test.go
@@ -41,14 +41,14 @@ func TestGetPkgDirPath(t *testing.T) {
 
 func TestGetPkgFilePath(t *testing.T) {
 	spec := dummyCommandSpec(habitatFormat)
-	hab, _ := NewHabitat(spec, []string{})
+	hab, _ := NewHabitat(spec, []string{}, false)
 	hab.Store = newDummyStore(validShell, spec, nil)
 	assert.Equal(t, hab.getPkgFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/dummy.hart"))
 }
 
 func TestIsDownloaded(t *testing.T) {
 	spec := dummyCommandSpec(habitatFormat)
-	hab, _ := NewHabitat(spec, []string{})
+	hab, _ := NewHabitat(spec, []string{}, false)
 	hab.Store = newDummyStore(validShell, spec, nil)
 	// Not exists
 	assert.False(t, hab.isDownloaded())
@@ -74,7 +74,7 @@ func TestRunHabitat(t *testing.T) {
 	spec := dummyCommandSpec(habitatFormat)
 
 	// case remote mode
-	hab, _ := NewHabitat(spec, dummyArgs)
+	hab, _ := NewHabitat(spec, dummyArgs, false)
 	err := hab.Run()
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
@@ -83,7 +83,7 @@ func TestRunHabitat(t *testing.T) {
 	// case local mode
 	spec.Habitat.Mode = "local"
 	os.Setenv("HABITAT_MODE", "local")
-	hab, _ = NewHabitat(spec, dummyArgs)
+	hab, _ = NewHabitat(spec, dummyArgs, false)
 	hab.Store = newDummyStore(validShell, spec, nil)
 	err = hab.Run()
 	if err != nil {
