@@ -12,7 +12,7 @@ import (
 )
 
 func TestNewBinary(t *testing.T) {
-	_, err := NewBinary(dummyCommandSpec(binaryFormat), []string{"arg1", "arg2"})
+	_, err := NewBinary(dummyCommandSpec(binaryFormat), []string{"arg1", "arg2"}, false)
 	if err != nil {
 		t.Errorf("err=%q, want nil", err)
 	}
@@ -20,7 +20,7 @@ func TestNewBinary(t *testing.T) {
 
 func TestGetBinDirPath(t *testing.T) {
 	spec := dummyCommandSpec(binaryFormat)
-	bin, _ := NewBinary(spec, []string{})
+	bin, _ := NewBinary(spec, []string{}, false)
 	bin.Store = newDummyStore(validShell, spec, nil)
 	// Note: config.BaseCommandPath is customized for test.
 	// see executor/executor_test.go
@@ -29,14 +29,14 @@ func TestGetBinDirPath(t *testing.T) {
 
 func TestGetBinFilePath(t *testing.T) {
 	spec := dummyCommandSpec(binaryFormat)
-	bin, _ := NewBinary(spec, []string{})
+	bin, _ := NewBinary(spec, []string{}, false)
 	bin.Store = newDummyStore(validShell, spec, nil)
 	assert.Equal(t, bin.getBinFilePath(), filepath.Join(config.BaseCommandPath, "foo-dummy/name-dummy/1.0.1/sd-step"))
 }
 
 func TestIsInstalled(t *testing.T) {
 	spec := dummyCommandSpec(binaryFormat)
-	bin, _ := NewBinary(spec, []string{})
+	bin, _ := NewBinary(spec, []string{}, false)
 	bin.Store = newDummyStore(validShell, spec, nil)
 	// Not exists
 	assert.False(t, bin.isInstalled())
@@ -59,7 +59,7 @@ func TestRun(t *testing.T) {
 
 	spec := dummyCommandSpec(binaryFormat)
 	// success with no arguments
-	bin, _ := NewBinary(spec, []string{})
+	bin, _ := NewBinary(spec, []string{}, false)
 	bin.Store = newDummyStore(validShell, spec, nil)
 	err := bin.Run()
 	if err != nil {
@@ -80,7 +80,7 @@ func TestRun(t *testing.T) {
 
 	// success binary.file is relative path
 	spec.Binary.File = "./sample/relative_path"
-	bin, _ = NewBinary(spec, []string{})
+	bin, _ = NewBinary(spec, []string{}, false)
 	bin.Store = newDummyStore(validShell, spec, nil)
 	err = bin.Run()
 	if err != nil {
@@ -98,7 +98,7 @@ func TestRun(t *testing.T) {
 	os.Remove(binPath)
 
 	// success with arguments
-	bin, _ = NewBinary(spec, []string{"arg1", "arg2"})
+	bin, _ = NewBinary(spec, []string{"arg1", "arg2"}, false)
 	bin.Store = newDummyStore(validShell, spec, nil)
 	err = bin.Run()
 	if err != nil {
@@ -108,7 +108,7 @@ func TestRun(t *testing.T) {
 	os.Remove(binPath)
 
 	// failure. the command is broken
-	bin, _ = NewBinary(dummyCommandSpec(binaryFormat), []string{})
+	bin, _ = NewBinary(dummyCommandSpec(binaryFormat), []string{}, false)
 	bin.Store = newDummyStore(invalidShell, spec, nil)
 	err = bin.Run()
 	if err == nil {
@@ -117,7 +117,7 @@ func TestRun(t *testing.T) {
 	os.Remove(binPath)
 
 	// failure. the store api return error
-	bin, _ = NewBinary(spec, []string{})
+	bin, _ = NewBinary(spec, []string{}, false)
 	bin.Store = newDummyStore(validShell, spec, fmt.Errorf("store cause error"))
 	err = bin.Run()
 	if err == nil {

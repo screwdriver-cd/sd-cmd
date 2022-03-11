@@ -21,8 +21,10 @@ type Binary struct {
 }
 
 // NewBinary returns Binary object
-func NewBinary(spec *util.CommandSpec, arg []string) (*Binary, error) {
+func NewBinary(spec *util.CommandSpec, arg []string, isVerbose bool) (*Binary, error) {
 	storeapi := store.New(config.SDStoreURL, spec, config.SDToken)
+
+	storeapi.SetVerbose(isVerbose)
 
 	binary := &Binary{
 		Args:  arg,

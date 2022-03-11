@@ -156,6 +156,46 @@ func TestGetCommand(t *testing.T) {
 	}
 }
 
+func TestGetCommandOnVerbose(t *testing.T) {
+	spec := dummyCommandSpec(binaryFormat)
+	c := newClient(config.SDStoreURL, spec, config.SDToken)
+	store := Store(c)
+	dummyURL := fmt.Sprintf("/v1/commands/%s/%s/%s", dummyNameSpace, dummyName, dummyVersion)
+
+	// Default flag off
+	c.client = makeFakeHTTPClient(t, 200, "Hello World", dummyURL, "text/plain")
+	cmd, err := store.GetCommand()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+	if cmd.Type != "text/plain" {
+		t.Errorf("cmd.Type=%q, want %q", cmd.Type, "text/plain")
+	}
+	if string(cmd.Body) != "Hello World" {
+		t.Errorf("cmd.Body=%q, want %q", string(cmd.Body), "Hello World")
+	}
+	if c.client.Logger != nil {
+		t.Errorf("Logger=%q, want nil", c.client.Logger)
+	}
+
+	// flag on
+	c.isVerbose = true
+	c.client = makeFakeHTTPClient(t, 200, "Hello World", dummyURL, "text/plain")
+	cmd, err = store.GetCommand()
+	if err != nil {
+		t.Errorf("err=%q, want nil", err)
+	}
+	if cmd.Type != "text/plain" {
+		t.Errorf("cmd.Type=%q, want %q", cmd.Type, "text/plain")
+	}
+	if string(cmd.Body) != "Hello World" {
+		t.Errorf("cmd.Body=%q, want %q", string(cmd.Body), "Hello World")
+	}
+	if c.client.Logger == nil {
+		t.Errorf("Logger=%q, want not nil", c.client.Logger)
+	}
+}
+
 func TestMain(m *testing.M) {
 	setup()
 	ret := m.Run()

@@ -20,8 +20,10 @@ type Habitat struct {
 }
 
 // NewHabitat returns the Habitat struct
-func NewHabitat(spec *util.CommandSpec, args []string) (habitat *Habitat, err error) {
+func NewHabitat(spec *util.CommandSpec, args []string, isVerbose bool) (habitat *Habitat, err error) {
 	storeapi := store.New(config.SDStoreURL, spec, config.SDToken)
+
+	storeapi.SetVerbose(isVerbose)
 
 	habitat = &Habitat{
 		Args:  args,

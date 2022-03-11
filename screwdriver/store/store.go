@@ -21,13 +21,15 @@ const (
 // Store is a Store API endpoint
 type Store interface {
 	GetCommand() (*Command, error)
+	SetVerbose(isVerbose bool)
 }
 
 type client struct {
-	baseURL string
-	client  *retryhttp.Client
-	spec    *util.CommandSpec
-	jwt     string
+	baseURL   string
+	client    *retryhttp.Client
+	spec      *util.CommandSpec
+	jwt       string
+	isVerbose bool
 }
 
 // ResponseError is an error response from the Store API
@@ -69,10 +71,11 @@ func newClient(baseURL string, spec *util.CommandSpec, sdToken string) *client {
 	cli := retryhttp.NewClient()
 	cli.HTTPClient.Timeout = timeoutSec * time.Second
 	return &client{
-		baseURL: baseURL,
-		client:  cli,
-		spec:    spec,
-		jwt:     sdToken,
+		baseURL:   baseURL,
+		client:    cli,
+		spec:      spec,
+		jwt:       sdToken,
+		isVerbose: false,
 	}
 }
 
@@ -124,6 +127,12 @@ func (c client) GetCommand() (*Command, error) {
 		return nil, fmt.Errorf("Failed to create request about command to Store API: %v", err)
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
+
+	if !c.isVerbose {
+		// Disable http debug output on non verbose mode
+		c.client.Logger = nil
+	}
+
 	res, err := c.client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get command from Store API: %v", err)
@@ -136,4 +145,8 @@ func (c client) GetCommand() (*Command, error) {
 	command.Type = parseContentType(res.Header.Get("Content-type"))
 	command.Body = body
 	return command, nil
+}
+
+func (c *client) SetVerbose(isVerbose bool) {
+	c.isVerbose = isVerbose
 }

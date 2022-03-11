@@ -104,9 +104,9 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 
 	switch spec.Format {
 	case "binary":
-		return NewBinary(spec, args[pos+1:])
+		return NewBinary(spec, args[pos+1:], isVerbose)
 	case "habitat":
-		return NewHabitat(spec, args[pos+1:])
+		return NewHabitat(spec, args[pos+1:], isVerbose)
 	case "docker":
 		return nil, errors.New("the docker format is not yet implemented")
 	default:
