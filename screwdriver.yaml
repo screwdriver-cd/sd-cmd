@@ -13,7 +13,7 @@ jobs:
             - modverify: go mod verify
             - gofmt: /bin/bash -c 'if [[ -n "$(gofmt -l .)" ]]; then echo "gofmt check fails"; gofmt -d .; exit -1; fi'
             - build: GOBIN="$SD_ARTIFACTS_DIR" go install -v ./...
-            - test-setup: go get gotest.tools/gotestsum@v0.6.0
+            - test-setup: go get gotest.tools/gotestsum@latest
             - test: gotestsum --format testname --jsonfile ${SD_ARTIFACTS_DIR}/report.json -- -coverprofile=${SD_ARTIFACTS_DIR}/coverage.out ./...
 
     publish:
