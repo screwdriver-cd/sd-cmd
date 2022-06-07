@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -64,23 +65,31 @@ func (b *Binary) download() error {
 }
 
 func (b *Binary) install() error {
-	if err := os.MkdirAll(b.getBinDirPath(), 0777); err != nil {
+	binDirPath := b.getBinDirPath()
+	if err := os.MkdirAll(binDirPath, 0777); err != nil {
 		return fmt.Errorf("Failed to create command directory: %v", err)
 	}
 
-	path := b.getBinFilePath()
-	file, err := os.Create(path)
+	tempFile, err := ioutil.TempFile(binDirPath, "download")
 	if err != nil {
-		return fmt.Errorf("Failed to create command file: %v", err)
+		return fmt.Errorf("Failed to create command temporary file: %v", err)
 	}
-	defer file.Close()
-
-	_, err = file.Write(b.Command.Body)
+	tempFileName := tempFile.Name()
+	// ignore error on file remove intentionally
+	defer os.Remove(tempFileName)
+	_, err = tempFile.Write(b.Command.Body)
+	closeError := tempFile.Close()
 	if err != nil {
 		return fmt.Errorf("Failed to write command file: %v", err)
 	}
-	if err := os.Chmod(path, 0777); err != nil {
+	if closeError != nil {
+		return fmt.Errorf("Failed to close command file: %v", closeError)
+	}
+	if err := os.Chmod(tempFileName, 0777); err != nil {
 		return fmt.Errorf("Failed to change the access permissions of command file: %v", err)
+	}
+	if err := os.Rename(tempFileName, b.getBinFilePath()); err != nil {
+		return fmt.Errorf("Failed to rename temporary file to real name: %v", err)
 	}
 	return nil
 }

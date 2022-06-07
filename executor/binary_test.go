@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -123,5 +125,51 @@ func TestRun(t *testing.T) {
 	if err == nil {
 		t.Errorf("err=nil, want error")
 	}
+	os.Remove(binPath)
+}
+
+func TestRunParallel(t *testing.T) {
+	// run same command simultaneously: sleep 1
+	// this `command` should be binary (not shell script), to replicate "text busy" problem.
+	spec := dummyCommandSpec(binaryFormat)
+	spec.Binary.File = "sleep"
+	binPath := filepath.Join(config.BaseCommandPath, spec.Namespace, spec.Name, spec.Version, spec.Binary.File)
+	sleepBinary, err := os.ReadFile("/bin/sleep")
+	if err != nil {
+		t.Errorf("should be able to get sleep binary, but failed: %q", err)
+	}
+	parallelCount := 4
+
+	readyLock := sync.RWMutex{}
+	readyLock.Lock()
+	readyWg := sync.WaitGroup{}
+	wg := sync.WaitGroup{}
+	for i := 0; i < parallelCount; i++ {
+		bin, _ := NewBinary(spec, []string{"1"}, false)
+		store := newDummyStore("", spec, nil).(*dummyStore)
+		store.getCommandDelay = time.Duration(100*i) * time.Millisecond
+		store.body = sleepBinary
+		bin.Store = store
+		wg.Add(1)
+		readyWg.Add(1)
+		go func(i int, bin *Binary) {
+			// wait until all goroutine ready
+			readyWg.Done()
+			readyLock.RLock()
+			defer readyLock.RUnlock()
+			defer wg.Done()
+
+			// sanity check to not already downloaded
+			if bin.isInstalled() {
+				t.Errorf("failed to synchronize: want parallel with %v, but failed on %vth task", parallelCount, i+2)
+			}
+			if err := bin.Run(); err != nil {
+				t.Errorf("err=%q, want nil", err)
+			}
+		}(i, bin)
+	}
+	readyWg.Wait()
+	readyLock.Unlock()
+	wg.Wait()
 	os.Remove(binPath)
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/screwdriver-cd/sd-cmd/config"
 	"github.com/screwdriver-cd/sd-cmd/logger"
@@ -119,9 +120,10 @@ func newDummySDAPI(spec *util.CommandSpec, err error) api.API {
 }
 
 type dummyStore struct {
-	body []byte
-	spec *util.CommandSpec
-	err  error
+	body            []byte
+	getCommandDelay time.Duration
+	spec            *util.CommandSpec
+	err             error
 }
 
 func newDummyStore(body string, spec *util.CommandSpec, err error) store.Store {
@@ -134,6 +136,9 @@ func newDummyStore(body string, spec *util.CommandSpec, err error) store.Store {
 }
 
 func (d *dummyStore) GetCommand() (*store.Command, error) {
+	if d.getCommandDelay != 0 {
+		time.Sleep(d.getCommandDelay)
+	}
 	storeCmd := &store.Command{
 		Body: d.body,
 		Spec: d.spec,
