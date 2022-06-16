@@ -86,7 +86,7 @@ go get github.com/screwdriver-cd/sd-cmd
 go test -cover github.com/screwdriver-cd/sd-cmd/...
 ```
 
-## Configuration
+## Local configuration
 We can run sd-cmd locally by setting the environment variable as follows.
 ```bash
 $ export SD_API_URL=${YOUR_SD_API_HOST}/v4/
