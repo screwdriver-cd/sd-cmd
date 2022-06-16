@@ -86,6 +86,16 @@ go get github.com/screwdriver-cd/sd-cmd
 go test -cover github.com/screwdriver-cd/sd-cmd/...
 ```
 
+## Configuration
+We can run sd-cmd locally by setting the environment variable as follows.
+```bash
+$ export SD_API_URL=${YOUR_SD_API_HOST}/v4/
+$ export SD_STORE_URL=${YOUR_SD_STORE_HOST}/v1/
+$ export SD_TOKEN=${YOUR_USER_ACCESS_TOKEN}
+```
+
+Only `execute` and `validate` can be used　in local, but not `publish`, `promote`, and `remove tag`.
+
 ## License
 Code licensed under the BSD 3-Clause license. See LICENSE file for terms.
 
