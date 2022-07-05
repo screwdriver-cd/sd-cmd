@@ -90,9 +90,9 @@ go test -cover github.com/screwdriver-cd/sd-cmd/...
 We can run sd-cmd locally by setting the environment variable as follows.
 Only `execute` and `validate` can be used　in local, but not `publish`, `promote`, and `remove tag`.
 ```bash
-// e.g. `https://api.screwdriver.cd/v4/`
+# e.g. https://api.screwdriver.cd/v4/
 $ export SD_API_URL=${YOUR_SD_API_HOST}/v4/
-// e.g. `https://store.screwdriver.cd/v1/`
+# e.g. https://store.screwdriver.cd/v1/
 $ export SD_STORE_URL=${YOUR_SD_STORE_HOST}/v1/
 $ export SD_TOKEN=${YOUR_USER_ACCESS_TOKEN_JWT}
 $ export SD_ARTIFACTS_DIR=${DIRECTORY_TO_OUTPUT_LOGS}
