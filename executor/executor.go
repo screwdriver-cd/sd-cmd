@@ -116,27 +116,8 @@ func New(sdAPI api.API, args []string) (Executor, error) {
 
 func execCommand(path string, args []string) (err error) {
 	cmd := command(path, args...)
-	errChan := make(chan error, 1)
 	if !terminal.IsTerminal(syscall.Stdin) {
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			lgr.Debug.Printf("failed to open StdinPipe: %v", err)
-			return err
-		}
-		go func() {
-			defer stdin.Close()
-			defer close(errChan)
-			// Note: we must use goroutine,
-			// because when writing data exceeding pipe capacity this line is blocked until reading it.
-			_, err = io.Copy(stdin, os.Stdin)
-			errChan <- err
-			if err != nil {
-				lgr.Debug.Printf("failed to copy piped command stdin from os.Stdin: %v", err)
-			}
-		}()
-	} else {
-		// not used.
-		close(errChan)
+		cmd.Stdin = os.Stdin
 	}
 
 	lgr.Debug.Println("mmmmmm START COMMAND OUTPUT mmmmmm")
@@ -148,11 +129,6 @@ func execCommand(path string, args []string) (err error) {
 
 	lgr.Debug.Println("mmmmmm FINISH COMMAND OUTPUT mmmmmm")
 
-	// Note: closed channel returns buffered message or a zero value if it is empty.
-	stdinErr := <-errChan
-	if stdinErr != nil {
-		return stdinErr
-	}
 	if err != nil {
 		lgr.Debug.Printf("failed to exec command: %v", err)
 		return
