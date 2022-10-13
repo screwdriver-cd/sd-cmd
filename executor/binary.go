@@ -115,7 +115,9 @@ func (b *Binary) Run() error {
 		}
 	}
 
+	binarySpec := b.Spec
 	lgr.Debug.Println("start executing binary command.")
+	lgr.Debug.Println("Namespace:", binarySpec.Namespace, ",Name:", binarySpec.Name, ",version:", binarySpec.Version)
 	err := execCommand(b.getBinFilePath(), b.Args)
 	if err != nil {
 		lgr.Debug.Println(err)

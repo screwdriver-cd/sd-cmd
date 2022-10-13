@@ -119,7 +119,9 @@ func (h *Habitat) Run() (err error) {
 		return
 	}
 
+	habitatSpec := h.Spec
 	lgr.Debug.Println("start executing habitat command.")
+	lgr.Debug.Println("Namespace:", habitatSpec.Namespace, ",Name:", habitatSpec.Name, ",Version:", habitatSpec.Version)
 	err = h.exec()
 	if err != nil {
 		lgr.Debug.Println(err)
